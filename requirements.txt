@@ -1,0 +1,28 @@
+# Trello MCP Server Dependencies
+# Core MCP framework
+fastmcp>=0.1.0
+
+# HTTP requests and API communication
+requests>=2.31.0
+
+# Environment variable management
+python-dotenv>=1.0.0
+
+# Type hints and validation
+typing-extensions>=4.0.0
+
+# JSON schema validation (for MCP protocol)
+jsonschema>=4.0.0
+
+# Optional: For development and testing
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+
+# Optional: For enhanced HTTP features
+httpx>=0.24.0
+
+# Optional: For data validation
+pydantic>=2.0.0
+
+# Optional: For better error handling
+tenacity>=8.0.0
