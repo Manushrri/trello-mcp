@@ -1,6 +1,6 @@
 # Trello MCP Server
 
-A comprehensive Model Context Protocol (MCP) server that provides extensive Trello integration capabilities. This server offers 150+ tools for complete Trello management, enabling seamless card operations, board management, action tracking, and workflow automation through a standardized MCP interface.
+A comprehensive Model Context Protocol (MCP) server that provides extensive Trello integration capabilities. This server offers **140 tools** for complete Trello management, enabling seamless card operations, board management, action tracking, and workflow automation through a standardized MCP interface.
 
 ## 🚀 Quick Start
 
@@ -195,7 +195,7 @@ The server provides tools that can be used by MCP-compatible clients. All tools 
 }
 ```
 
-## Available Tools (150+ Tools)
+## Available Tools (140 Tools - Fully Implemented)
 
 ### 🔧 Card Operations (25+ tools)
 - `TRELLO_GET_CARDS_BY_ID_CARD` - Get card by ID with full details
@@ -337,8 +337,9 @@ The server provides tools that can be used by MCP-compatible clients. All tools 
 
 ## Recent Updates & Improvements
 
-### 🚀 New Features Added (Latest)
-- **Comprehensive GET Operations**: 80+ new tools for detailed data retrieval
+### 🚀 Current Implementation Status
+- **140 Tools Implemented**: Complete Trello integration with comprehensive coverage
+- **Comprehensive GET Operations**: 80+ tools for detailed data retrieval
 - **Field-Level Access**: Get specific fields or all data with "all" parameter
 - **Card Relationship Tools**: Get board, list, members, stickers, and attachments for cards
 - **Board Management Tools**: Get members, organization, preferences, and detailed board info
@@ -364,7 +365,7 @@ The server provides tools that can be used by MCP-compatible clients. All tools 
 - **Label Management**: 5+ tools for label operations and relationships
 - **Action Analysis**: 20+ tools for action tracking and analysis
 - **Legacy Tools**: 50+ tools for create, update, and delete operations
-- **Total Tools**: 150+ comprehensive Trello integration tools
+- **Total Tools**: 140 comprehensive Trello integration tools
 
 ## Response Format
 
