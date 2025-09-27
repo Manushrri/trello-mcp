@@ -4482,6 +4482,3296 @@ def TRELLO_GET_LISTS_ACTIONS_BY_ID_LIST(
             "message": f"Failed to retrieve actions for list {id_list}"
         }
 
+@mcp.tool(
+    "TRELLO_GET_LISTS_BOARD_BY_ID_LIST",
+    description="Get board by list ID. Retrieves the board to which a specific trello list belongs.",
+)
+def TRELLO_GET_LISTS_BOARD_BY_ID_LIST(
+    id_list: Annotated[str, "The ID of the list to get the board for."],
+    fields: Annotated[str, "The fields to retrieve from the board (e.g., id, name, desc, closed). Defaults to all."] = "all"
+):
+    """Get board by list ID. Retrieves the board to which a specific trello list belongs."""
+    err = _validate_required({"id_list": id_list}, ["id_list"])
+    if err:
+        return err
+    
+    try:
+        # Get board for the list
+        endpoint = f"/lists/{id_list}/board"
+        
+        # Build query parameters
+        params = {}
+        if fields is not None:
+            params["fields"] = fields
+        
+        # Make the API request
+        result = trello_request("GET", endpoint, params=params)
+        
+        if not isinstance(result, dict):
+            return {
+                "successful": False,
+                "error": "Invalid board data received",
+                "action": "get_list_board",
+                "list_id": id_list,
+                "message": f"Failed to retrieve board for list {id_list}"
+            }
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "get_list_board",
+            "list_id": id_list,
+            "board_id": result.get("id"),
+            "board_name": result.get("name"),
+            "message": f"Successfully retrieved board for list {id_list}",
+            "board": result
+        }
+    except Exception as e:
+        return {
+            "successful": False,
+            "error": f"Failed to retrieve list board: {str(e)}",
+            "action": "get_list_board",
+            "list_id": id_list,
+            "message": f"Failed to retrieve board for list {id_list}"
+        }
+
+@mcp.tool(
+    "TRELLO_GET_LISTS_BOARD_BY_ID_LIST_BY_FIELD",
+    description="Get board field by list ID. Retrieves a specific field (e.g., 'name', 'desc', 'url') from the trello board associated with a given list id, useful when the board's id is not directly known.",
+)
+def TRELLO_GET_LISTS_BOARD_BY_ID_LIST_BY_FIELD(
+    id_list: Annotated[str, "The ID of the list to get the board field for."],
+    field: Annotated[str, "The specific field to retrieve from the board (e.g., name, desc, url, closed, idOrganization)."]
+):
+    """Get board field by list ID. Retrieves a specific field (e.g., 'name', 'desc', 'url') from the trello board associated with a given list id, useful when the board's id is not directly known."""
+    err = _validate_required({"id_list": id_list, "field": field}, ["id_list", "field"])
+    if err:
+        return err
+    
+    try:
+        # Get specific field from board for the list
+        endpoint = f"/lists/{id_list}/board"
+        
+        # Build query parameters
+        params = {
+            "fields": field
+        }
+        
+        # Make the API request
+        result = trello_request("GET", endpoint, params=params)
+        
+        if not isinstance(result, dict):
+            return {
+                "successful": False,
+                "error": "Invalid board data received",
+                "action": "get_list_board_field",
+                "list_id": id_list,
+                "field": field,
+                "message": f"Failed to retrieve board field '{field}' for list {id_list}"
+            }
+        
+        # Extract the specific field value
+        field_value = result.get(field)
+        
+        return {
+            "successful": True,
+            "data": {field: field_value},
+            "action": "get_list_board_field",
+            "list_id": id_list,
+            "field": field,
+            "field_value": field_value,
+            "message": f"Successfully retrieved board field '{field}' for list {id_list}",
+            "board_field": field_value
+        }
+    except Exception as e:
+        return {
+            "successful": False,
+            "error": f"Failed to retrieve list board field: {str(e)}",
+            "action": "get_list_board_field",
+            "list_id": id_list,
+            "field": field,
+            "message": f"Failed to retrieve board field '{field}' for list {id_list}"
+        }
+
+@mcp.tool(
+    "TRELLO_GET_LISTS_BY_ID_LIST",
+    description="Get list by ID. Retrieves a trello list by its unique id, optionally including details for its cards and parent board.",
+)
+def TRELLO_GET_LISTS_BY_ID_LIST(
+    id_list: Annotated[str, "The ID of the list to retrieve."],
+    board: Annotated[str | None, "Whether to include board information."] = None,
+    board_fields: Annotated[str, "The fields to retrieve from the board. Defaults to name, desc, descData, closed, idOrganization, pinned, url and prefs."] = "name,desc,descData,closed,idOrganization,pinned,url,prefs",
+    card_fields: Annotated[str, "The fields to retrieve from cards. Defaults to all."] = "all",
+    cards: Annotated[str, "Whether to include cards in the response. Defaults to none."] = "none",
+    fields: Annotated[str, "The fields to retrieve from the list. Defaults to name, closed, idBoard and pos."] = "name,closed,idBoard,pos"
+):
+    """Get list by ID. Retrieves a trello list by its unique id, optionally including details for its cards and parent board."""
+    err = _validate_required({"id_list": id_list}, ["id_list"])
+    if err:
+        return err
+    
+    try:
+        # Get list by ID
+        endpoint = f"/lists/{id_list}"
+        
+        # Build query parameters
+        params = {}
+        if board is not None:
+            params["board"] = board
+        if board_fields is not None:
+            params["board_fields"] = board_fields
+        if card_fields is not None:
+            params["card_fields"] = card_fields
+        if cards is not None:
+            params["cards"] = cards
+        if fields is not None:
+            params["fields"] = fields
+        
+        # Make the API request
+        result = trello_request("GET", endpoint, params=params)
+        
+        if not isinstance(result, dict):
+            return {
+                "successful": False,
+                "error": "Invalid list data received",
+                "action": "get_list",
+                "list_id": id_list,
+                "message": f"Failed to retrieve list {id_list}"
+            }
+        
+        # Extract key information
+        list_name = result.get("name")
+        list_closed = result.get("closed")
+        board_id = result.get("idBoard")
+        cards_data = result.get("cards", [])
+        board_data = result.get("board")
+        
+        response = {
+            "successful": True,
+            "data": result,
+            "action": "get_list",
+            "list_id": id_list,
+            "list_name": list_name,
+            "list_closed": list_closed,
+            "board_id": board_id,
+            "message": f"Successfully retrieved list {id_list}",
+            "list": result
+        }
+        
+        # Add cards information if included
+        if cards_data:
+            response["cards_count"] = len(cards_data)
+            response["cards"] = cards_data
+        
+        # Add board information if included
+        if board_data:
+            response["board"] = board_data
+            response["board_name"] = board_data.get("name")
+        
+        return response
+    except Exception as e:
+        return {
+            "successful": False,
+            "error": f"Failed to retrieve list: {str(e)}",
+            "action": "get_list",
+            "list_id": id_list,
+            "message": f"Failed to retrieve list {id_list}"
+        }
+
+@mcp.tool(
+    "TRELLO_GET_LISTS_BY_ID_LIST_BY_FIELD",
+    description="Get list field value. Fetches the value of a single, specified field from a trello list.",
+)
+def TRELLO_GET_LISTS_BY_ID_LIST_BY_FIELD(
+    id_list: Annotated[str, "The ID of the list to get the field from."],
+    field: Annotated[str, "The specific field to retrieve from the list (e.g., name, closed, idBoard, pos)."]
+):
+    """Get list field value. Fetches the value of a single, specified field from a trello list."""
+    err = _validate_required({"id_list": id_list, "field": field}, ["id_list", "field"])
+    if err:
+        return err
+    
+    try:
+        # Get specific field from list
+        endpoint = f"/lists/{id_list}"
+        
+        # Build query parameters
+        params = {
+            "fields": field
+        }
+        
+        # Make the API request
+        result = trello_request("GET", endpoint, params=params)
+        
+        if not isinstance(result, dict):
+            return {
+                "successful": False,
+                "error": "Invalid list data received",
+                "action": "get_list_field",
+                "list_id": id_list,
+                "field": field,
+                "message": f"Failed to retrieve list field '{field}' for list {id_list}"
+            }
+        
+        # Extract the specific field value
+        field_value = result.get(field)
+        
+        return {
+            "successful": True,
+            "data": {field: field_value},
+            "action": "get_list_field",
+            "list_id": id_list,
+            "field": field,
+            "field_value": field_value,
+            "message": f"Successfully retrieved list field '{field}' for list {id_list}",
+            "list_field": field_value
+        }
+    except Exception as e:
+        return {
+            "successful": False,
+            "error": f"Failed to retrieve list field: {str(e)}",
+            "action": "get_list_field",
+            "list_id": id_list,
+            "field": field,
+            "message": f"Failed to retrieve list field '{field}' for list {id_list}"
+        }
+
+@mcp.tool(
+    "TRELLO_GET_LISTS_CARDS_BY_ID_LIST_BY_FILTER",
+    description="Get list cards by filter. Retrieves cards from a specific trello list, filtered by criteria like 'open', 'closed', or 'all'.",
+)
+def TRELLO_GET_LISTS_CARDS_BY_ID_LIST_BY_FILTER(
+    id_list: Annotated[str, "The ID of the list to get cards from."],
+    filter: Annotated[str, "The filter criteria for cards (e.g., 'open', 'closed', 'all')."]
+):
+    """Get list cards by filter. Retrieves cards from a specific trello list, filtered by criteria like 'open', 'closed', or 'all'."""
+    err = _validate_required({"id_list": id_list, "filter": filter}, ["id_list", "filter"])
+    if err:
+        return err
+    
+    try:
+        # Get cards from the list with filter
+        endpoint = f"/lists/{id_list}/cards"
+        
+        # Build query parameters
+        params = {
+            "filter": filter
+        }
+        
+        # Make the API request
+        result = trello_request("GET", endpoint, params=params)
+        
+        if not isinstance(result, list):
+            return {
+                "successful": False,
+                "error": "Invalid cards data received",
+                "action": "get_list_cards_filtered",
+                "list_id": id_list,
+                "filter": filter,
+                "message": f"Failed to retrieve cards with filter '{filter}' for list {id_list}"
+            }
+        
+        # Extract key information
+        cards_count = len(result)
+        open_cards = [card for card in result if not card.get("closed", False)]
+        closed_cards = [card for card in result if card.get("closed", False)]
+        
+        response = {
+            "successful": True,
+            "data": result,
+            "action": "get_list_cards_filtered",
+            "list_id": id_list,
+            "filter": filter,
+            "cards_count": cards_count,
+            "open_cards_count": len(open_cards),
+            "closed_cards_count": len(closed_cards),
+            "message": f"Successfully retrieved {cards_count} cards with filter '{filter}' for list {id_list}",
+            "cards": result
+        }
+        
+        # Add filter-specific information
+        if filter == "open":
+            response["note"] = "Showing only open (non-closed) cards"
+        elif filter == "closed":
+            response["note"] = "Showing only closed cards"
+        elif filter == "all":
+            response["note"] = "Showing all cards (open and closed)"
+        else:
+            response["note"] = f"Cards filtered by criteria: {filter}"
+        
+        return response
+    except Exception as e:
+        return {
+            "successful": False,
+            "error": f"Failed to retrieve list cards: {str(e)}",
+            "action": "get_list_cards_filtered",
+            "list_id": id_list,
+            "filter": filter,
+            "message": f"Failed to retrieve cards with filter '{filter}' for list {id_list}"
+        }
+
+@mcp.tool(
+    "TRELLO_GET_MEMBER_BOARD_BACKGROUND",
+    description="Get Member Board Background. Retrieves a specific custom board background for a trello member, using the member's id and the custom board background's id.",
+)
+def TRELLO_GET_MEMBER_BOARD_BACKGROUND(
+    id_member: Annotated[str, "The ID of the member to get the custom board background for."],
+    id_board_background: Annotated[str, "The ID of the custom board background to retrieve."],
+    fields: Annotated[str, "The fields to retrieve from the custom board background (e.g., id, name, brightness, tile). Defaults to all."] = "all"
+):
+    """Get Member Board Background. Retrieves a specific custom board background for a trello member, using the member's id and the custom board background's id."""
+    err = _validate_required({"id_member": id_member, "id_board_background": id_board_background}, ["id_member", "id_board_background"])
+    if err:
+        return err
+    
+    try:
+        # Get member custom board background
+        endpoint = f"/members/{id_member}/customBoardBackgrounds/{id_board_background}"
+        
+        # Build query parameters
+        params = {}
+        if fields is not None:
+            params["fields"] = fields
+        
+        # Make the API request
+        result = trello_request("GET", endpoint, params=params)
+        
+        if not isinstance(result, dict):
+            return {
+                "successful": False,
+                "error": "Invalid board background data received",
+                "action": "get_member_board_background",
+                "member_id": id_member,
+                "board_background_id": id_board_background,
+                "message": f"Failed to retrieve board background {id_board_background} for member {id_member}"
+            }
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "get_member_board_background",
+            "member_id": id_member,
+            "board_background_id": id_board_background,
+            "background_name": result.get("name"),
+            "background_brightness": result.get("brightness"),
+            "background_tile": result.get("tile"),
+            "message": f"Successfully retrieved board background {id_board_background} for member {id_member}",
+            "board_background": result
+        }
+    except Exception as e:
+        return {
+            "successful": False,
+            "error": f"Failed to retrieve member board background: {str(e)}",
+            "action": "get_member_board_background",
+            "member_id": id_member,
+            "board_background_id": id_board_background,
+            "message": f"Failed to retrieve board background {id_board_background} for member {id_member}"
+        }
+
+@mcp.tool(
+    "TRELLO_GET_MEMBERS_CUSTOM_BOARD_BACKGROUNDS_BY_ID_MEMBER",
+    description="Get Member Custom Board Backgrounds. Retrieves all custom board backgrounds for a trello member.",
+)
+def TRELLO_GET_MEMBERS_CUSTOM_BOARD_BACKGROUNDS_BY_ID_MEMBER(
+    id_member: Annotated[str, "The ID of the member to get custom board backgrounds for."],
+    fields: Annotated[str, "The fields to retrieve from the custom board backgrounds (e.g., id, name, brightness, tile). Defaults to all."] = "all"
+):
+    """Get Member Custom Board Backgrounds. Retrieves all custom board backgrounds for a trello member."""
+    err = _validate_required({"id_member": id_member}, ["id_member"])
+    if err:
+        return err
+    
+    try:
+        # Get all custom board backgrounds for the member
+        endpoint = f"/members/{id_member}/customBoardBackgrounds"
+        
+        # Build query parameters
+        params = {}
+        if fields is not None:
+            params["fields"] = fields
+        
+        # Make the API request
+        result = trello_request("GET", endpoint, params=params)
+        
+        if not isinstance(result, list):
+            return {
+                "successful": False,
+                "error": "Invalid custom board backgrounds data received",
+                "action": "get_member_custom_board_backgrounds",
+                "member_id": id_member,
+                "message": f"Failed to retrieve custom board backgrounds for member {id_member}"
+            }
+        
+        # Extract key information
+        backgrounds_count = len(result)
+        background_ids = [bg.get("id") for bg in result if bg.get("id")]
+        background_names = [bg.get("name") for bg in result if bg.get("name")]
+        
+        response = {
+            "successful": True,
+            "data": result,
+            "action": "get_member_custom_board_backgrounds",
+            "member_id": id_member,
+            "backgrounds_count": backgrounds_count,
+            "background_ids": background_ids,
+            "background_names": background_names,
+            "message": f"Successfully retrieved {backgrounds_count} custom board backgrounds for member {id_member}",
+            "custom_board_backgrounds": result
+        }
+        
+        # Add helpful information for using the backgrounds
+        if background_ids:
+            response["note"] = f"Use any of these background IDs with TRELLO_GET_MEMBER_BOARD_BACKGROUND: {', '.join(background_ids[:5])}{'...' if len(background_ids) > 5 else ''}"
+        else:
+            response["note"] = "No custom board backgrounds found for this member"
+        
+        return response
+    except Exception as e:
+        return {
+            "successful": False,
+            "error": f"Failed to retrieve member custom board backgrounds: {str(e)}",
+            "action": "get_member_custom_board_backgrounds",
+            "member_id": id_member,
+            "message": f"Failed to retrieve custom board backgrounds for member {id_member}"
+        }
+
+@mcp.tool(
+    "TRELLO_GET_MEMBER_CUSTOM_BG",
+    description="Get member custom board background. Retrieves metadata (e.g., brightness, urls, tiling status) for a specific custom board background of a trello member, not the image file itself.",
+)
+def TRELLO_GET_MEMBER_CUSTOM_BG(
+    id_member: Annotated[str, "The ID of the member to get the custom board background for."],
+    id_board_background: Annotated[str, "The ID of the custom board background to retrieve metadata for."],
+    fields: Annotated[str, "The fields to retrieve from the custom board background (e.g., id, name, brightness, tile, url). Defaults to all."] = "all"
+):
+    """Get member custom board background. Retrieves metadata (e.g., brightness, urls, tiling status) for a specific custom board background of a trello member, not the image file itself."""
+    err = _validate_required({"id_member": id_member, "id_board_background": id_board_background}, ["id_member", "id_board_background"])
+    if err:
+        return err
+    
+    try:
+        # Get member custom board background metadata
+        endpoint = f"/members/{id_member}/customBoardBackgrounds/{id_board_background}"
+        
+        # Build query parameters
+        params = {}
+        if fields is not None:
+            params["fields"] = fields
+        
+        # Make the API request
+        result = trello_request("GET", endpoint, params=params)
+        
+        if not isinstance(result, dict):
+            return {
+                "successful": False,
+                "error": "Invalid custom board background data received",
+                "action": "get_member_custom_bg",
+                "member_id": id_member,
+                "board_background_id": id_board_background,
+                "message": f"Failed to retrieve custom board background metadata for member {id_member}"
+            }
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "get_member_custom_bg",
+            "member_id": id_member,
+            "board_background_id": id_board_background,
+            "background_name": result.get("name"),
+            "background_brightness": result.get("brightness"),
+            "background_tile": result.get("tile"),
+            "background_url": result.get("url"),
+            "background_size": result.get("size"),
+            "background_color": result.get("color"),
+            "message": f"Successfully retrieved custom board background metadata for member {id_member}",
+            "custom_board_background": result
+        }
+    except Exception as e:
+        return {
+            "successful": False,
+            "error": f"Failed to retrieve member custom board background: {str(e)}",
+            "action": "get_member_custom_bg",
+            "member_id": id_member,
+            "board_background_id": id_board_background,
+            "message": f"Failed to retrieve custom board background metadata for member {id_member}"
+        }
+
+@mcp.tool(
+    "TRELLO_GET_MEMBER_CUSTOM_EMOJI",
+    description="Get member custom emoji. Retrieves a specific custom emoji by its id for a trello member, requiring that both the member and emoji exist and are associated.",
+)
+def TRELLO_GET_MEMBER_CUSTOM_EMOJI(
+    id_member: Annotated[str, "The ID of the member to get the custom emoji for."],
+    id_custom_emoji: Annotated[str, "The ID of the custom emoji to retrieve."],
+    fields: Annotated[str, "The fields to retrieve from the custom emoji (e.g., id, name, url, unscaled). Defaults to all."] = "all"
+):
+    """Get member custom emoji. Retrieves a specific custom emoji by its id for a trello member, requiring that both the member and emoji exist and are associated."""
+    err = _validate_required({"id_member": id_member, "id_custom_emoji": id_custom_emoji}, ["id_member", "id_custom_emoji"])
+    if err:
+        return err
+    
+    try:
+        # Get member custom emoji
+        endpoint = f"/members/{id_member}/customEmoji/{id_custom_emoji}"
+        
+        # Build query parameters
+        params = {}
+        if fields is not None:
+            params["fields"] = fields
+        
+        # Make the API request
+        result = trello_request("GET", endpoint, params=params)
+        
+        if not isinstance(result, dict):
+            return {
+                "successful": False,
+                "error": "Invalid custom emoji data received",
+                "action": "get_member_custom_emoji",
+                "member_id": id_member,
+                "custom_emoji_id": id_custom_emoji,
+                "message": f"Failed to retrieve custom emoji {id_custom_emoji} for member {id_member}"
+            }
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "get_member_custom_emoji",
+            "member_id": id_member,
+            "custom_emoji_id": id_custom_emoji,
+            "emoji_name": result.get("name"),
+            "emoji_url": result.get("url"),
+            "emoji_unscaled": result.get("unscaled"),
+            "message": f"Successfully retrieved custom emoji {id_custom_emoji} for member {id_member}",
+            "custom_emoji": result
+        }
+    except Exception as e:
+        return {
+            "successful": False,
+            "error": f"Failed to retrieve member custom emoji: {str(e)}",
+            "action": "get_member_custom_emoji",
+            "member_id": id_member,
+            "custom_emoji_id": id_custom_emoji,
+            "message": f"Failed to retrieve custom emoji {id_custom_emoji} for member {id_member}"
+        }
+
+@mcp.tool(
+    "TRELLO_GET_MEMBERS_CUSTOM_EMOJI_BY_ID_MEMBER",
+    description="Get member custom emoji. Retrieves all custom (user-specific, non-standard) emojis that a specified trello member has created or can access.",
+)
+def TRELLO_GET_MEMBERS_CUSTOM_EMOJI_BY_ID_MEMBER(
+    id_member: Annotated[str, "The ID of the member to get custom emojis for."],
+    filter: Annotated[str, "The filter criteria for custom emojis (e.g., 'all', 'mine'). Defaults to all."] = "all"
+):
+    """Get member custom emoji. Retrieves all custom (user-specific, non-standard) emojis that a specified trello member has created or can access."""
+    err = _validate_required({"id_member": id_member}, ["id_member"])
+    if err:
+        return err
+    
+    try:
+        # Get all custom emojis for the member
+        endpoint = f"/members/{id_member}/customEmoji"
+        
+        # Build query parameters
+        params = {}
+        if filter is not None:
+            params["filter"] = filter
+        
+        # Make the API request
+        result = trello_request("GET", endpoint, params=params)
+        
+        if not isinstance(result, list):
+            return {
+                "successful": False,
+                "error": "Invalid custom emojis data received",
+                "action": "get_members_custom_emoji",
+                "member_id": id_member,
+                "message": f"Failed to retrieve custom emojis for member {id_member}"
+            }
+        
+        # Extract key information
+        emojis_count = len(result)
+        emoji_ids = [emoji.get("id") for emoji in result if emoji.get("id")]
+        emoji_names = [emoji.get("name") for emoji in result if emoji.get("name")]
+        
+        response = {
+            "successful": True,
+            "data": result,
+            "action": "get_members_custom_emoji",
+            "member_id": id_member,
+            "emojis_count": emojis_count,
+            "emoji_ids": emoji_ids,
+            "emoji_names": emoji_names,
+            "message": f"Successfully retrieved {emojis_count} custom emojis for member {id_member}",
+            "custom_emojis": result
+        }
+        
+        # Add helpful information for using the emojis
+        if emoji_ids:
+            response["note"] = f"Use any of these emoji IDs with TRELLO_GET_MEMBER_CUSTOM_EMOJI: {', '.join(emoji_ids[:5])}{'...' if len(emoji_ids) > 5 else ''}"
+        else:
+            response["note"] = "No custom emojis found for this member"
+        
+        return response
+    except Exception as e:
+        return {
+            "successful": False,
+            "error": f"Failed to retrieve member custom emojis: {str(e)}",
+            "action": "get_members_custom_emoji",
+            "member_id": id_member,
+            "message": f"Failed to retrieve custom emojis for member {id_member}"
+        }
+
+
+@mcp.tool(
+    "TRELLO_GET_MEMBERS_CUSTOM_STICKERS_BY_ID_MEMBER",
+    description="Get member custom stickers. Retrieves a member's custom stickers, which are unique personalized stickers created by them, distinct from standard trello stickers.",
+)
+def TRELLO_GET_MEMBERS_CUSTOM_STICKERS_BY_ID_MEMBER(
+    id_member: Annotated[str, "The ID of the member to get custom stickers for."],
+    filter: Annotated[str, "The filter criteria for custom stickers (e.g., 'all', 'mine'). Defaults to all."] = "all"
+):
+    """Get member custom stickers. Retrieves a member's custom stickers, which are unique personalized stickers created by them, distinct from standard trello stickers."""
+    err = _validate_required({"id_member": id_member}, ["id_member"])
+    if err:
+        return err
+    
+    try:
+        # Get all custom stickers for the member
+        endpoint = f"/members/{id_member}/customStickers"
+        
+        # Build query parameters
+        params = {}
+        if filter is not None:
+            params["filter"] = filter
+        
+        # Make the API request
+        result = trello_request("GET", endpoint, params=params)
+        
+        if not isinstance(result, list):
+            return {
+                "successful": False,
+                "error": "Invalid custom stickers data received",
+                "action": "get_members_custom_stickers",
+                "member_id": id_member,
+                "message": f"Failed to retrieve custom stickers for member {id_member}"
+            }
+        
+        # Extract key information
+        stickers_count = len(result)
+        sticker_ids = [sticker.get("id") for sticker in result if sticker.get("id")]
+        sticker_names = [sticker.get("name") for sticker in result if sticker.get("name")]
+        
+        response = {
+            "successful": True,
+            "data": result,
+            "action": "get_members_custom_stickers",
+            "member_id": id_member,
+            "stickers_count": stickers_count,
+            "sticker_ids": sticker_ids,
+            "sticker_names": sticker_names,
+            "message": f"Successfully retrieved {stickers_count} custom stickers for member {id_member}",
+            "custom_stickers": result
+        }
+        
+        # Add helpful information for using the stickers
+        if sticker_ids:
+            response["note"] = f"Use any of these sticker IDs with other sticker-related tools: {', '.join(sticker_ids[:5])}{'...' if len(sticker_ids) > 5 else ''}"
+        else:
+            response["note"] = "No custom stickers found for this member"
+        
+        return response
+    except Exception as e:
+        return {
+            "successful": False,
+            "error": f"Failed to retrieve member custom stickers: {str(e)}",
+            "action": "get_members_custom_stickers",
+            "member_id": id_member,
+            "message": f"Failed to retrieve custom stickers for member {id_member}"
+        }
+
+
+@mcp.tool(
+    "TRELLO_GET_MEMBER_CUSTOM_STICKER",
+    description="Get member custom sticker. Retrieves a specific custom sticker by id for a trello member; returns only sticker data (not its usage on cards/boards), with optional field selection.",
+)
+def TRELLO_GET_MEMBER_CUSTOM_STICKER(
+    id_member: Annotated[str, "The ID of the member to get the custom sticker for."],
+    id_custom_sticker: Annotated[str, "The ID of the custom sticker to retrieve."],
+    fields: Annotated[str, "The fields to retrieve from the custom sticker (e.g., id, name, url, image). Defaults to all."] = "all"
+):
+    """Get member custom sticker. Retrieves a specific custom sticker by id for a trello member; returns only sticker data (not its usage on cards/boards), with optional field selection."""
+    err = _validate_required({"id_member": id_member, "id_custom_sticker": id_custom_sticker}, ["id_member", "id_custom_sticker"])
+    if err:
+        return err
+    
+    try:
+        # Get member custom sticker
+        endpoint = f"/members/{id_member}/customStickers/{id_custom_sticker}"
+        
+        # Build query parameters
+        params = {}
+        if fields is not None:
+            params["fields"] = fields
+        
+        # Make the API request
+        result = trello_request("GET", endpoint, params=params)
+        
+        if not isinstance(result, dict):
+            return {
+                "successful": False,
+                "error": "Invalid custom sticker data received",
+                "action": "get_member_custom_sticker",
+                "member_id": id_member,
+                "custom_sticker_id": id_custom_sticker,
+                "message": f"Failed to retrieve custom sticker {id_custom_sticker} for member {id_member}"
+            }
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "get_member_custom_sticker",
+            "member_id": id_member,
+            "custom_sticker_id": id_custom_sticker,
+            "sticker_name": result.get("name"),
+            "sticker_url": result.get("url"),
+            "sticker_image": result.get("image"),
+            "message": f"Successfully retrieved custom sticker {id_custom_sticker} for member {id_member}",
+            "custom_sticker": result
+        }
+    except Exception as e:
+        return {
+            "successful": False,
+            "error": f"Failed to retrieve member custom sticker: {str(e)}",
+            "action": "get_member_custom_sticker",
+            "member_id": id_member,
+            "custom_sticker_id": id_custom_sticker,
+            "message": f"Failed to retrieve custom sticker {id_custom_sticker} for member {id_member}"
+        }
+
+
+@mcp.tool(
+    "TRELLO_GET_MEMBERS_ACTIONS_BY_ID_MEMBER",
+    description="Get member actions by ID. Retrieves a list of actions for a specified trello member, allowing filtering by type, date, models, and control over output format and fields.",
+)
+def TRELLO_GET_MEMBERS_ACTIONS_BY_ID_MEMBER(
+    id_member: Annotated[str, "The ID of the member to get actions for."],
+    before: Annotated[str | None, "An action ID. Only return actions before this action."] = None,
+    display: Annotated[str | None, "Whether to include display information."] = None,
+    entities: Annotated[str | None, "Whether to include entities in the response."] = None,
+    fields: Annotated[str, "The fields to retrieve from the actions (e.g., id, type, date, data). Defaults to all."] = "all",
+    filter: Annotated[str, "The types of actions to return (e.g., commentCard, updateCard). Defaults to all."] = "all",
+    format: Annotated[str, "The format for the returned actions. Defaults to list."] = "list",
+    id_models: Annotated[str | None, "The IDs of models to include in the response."] = None,
+    limit: Annotated[str, "The maximum number of actions to return. Defaults to 50."] = "50",
+    member: Annotated[str | None, "Whether to include member information."] = None,
+    member_creator: Annotated[str | None, "Whether to include member creator information."] = None,
+    member_creator_fields: Annotated[str, "The fields to retrieve from member creators. Defaults to avatarHash, fullName, initials and username."] = "avatarHash,fullName,initials,username",
+    member_fields: Annotated[str, "The fields to retrieve from members. Defaults to avatarHash, fullName, initials and username."] = "avatarHash,fullName,initials,username",
+    page: Annotated[str, "The page of results to return. Defaults to 0."] = "0",
+    since: Annotated[str | None, "An action ID. Only return actions after this action."] = None
+):
+    """Get member actions by ID. Retrieves a list of actions for a specified trello member, allowing filtering by type, date, models, and control over output format and fields."""
+    err = _validate_required({"id_member": id_member}, ["id_member"])
+    if err:
+        return err
+    
+    try:
+        # Get actions for the member
+        endpoint = f"/members/{id_member}/actions"
+        
+        # Build query parameters
+        params = {}
+        if before is not None:
+            params["before"] = before
+        if display is not None:
+            params["display"] = display
+        if entities is not None:
+            params["entities"] = entities
+        if fields is not None:
+            params["fields"] = fields
+        if filter is not None:
+            params["filter"] = filter
+        if format is not None:
+            params["format"] = format
+        if id_models is not None:
+            params["idModels"] = id_models
+        if limit is not None:
+            params["limit"] = limit
+        if member is not None:
+            params["member"] = member
+        if member_creator is not None:
+            params["memberCreator"] = member_creator
+        if member_creator_fields is not None:
+            params["memberCreator_fields"] = member_creator_fields
+        if member_fields is not None:
+            params["member_fields"] = member_fields
+        if page is not None:
+            params["page"] = page
+        if since is not None:
+            params["since"] = since
+        
+        # Make the API request
+        result = trello_request("GET", endpoint, params=params)
+        
+        if not isinstance(result, list):
+            return {
+                "successful": False,
+                "error": "Invalid actions data received",
+                "action": "get_member_actions",
+                "member_id": id_member,
+                "message": f"Failed to retrieve actions for member {id_member}"
+            }
+        
+        # Extract key information
+        actions_count = len(result)
+        action_types = list(set([action.get("type") for action in result if action.get("type")]))
+        
+        response = {
+            "successful": True,
+            "data": result,
+            "action": "get_member_actions",
+            "member_id": id_member,
+            "actions_count": actions_count,
+            "action_types": action_types,
+            "message": f"Successfully retrieved {actions_count} actions for member {id_member}",
+            "actions": result
+        }
+        
+        # Add filtering information
+        if filter != "all":
+            response["filter_applied"] = filter
+        if limit != "50":
+            response["limit_applied"] = limit
+        if page != "0":
+            response["page_applied"] = page
+        
+        # Add helpful information
+        if action_types:
+            response["note"] = f"Action types found: {', '.join(action_types[:5])}{'...' if len(action_types) > 5 else ''}"
+        else:
+            response["note"] = "No actions found for this member"
+        
+        return response
+    except Exception as e:
+        return {
+            "successful": False,
+            "error": f"Failed to retrieve member actions: {str(e)}",
+            "action": "get_member_actions",
+            "member_id": id_member,
+            "message": f"Failed to retrieve actions for member {id_member}"
+        }
+
+
+@mcp.tool(
+    "TRELLO_GET_MEMBERS_SAVED_SEARCHES_BY_ID_MEMBER",
+    description="Get member saved searches. Retrieves all saved search queries for a trello member; this action only retrieves saved searches and does not execute them.",
+)
+def TRELLO_GET_MEMBERS_SAVED_SEARCHES_BY_ID_MEMBER(
+    id_member: Annotated[str, "The ID of the member to get saved searches for."]
+):
+    """Get member saved searches. Retrieves all saved search queries for a trello member; this action only retrieves saved searches and does not execute them."""
+    err = _validate_required({"id_member": id_member}, ["id_member"])
+    if err:
+        return err
+    
+    try:
+        # Get all saved searches for the member
+        endpoint = f"/members/{id_member}/savedSearches"
+        
+        # Make the API request
+        result = trello_request("GET", endpoint)
+        
+        if not isinstance(result, list):
+            return {
+                "successful": False,
+                "error": "Invalid saved searches data received",
+                "action": "get_member_saved_searches",
+                "member_id": id_member,
+                "message": f"Failed to retrieve saved searches for member {id_member}"
+            }
+        
+        # Extract key information
+        searches_count = len(result)
+        search_names = [search.get("name") for search in result if search.get("name")]
+        search_queries = [search.get("query") for search in result if search.get("query")]
+        
+        response = {
+            "successful": True,
+            "data": result,
+            "action": "get_member_saved_searches",
+            "member_id": id_member,
+            "searches_count": searches_count,
+            "search_names": search_names,
+            "search_queries": search_queries,
+            "message": f"Successfully retrieved {searches_count} saved searches for member {id_member}",
+            "saved_searches": result
+        }
+        
+        # Add helpful information
+        if search_names:
+            response["note"] = f"Saved search names: {', '.join(search_names[:5])}{'...' if len(search_names) > 5 else ''}"
+        else:
+            response["note"] = "No saved searches found for this member"
+        
+        return response
+    except Exception as e:
+        return {
+            "successful": False,
+            "error": f"Failed to retrieve member saved searches: {str(e)}",
+            "action": "get_member_saved_searches",
+            "member_id": id_member,
+            "message": f"Failed to retrieve saved searches for member {id_member}"
+        }
+
+
+@mcp.tool(
+    "TRELLO_GET_MEMBER_SAVED_SEARCH",
+    description="Get Member Saved Search. Fetches the details of a specific saved search for a trello member; this does not execute the search.",
+)
+def TRELLO_GET_MEMBER_SAVED_SEARCH(
+    id_member: Annotated[str, "The ID of the member to get the saved search for."],
+    id_saved_search: Annotated[str, "The ID of the saved search to retrieve."]
+):
+    """Get Member Saved Search. Fetches the details of a specific saved search for a trello member; this does not execute the search."""
+    err = _validate_required({"id_member": id_member, "id_saved_search": id_saved_search}, ["id_member", "id_saved_search"])
+    if err:
+        return err
+    
+    try:
+        # Get specific saved search for the member
+        endpoint = f"/members/{id_member}/savedSearches/{id_saved_search}"
+        
+        # Make the API request
+        result = trello_request("GET", endpoint)
+        
+        if not isinstance(result, dict):
+            return {
+                "successful": False,
+                "error": "Invalid saved search data received",
+                "action": "get_member_saved_search",
+                "member_id": id_member,
+                "saved_search_id": id_saved_search,
+                "message": f"Failed to retrieve saved search {id_saved_search} for member {id_member}"
+            }
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "get_member_saved_search",
+            "member_id": id_member,
+            "saved_search_id": id_saved_search,
+            "search_name": result.get("name"),
+            "search_query": result.get("query"),
+            "search_pos": result.get("pos"),
+            "message": f"Successfully retrieved saved search {id_saved_search} for member {id_member}",
+            "saved_search": result
+        }
+    except Exception as e:
+        return {
+            "successful": False,
+            "error": f"Failed to retrieve member saved search: {str(e)}",
+            "action": "get_member_saved_search",
+            "member_id": id_member,
+            "saved_search_id": id_saved_search,
+            "message": f"Failed to retrieve saved search {id_saved_search} for member {id_member}"
+        }
+
+
+@mcp.tool(
+    "TRELLO_GET_MEMBERS_BOARD_BACKGROUNDS_BY_ID_MEMBER",
+    description="Get member board backgrounds. Fetches the board backgrounds for a specified trello member.",
+)
+def TRELLO_GET_MEMBERS_BOARD_BACKGROUNDS_BY_ID_MEMBER(
+    id_member: Annotated[str, "The ID of the member to get board backgrounds for."],
+    filter: Annotated[str, "The filter criteria for board backgrounds (e.g., 'all', 'premium'). Defaults to all."] = "all"
+):
+    """Get member board backgrounds. Fetches the board backgrounds for a specified trello member."""
+    err = _validate_required({"id_member": id_member}, ["id_member"])
+    if err:
+        return err
+    
+    try:
+        # Get all board backgrounds for the member
+        endpoint = f"/members/{id_member}/boardBackgrounds"
+        
+        # Build query parameters
+        params = {}
+        if filter is not None:
+            params["filter"] = filter
+        
+        # Make the API request
+        result = trello_request("GET", endpoint, params=params)
+        
+        if not isinstance(result, list):
+            return {
+                "successful": False,
+                "error": "Invalid board backgrounds data received",
+                "action": "get_member_board_backgrounds",
+                "member_id": id_member,
+                "message": f"Failed to retrieve board backgrounds for member {id_member}"
+            }
+        
+        # Extract key information
+        backgrounds_count = len(result)
+        background_names = [bg.get("name") for bg in result if bg.get("name")]
+        background_colors = [bg.get("color") for bg in result if bg.get("color")]
+        
+        response = {
+            "successful": True,
+            "data": result,
+            "action": "get_member_board_backgrounds",
+            "member_id": id_member,
+            "backgrounds_count": backgrounds_count,
+            "background_names": background_names,
+            "background_colors": background_colors,
+            "message": f"Successfully retrieved {backgrounds_count} board backgrounds for member {id_member}",
+            "board_backgrounds": result
+        }
+        
+        # Add helpful information
+        if background_names:
+            response["note"] = f"Board background names: {', '.join(background_names[:5])}{'...' if len(background_names) > 5 else ''}"
+        else:
+            response["note"] = "No board backgrounds found for this member"
+        
+        return response
+    except Exception as e:
+        return {
+            "successful": False,
+            "error": f"Failed to retrieve member board backgrounds: {str(e)}",
+            "action": "get_member_board_backgrounds",
+            "member_id": id_member,
+            "message": f"Failed to retrieve board backgrounds for member {id_member}"
+        }
+
+
+@mcp.tool(
+    "TRELLO_GET_MEMBERS_BOARDS_BY_ID_MEMBER",
+    description="Get member boards by id. Retrieves board-level details (not lists/cards) for trello boards associated with a member id or username, allowing extensive customization of the returned data.",
+)
+def TRELLO_GET_MEMBERS_BOARDS_BY_ID_MEMBER(
+    id_member: Annotated[str, "The ID of the member to get boards for."],
+    action_fields: Annotated[str, "The fields to retrieve from actions. Defaults to all."] = "all",
+    actions: Annotated[str, "Whether to include actions in the response. Defaults to none."] = "none",
+    actions_entities: Annotated[str, "Whether to include action entities. Defaults to false."] = "false",
+    actions_format: Annotated[str, "The format for actions. Defaults to list."] = "list",
+    actions_limit: Annotated[str, "The maximum number of actions to return. Defaults to 5."] = "5",
+    actions_since: Annotated[str | None, "An action ID. Only return actions after this action."] = None,
+    fields: Annotated[str, "The fields to retrieve from boards (e.g., id, name, desc, closed). Defaults to all."] = "all",
+    filter: Annotated[str, "The filter criteria for boards (e.g., 'all', 'open', 'closed', 'starred'). Defaults to all."] = "all",
+    lists: Annotated[str, "Whether to include lists in the response. Defaults to open."] = "open",
+    memberships: Annotated[str, "Whether to include memberships in the response. Defaults to none."] = "none",
+    organization: Annotated[str, "Whether to include organization information. Defaults to false."] = "false",
+    organization_fields: Annotated[str, "The fields to retrieve from organizations. Defaults to name and displayName."] = "name,displayName"
+):
+    """Get member boards by id. Retrieves board-level details (not lists/cards) for trello boards associated with a member id or username, allowing extensive customization of the returned data."""
+    err = _validate_required({"id_member": id_member}, ["id_member"])
+    if err:
+        return err
+    
+    try:
+        # Get all boards for the member
+        endpoint = f"/members/{id_member}/boards"
+        
+        # Build query parameters
+        params = {}
+        if action_fields is not None:
+            params["action_fields"] = action_fields
+        if actions is not None:
+            params["actions"] = actions
+        if actions_entities is not None:
+            params["actions_entities"] = actions_entities
+        if actions_format is not None:
+            params["actions_format"] = actions_format
+        if actions_limit is not None:
+            params["actions_limit"] = actions_limit
+        if actions_since is not None:
+            params["actions_since"] = actions_since
+        if fields is not None:
+            params["fields"] = fields
+        if filter is not None:
+            params["filter"] = filter
+        if lists is not None:
+            params["lists"] = lists
+        if memberships is not None:
+            params["memberships"] = memberships
+        if organization is not None:
+            params["organization"] = organization
+        if organization_fields is not None:
+            params["organization_fields"] = organization_fields
+        
+        # Make the API request
+        result = trello_request("GET", endpoint, params=params)
+        
+        if not isinstance(result, list):
+            return {
+                "successful": False,
+                "error": "Invalid boards data received",
+                "action": "get_member_boards",
+                "member_id": id_member,
+                "message": f"Failed to retrieve boards for member {id_member}"
+            }
+        
+        # Extract key information
+        boards_count = len(result)
+        board_names = [board.get("name") for board in result if board.get("name")]
+        board_ids = [board.get("id") for board in result if board.get("id")]
+        open_boards = [board for board in result if not board.get("closed", False)]
+        closed_boards = [board for board in result if board.get("closed", False)]
+        starred_boards = [board for board in result if board.get("starred", False)]
+        
+        response = {
+            "successful": True,
+            "data": result,
+            "action": "get_member_boards",
+            "member_id": id_member,
+            "boards_count": boards_count,
+            "board_names": board_names,
+            "board_ids": board_ids,
+            "open_boards_count": len(open_boards),
+            "closed_boards_count": len(closed_boards),
+            "starred_boards_count": len(starred_boards),
+            "message": f"Successfully retrieved {boards_count} boards for member {id_member}",
+            "boards": result
+        }
+        
+        # Add filter-specific information
+        if filter == "open":
+            response["note"] = "Showing only open (non-closed) boards"
+        elif filter == "closed":
+            response["note"] = "Showing only closed boards"
+        elif filter == "starred":
+            response["note"] = "Showing only starred boards"
+        elif filter == "all":
+            response["note"] = "Showing all boards (open, closed, and starred)"
+        else:
+            response["note"] = f"Boards filtered by criteria: {filter}"
+        
+        # Add helpful information
+        if board_names:
+            response["sample_board_names"] = board_names[:5]
+            if len(board_names) > 5:
+                response["note"] += f" | Sample board names: {', '.join(board_names[:5])}..."
+            else:
+                response["note"] += f" | Board names: {', '.join(board_names)}"
+        
+        return response
+    except Exception as e:
+        return {
+            "successful": False,
+            "error": f"Failed to retrieve member boards: {str(e)}",
+            "action": "get_member_boards",
+            "member_id": id_member,
+            "message": f"Failed to retrieve boards for member {id_member}"
+        }
+
+
+@mcp.tool(
+    "TRELLO_GET_MEMBERS_BOARDS_BY_ID_MEMBER_BY_FILTER",
+    description="Get member boards with filter. Retrieves a list of boards for a specific trello member, applying a filter such as 'open', 'starred', or 'all'.",
+)
+def TRELLO_GET_MEMBERS_BOARDS_BY_ID_MEMBER_BY_FILTER(
+    id_member: Annotated[str, "The ID of the member to get boards for."],
+    filter: Annotated[str, "The filter criteria for boards (e.g., 'open', 'closed', 'starred', 'all'). Defaults to open."] = "open"
+):
+    """Get member boards with filter. Retrieves a list of boards for a specific trello member, applying a filter such as 'open', 'starred', or 'all'."""
+    err = _validate_required({"id_member": id_member}, ["id_member"])
+    if err:
+        return err
+    
+    try:
+        # Get boards for the member with filter
+        endpoint = f"/members/{id_member}/boards"
+        
+        # Build query parameters
+        params = {
+            "filter": filter
+        }
+        
+        # Make the API request
+        result = trello_request("GET", endpoint, params=params)
+        
+        if not isinstance(result, list):
+            return {
+                "successful": False,
+                "error": "Invalid boards data received",
+                "action": "get_member_boards_filtered",
+                "member_id": id_member,
+                "filter": filter,
+                "message": f"Failed to retrieve boards with filter '{filter}' for member {id_member}"
+            }
+        
+        # Extract key information
+        boards_count = len(result)
+        board_names = [board.get("name") for board in result if board.get("name")]
+        board_ids = [board.get("id") for board in result if board.get("id")]
+        open_boards = [board for board in result if not board.get("closed", False)]
+        closed_boards = [board for board in result if board.get("closed", False)]
+        starred_boards = [board for board in result if board.get("starred", False)]
+        
+        response = {
+            "successful": True,
+            "data": result,
+            "action": "get_member_boards_filtered",
+            "member_id": id_member,
+            "filter": filter,
+            "boards_count": boards_count,
+            "board_names": board_names,
+            "board_ids": board_ids,
+            "open_boards_count": len(open_boards),
+            "closed_boards_count": len(closed_boards),
+            "starred_boards_count": len(starred_boards),
+            "message": f"Successfully retrieved {boards_count} boards with filter '{filter}' for member {id_member}",
+            "boards": result
+        }
+        
+        # Add filter-specific information
+        if filter == "open":
+            response["note"] = "Showing only open (non-closed) boards"
+        elif filter == "closed":
+            response["note"] = "Showing only closed boards"
+        elif filter == "starred":
+            response["note"] = "Showing only starred boards"
+        elif filter == "all":
+            response["note"] = "Showing all boards (open, closed, and starred)"
+        else:
+            response["note"] = f"Boards filtered by criteria: {filter}"
+        
+        # Add helpful information
+        if board_names:
+            response["sample_board_names"] = board_names[:5]
+            if len(board_names) > 5:
+                response["note"] += f" | Sample board names: {', '.join(board_names[:5])}..."
+            else:
+                response["note"] += f" | Board names: {', '.join(board_names)}"
+        
+        return response
+    except Exception as e:
+        return {
+            "successful": False,
+            "error": f"Failed to retrieve member boards: {str(e)}",
+            "action": "get_member_boards_filtered",
+            "member_id": id_member,
+            "filter": filter,
+            "message": f"Failed to retrieve boards with filter '{filter}' for member {id_member}"
+        }
+
+
+@mcp.tool(
+    "TRELLO_GET_MEMBERS_BOARDS_INVITED_BY_ID_MEMBER",
+    description="Get member's invited boards. Retrieves trello boards to which a specific member has been invited but has not yet joined.",
+)
+def TRELLO_GET_MEMBERS_BOARDS_INVITED_BY_ID_MEMBER(
+    id_member: Annotated[str, "The ID of the member to get invited boards for."],
+    fields: Annotated[str, "The fields to retrieve from the invited boards (e.g., id, name, desc, closed). Defaults to all."] = "all"
+):
+    """Get member's invited boards. Retrieves trello boards to which a specific member has been invited but has not yet joined."""
+    err = _validate_required({"id_member": id_member}, ["id_member"])
+    if err:
+        return err
+    
+    try:
+        # Get invited boards for the member
+        endpoint = f"/members/{id_member}/boardsInvited"
+        
+        # Build query parameters
+        params = {}
+        if fields is not None:
+            params["fields"] = fields
+        
+        # Make the API request
+        result = trello_request("GET", endpoint, params=params)
+        
+        if not isinstance(result, list):
+            return {
+                "successful": False,
+                "error": "Invalid invited boards data received",
+                "action": "get_member_invited_boards",
+                "member_id": id_member,
+                "message": f"Failed to retrieve invited boards for member {id_member}"
+            }
+        
+        # Extract key information
+        invited_boards_count = len(result)
+        board_names = [board.get("name") for board in result if board.get("name")]
+        board_ids = [board.get("id") for board in result if board.get("id")]
+        board_urls = [board.get("url") for board in result if board.get("url")]
+        
+        response = {
+            "successful": True,
+            "data": result,
+            "action": "get_member_invited_boards",
+            "member_id": id_member,
+            "invited_boards_count": invited_boards_count,
+            "board_names": board_names,
+            "board_ids": board_ids,
+            "board_urls": board_urls,
+            "message": f"Successfully retrieved {invited_boards_count} invited boards for member {id_member}",
+            "invited_boards": result
+        }
+        
+        # Add helpful information
+        if board_names:
+            response["note"] = f"Invited board names: {', '.join(board_names[:5])}{'...' if len(board_names) > 5 else ''}"
+            response["sample_board_names"] = board_names[:5]
+        else:
+            response["note"] = "No pending board invitations found for this member"
+        
+        # Add invitation status information
+        response["invitation_status"] = "pending"
+        response["action_required"] = "Member needs to accept or decline these board invitations"
+        
+        return response
+    except Exception as e:
+        return {
+            "successful": False,
+            "error": f"Failed to retrieve member invited boards: {str(e)}",
+            "action": "get_member_invited_boards",
+            "member_id": id_member,
+            "message": f"Failed to retrieve invited boards for member {id_member}"
+        }
+
+
+@mcp.tool(
+    "TRELLO_GET_MEMBERS_BOARDS_INVITED_BY_ID_MEMBER_BY_FIELD",
+    description="Get member's invited board field. Retrieves a specific field from trello boards to which a member has been invited but not yet joined; returns an empty result for no pending invitations.",
+)
+def TRELLO_GET_MEMBERS_BOARDS_INVITED_BY_ID_MEMBER_BY_FIELD(
+    id_member: Annotated[str, "The ID of the member to get invited board field for."],
+    field: Annotated[str, "The specific field to retrieve from invited boards (e.g., id, name, desc, url)."]
+):
+    """Get member's invited board field. Retrieves a specific field from trello boards to which a member has been invited but not yet joined; returns an empty result for no pending invitations."""
+    err = _validate_required({"id_member": id_member, "field": field}, ["id_member", "field"])
+    if err:
+        return err
+    
+    try:
+        # Get invited boards for the member with specific field
+        endpoint = f"/members/{id_member}/boardsInvited"
+        
+        # Build query parameters
+        params = {
+            "fields": field
+        }
+        
+        # Make the API request
+        result = trello_request("GET", endpoint, params=params)
+        
+        if not isinstance(result, list):
+            return {
+                "successful": False,
+                "error": "Invalid invited boards data received",
+                "action": "get_member_invited_board_field",
+                "member_id": id_member,
+                "field": field,
+                "message": f"Failed to retrieve invited board field '{field}' for member {id_member}"
+            }
+        
+        # Extract key information
+        invited_boards_count = len(result)
+        field_values = [board.get(field) for board in result if field in board]
+        
+        response = {
+            "successful": True,
+            "data": result,
+            "action": "get_member_invited_board_field",
+            "member_id": id_member,
+            "field": field,
+            "invited_boards_count": invited_boards_count,
+            "field_values": field_values,
+            "message": f"Successfully retrieved field '{field}' from {invited_boards_count} invited boards for member {id_member}",
+            "invited_boards": result
+        }
+        
+        # Add helpful information
+        if field_values:
+            response["note"] = f"Field '{field}' values: {', '.join([str(v) for v in field_values[:5]])}{'...' if len(field_values) > 5 else ''}"
+            response["sample_field_values"] = field_values[:5]
+        else:
+            response["note"] = f"No pending board invitations found for this member, or field '{field}' not present in any invited boards"
+        
+        # Add invitation status information
+        response["invitation_status"] = "pending"
+        response["action_required"] = "Member needs to accept or decline these board invitations"
+        
+        return response
+    except Exception as e:
+        return {
+            "successful": False,
+            "error": f"Failed to retrieve member invited board field: {str(e)}",
+            "action": "get_member_invited_board_field",
+            "member_id": id_member,
+            "field": field,
+            "message": f"Failed to retrieve invited board field '{field}' for member {id_member}"
+        }
+
+
+@mcp.tool(
+    "TRELLO_GET_MEMBERS_BOARD_STARS_BY_ID_MEMBER",
+    description="Get member board stars. Fetches only the boards a specific trello member has starred, identified by their id or username.",
+)
+def TRELLO_GET_MEMBERS_BOARD_STARS_BY_ID_MEMBER(
+    id_member: Annotated[str, "The ID of the member to get starred boards for."]
+):
+    """Get member board stars. Fetches only the boards a specific trello member has starred, identified by their id or username."""
+    err = _validate_required({"id_member": id_member}, ["id_member"])
+    if err:
+        return err
+    
+    try:
+        # Get board stars for the member
+        endpoint = f"/members/{id_member}/boardStars"
+        
+        # Make the API request
+        result = trello_request("GET", endpoint)
+        
+        if not isinstance(result, list):
+            return {
+                "successful": False,
+                "error": "Invalid starred boards data received",
+                "action": "get_member_board_stars",
+                "member_id": id_member,
+                "message": f"Failed to retrieve starred boards for member {id_member}"
+            }
+        
+        # Extract key information
+        board_stars_count = len(result)
+        board_star_ids = [star.get("id") for star in result if star.get("id")]
+        board_ids = [star.get("idBoard") for star in result if star.get("idBoard")]
+        star_positions = [star.get("pos") for star in result if star.get("pos")]
+        star_colors = [star.get("color") for star in result if star.get("color")]
+        
+        response = {
+            "successful": True,
+            "data": result,
+            "action": "get_member_board_stars",
+            "member_id": id_member,
+            "board_stars_count": board_stars_count,
+            "board_star_ids": board_star_ids,
+            "board_ids": board_ids,
+            "star_positions": star_positions,
+            "star_colors": star_colors,
+            "message": f"Successfully retrieved {board_stars_count} board stars for member {id_member}",
+            "board_stars": result
+        }
+        
+        # Add helpful information
+        if board_star_ids:
+            response["note"] = f"Board star IDs: {', '.join(board_star_ids[:5])}{'...' if len(board_star_ids) > 5 else ''}"
+            response["sample_board_star_ids"] = board_star_ids[:5]
+        else:
+            response["note"] = "No board stars found for this member"
+        
+        # Add star status information
+        response["star_status"] = "starred"
+        response["description"] = "These are board star relationships that the member has created"
+        
+        return response
+    except Exception as e:
+        return {
+            "successful": False,
+            "error": f"Failed to retrieve member board stars: {str(e)}",
+            "action": "get_member_board_stars",
+            "member_id": id_member,
+            "message": f"Failed to retrieve starred boards for member {id_member}"
+        }
+
+
+@mcp.tool(
+    "TRELLO_GET_MEMBERS_BOARD_STARS_BY_ID_MEMBER_BY_ID_BOARD_STAR",
+    description="Get member board star. Retrieves detailed information about a specific board star (a trello board marked as a favorite) for a given trello member.",
+)
+def TRELLO_GET_MEMBERS_BOARD_STARS_BY_ID_MEMBER_BY_ID_BOARD_STAR(
+    id_member: Annotated[str, "The ID of the member to get the board star for."],
+    id_board_star: Annotated[str, "The ID of the board star to retrieve."]
+):
+    """Get member board star. Retrieves detailed information about a specific board star (a trello board marked as a favorite) for a given trello member."""
+    err = _validate_required({"id_member": id_member, "id_board_star": id_board_star}, ["id_member", "id_board_star"])
+    if err:
+        return err
+    
+    try:
+        # Get specific board star for the member
+        endpoint = f"/members/{id_member}/boardStars/{id_board_star}"
+        
+        # Make the API request
+        result = trello_request("GET", endpoint)
+        
+        if not isinstance(result, dict):
+            return {
+                "successful": False,
+                "error": "Invalid board star data received",
+                "action": "get_member_board_star",
+                "member_id": id_member,
+                "board_star_id": id_board_star,
+                "message": f"Failed to retrieve board star {id_board_star} for member {id_member}"
+            }
+        
+        # Extract key information
+        board_id = result.get("idBoard")
+        board_name = result.get("name")
+        star_position = result.get("pos")
+        star_color = result.get("color")
+        
+        response = {
+            "successful": True,
+            "data": result,
+            "action": "get_member_board_star",
+            "member_id": id_member,
+            "board_star_id": id_board_star,
+            "board_id": board_id,
+            "board_name": board_name,
+            "star_position": star_position,
+            "star_color": star_color,
+            "message": f"Successfully retrieved board star {id_board_star} for member {id_member}",
+            "board_star": result
+        }
+        
+        # Add helpful information
+        if board_name:
+            response["note"] = f"Board star for '{board_name}' (ID: {board_id})"
+        else:
+            response["note"] = f"Board star details for board ID: {board_id}"
+        
+        # Add star status information
+        response["star_status"] = "starred"
+        response["description"] = "This is a board that the member has marked as a favorite"
+        
+        return response
+    except Exception as e:
+        return {
+            "successful": False,
+            "error": f"Failed to retrieve member board star: {str(e)}",
+            "action": "get_member_board_star",
+            "member_id": id_member,
+            "board_star_id": id_board_star,
+            "message": f"Failed to retrieve board star {id_board_star} for member {id_member}"
+        }
+
+
+@mcp.tool(
+    "TRELLO_GET_MEMBERS_BY_ID_MEMBER_BY_FIELD",
+    description="Get member field by ID. Efficiently retrieves a specific field (e.g., fullname, username, bio) of a trello member using their id or username, without fetching the entire member profile.",
+)
+def TRELLO_GET_MEMBERS_BY_ID_MEMBER_BY_FIELD(
+    id_member: Annotated[str, "The ID or username of the member to get the field from."],
+    field: Annotated[str, "The specific field to retrieve from the member (e.g., fullName, username, bio, email, avatarHash, initials)."]
+):
+    """Get member field by ID. Efficiently retrieves a specific field (e.g., fullname, username, bio) of a trello member using their id or username, without fetching the entire member profile."""
+    err = _validate_required({"id_member": id_member, "field": field}, ["id_member", "field"])
+    if err:
+        return err
+    
+    try:
+        # Get specific field from member
+        endpoint = f"/members/{id_member}"
+        
+        # Build query parameters
+        params = {
+            "fields": field
+        }
+        
+        # Make the API request
+        result = trello_request("GET", endpoint, params=params)
+        
+        if not isinstance(result, dict):
+            return {
+                "successful": False,
+                "error": "Invalid member data received",
+                "action": "get_member_field",
+                "member_id": id_member,
+                "field": field,
+                "message": f"Failed to retrieve member field '{field}' for member {id_member}"
+            }
+        
+        # Extract the specific field value
+        field_value = result.get(field)
+        
+        response = {
+            "successful": True,
+            "data": {field: field_value},
+            "action": "get_member_field",
+            "member_id": id_member,
+            "field": field,
+            "field_value": field_value,
+            "message": f"Successfully retrieved member field '{field}' for member {id_member}",
+            "member_field": field_value
+        }
+        
+        # Add helpful information based on field type
+        if field == "fullName":
+            response["note"] = f"Full name: {field_value}"
+        elif field == "username":
+            response["note"] = f"Username: @{field_value}"
+        elif field == "email":
+            response["note"] = f"Email address: {field_value}"
+        elif field == "bio":
+            response["note"] = f"Bio: {field_value[:100]}{'...' if field_value and len(field_value) > 100 else ''}"
+        elif field == "avatarHash":
+            response["note"] = f"Avatar hash: {field_value}"
+        elif field == "initials":
+            response["note"] = f"Initials: {field_value}"
+        else:
+            response["note"] = f"Field '{field}' value: {field_value}"
+        
+        # Add field type information
+        if field_value is None:
+            response["field_status"] = "not_set"
+            response["description"] = f"The field '{field}' is not set for this member"
+        else:
+            response["field_status"] = "set"
+            response["description"] = f"The field '{field}' is available for this member"
+        
+        return response
+    except Exception as e:
+        return {
+            "successful": False,
+            "error": f"Failed to retrieve member field: {str(e)}",
+            "action": "get_member_field",
+            "member_id": id_member,
+            "field": field,
+            "message": f"Failed to retrieve member field '{field}' for member {id_member}"
+        }
+
+
+@mcp.tool(
+    "TRELLO_GET_MEMBERS_CARDS_BY_ID_MEMBER_BY_FILTER",
+    description="Get member cards by filter. Retrieves cards for a trello member, applying a filter that must be a trello-recognized card filter.",
+)
+def TRELLO_GET_MEMBERS_CARDS_BY_ID_MEMBER_BY_FILTER(
+    id_member: Annotated[str, "The ID or username of the member to get cards for."],
+    filter: Annotated[str, "The filter criteria for cards (e.g., 'open', 'closed', 'all', 'visible', 'pinned', 'unpinned', 'recentlyViewed', 'starred', 'unstarred')."]
+):
+    """Get member cards by filter. Retrieves cards for a trello member, applying a filter that must be a trello-recognized card filter."""
+    err = _validate_required({"id_member": id_member, "filter": filter}, ["id_member", "filter"])
+    if err:
+        return err
+    
+    try:
+        # Get cards for the member with filter
+        endpoint = f"/members/{id_member}/cards"
+        
+        # Build query parameters
+        params = {
+            "filter": filter
+        }
+        
+        # Make the API request
+        result = trello_request("GET", endpoint, params=params)
+        
+        if not isinstance(result, list):
+            return {
+                "successful": False,
+                "error": "Invalid cards data received",
+                "action": "get_member_cards_filtered",
+                "member_id": id_member,
+                "filter": filter,
+                "message": f"Failed to retrieve cards with filter '{filter}' for member {id_member}"
+            }
+        
+        # Extract key information
+        cards_count = len(result)
+        open_cards = [card for card in result if not card.get("closed", False)]
+        closed_cards = [card for card in result if card.get("closed", False)]
+        card_names = [card.get("name") for card in result if card.get("name")]
+        card_ids = [card.get("id") for card in result if card.get("id")]
+        
+        response = {
+            "successful": True,
+            "data": result,
+            "action": "get_member_cards_filtered",
+            "member_id": id_member,
+            "filter": filter,
+            "cards_count": cards_count,
+            "open_cards_count": len(open_cards),
+            "closed_cards_count": len(closed_cards),
+            "card_names": card_names,
+            "card_ids": card_ids,
+            "message": f"Successfully retrieved {cards_count} cards with filter '{filter}' for member {id_member}",
+            "cards": result
+        }
+        
+        # Add filter-specific information
+        if filter == "open":
+            response["note"] = "Showing only open (non-closed) cards"
+            response["filter_description"] = "Cards that are currently active and not archived"
+        elif filter == "closed":
+            response["note"] = "Showing only closed cards"
+            response["filter_description"] = "Cards that have been archived or closed"
+        elif filter == "all":
+            response["note"] = "Showing all cards (open and closed)"
+            response["filter_description"] = "All cards accessible to the member"
+        elif filter == "visible":
+            response["note"] = "Showing only visible cards"
+            response["filter_description"] = "Cards that are visible to the member"
+        elif filter == "pinned":
+            response["note"] = "Showing only pinned cards"
+            response["filter_description"] = "Cards that have been pinned by the member"
+        elif filter == "unpinned":
+            response["note"] = "Showing only unpinned cards"
+            response["filter_description"] = "Cards that are not pinned"
+        elif filter == "recentlyViewed":
+            response["note"] = "Showing recently viewed cards"
+            response["filter_description"] = "Cards that the member has viewed recently"
+        elif filter == "starred":
+            response["note"] = "Showing only starred cards"
+            response["filter_description"] = "Cards that the member has starred"
+        elif filter == "unstarred":
+            response["note"] = "Showing only unstarred cards"
+            response["filter_description"] = "Cards that the member has not starred"
+        else:
+            response["note"] = f"Cards filtered by criteria: {filter}"
+            response["filter_description"] = f"Cards matching the '{filter}' filter criteria"
+        
+        # Add helpful information
+        if card_names:
+            response["sample_card_names"] = card_names[:5]
+            response["sample_card_ids"] = card_ids[:5]
+        else:
+            response["note"] = f"No cards found matching filter '{filter}' for this member"
+        
+        return response
+    except Exception as e:
+        return {
+            "successful": False,
+            "error": f"Failed to retrieve member cards: {str(e)}",
+            "action": "get_member_cards_filtered",
+            "member_id": id_member,
+            "filter": filter,
+            "message": f"Failed to retrieve cards with filter '{filter}' for member {id_member}"
+        }
+
+
+@mcp.tool(
+    "TRELLO_GET_MEMBERS_DELTAS_BY_ID_MEMBER",
+    description="Get member deltas by ID. Retrieves a chronological list of all changes (deltas) made by a specific trello member, including modifications to boards, lists, and cards, to audit activity or sync data.",
+)
+def TRELLO_GET_MEMBERS_DELTAS_BY_ID_MEMBER(
+    id_member: Annotated[str, "The ID or username of the member to get deltas for."],
+    ix_last_update: Annotated[str, "The index of the last update to start from (0 for all changes)."],
+    tags: Annotated[str, "Comma-separated list of tags to filter deltas (e.g., 'board,list,card,action,member')."]
+):
+    """Get member deltas by ID. Retrieves a chronological list of all changes (deltas) made by a specific trello member, including modifications to boards, lists, and cards, to audit activity or sync data."""
+    err = _validate_required({"id_member": id_member, "ix_last_update": ix_last_update, "tags": tags}, ["id_member", "ix_last_update", "tags"])
+    if err:
+        return err
+    
+    try:
+        # Get member deltas
+        endpoint = f"/members/{id_member}/deltas"
+        
+        # Build query parameters
+        params = {
+            "ixLastUpdate": ix_last_update,
+            "tags": tags
+        }
+        
+        # Make the API request
+        result = trello_request("GET", endpoint, params=params)
+        
+        if not isinstance(result, dict):
+            return {
+                "successful": False,
+                "error": "Invalid deltas data received",
+                "action": "get_member_deltas",
+                "member_id": id_member,
+                "ix_last_update": ix_last_update,
+                "tags": tags,
+                "message": f"Failed to retrieve deltas for member {id_member}"
+            }
+        
+        # Extract key information
+        deltas = result.get("deltas", [])
+        deltas_count = len(deltas)
+        last_update = result.get("ixLastUpdate")
+        tags_list = tags.split(",") if tags else []
+        
+        # Analyze delta types
+        delta_types = {}
+        for delta in deltas:
+            delta_type = delta.get("type", "unknown")
+            delta_types[delta_type] = delta_types.get(delta_type, 0) + 1
+        
+        response = {
+            "successful": True,
+            "data": result,
+            "action": "get_member_deltas",
+            "member_id": id_member,
+            "ix_last_update": ix_last_update,
+            "tags": tags,
+            "deltas_count": deltas_count,
+            "last_update_index": last_update,
+            "delta_types": delta_types,
+            "message": f"Successfully retrieved {deltas_count} deltas for member {id_member}",
+            "deltas": deltas
+        }
+        
+        # Add helpful information
+        if deltas_count > 0:
+            response["note"] = f"Retrieved {deltas_count} changes since update index {ix_last_update}"
+            response["filtered_tags"] = tags_list
+            response["delta_type_breakdown"] = delta_types
+        else:
+            response["note"] = f"No changes found since update index {ix_last_update}"
+        
+        # Add sync information
+        response["sync_info"] = {
+            "last_update_index": last_update,
+            "next_sync_start": last_update if last_update else "0",
+            "total_changes": deltas_count,
+            "filtered_by_tags": tags_list
+        }
+        
+        # Add audit information
+        response["audit_info"] = {
+            "member_id": id_member,
+            "changes_since": ix_last_update,
+            "change_types": list(delta_types.keys()),
+            "total_changes": deltas_count
+        }
+        
+        return response
+    except Exception as e:
+        return {
+            "successful": False,
+            "error": f"Failed to retrieve member deltas: {str(e)}",
+            "action": "get_member_deltas",
+            "member_id": id_member,
+            "ix_last_update": ix_last_update,
+            "tags": tags,
+            "message": f"Failed to retrieve deltas for member {id_member}"
+        }
+
+
+@mcp.tool(
+    "TRELLO_GET_MEMBERS_NOTIFICATIONS_BY_ID_MEMBER",
+    description="Get member notifications by id. Retrieves notifications for a trello member, specified by their id or username, with options for filtering and pagination.",
+)
+def TRELLO_GET_MEMBERS_NOTIFICATIONS_BY_ID_MEMBER(
+    id_member: Annotated[str, "The ID or username of the member to get notifications for."],
+    before: Annotated[str | None, "An action ID. Only return notifications before this action."] = None,
+    display: Annotated[str | None, "Whether to include display information."] = None,
+    entities: Annotated[str | None, "Whether to include entities in the response."] = None,
+    fields: Annotated[str, "The fields to retrieve from the notifications (e.g., id, type, date, data). Defaults to all."] = "all",
+    filter: Annotated[str, "The types of notifications to return (e.g., 'all', 'unread', 'read'). Defaults to all."] = "all",
+    limit: Annotated[str, "The maximum number of notifications to return. Defaults to 50."] = "50",
+    member_creator: Annotated[str | None, "Whether to include member creator information."] = None,
+    member_creator_fields: Annotated[str, "The fields to retrieve from member creators. Defaults to avatarHash, fullName, initials and username."] = "avatarHash,fullName,initials,username",
+    page: Annotated[str, "The page of results to return. Defaults to 0."] = "0",
+    read_filter: Annotated[str, "Filter by read status (e.g., 'all', 'read', 'unread'). Defaults to all."] = "all",
+    since: Annotated[str | None, "An action ID. Only return notifications after this action."] = None
+):
+    """Get member notifications by id. Retrieves notifications for a trello member, specified by their id or username, with options for filtering and pagination."""
+    err = _validate_required({"id_member": id_member}, ["id_member"])
+    if err:
+        return err
+    
+    try:
+        # Get notifications for the member
+        endpoint = f"/members/{id_member}/notifications"
+        
+        # Build query parameters
+        params = {}
+        if before is not None:
+            params["before"] = before
+        if display is not None:
+            params["display"] = display
+        if entities is not None:
+            params["entities"] = entities
+        if fields is not None:
+            params["fields"] = fields
+        if filter is not None:
+            params["filter"] = filter
+        if limit is not None:
+            params["limit"] = limit
+        if member_creator is not None:
+            params["memberCreator"] = member_creator
+        if member_creator_fields is not None:
+            params["memberCreator_fields"] = member_creator_fields
+        if page is not None:
+            params["page"] = page
+        if read_filter is not None:
+            params["read_filter"] = read_filter
+        if since is not None:
+            params["since"] = since
+        
+        # Make the API request
+        result = trello_request("GET", endpoint, params=params)
+        
+        if not isinstance(result, list):
+            return {
+                "successful": False,
+                "error": "Invalid notifications data received",
+                "action": "get_member_notifications",
+                "member_id": id_member,
+                "message": f"Failed to retrieve notifications for member {id_member}"
+            }
+        
+        # Extract key information
+        notifications_count = len(result)
+        unread_count = len([n for n in result if not n.get("read", True)])
+        read_count = len([n for n in result if n.get("read", False)])
+        notification_types = list(set([n.get("type") for n in result if n.get("type")]))
+        
+        response = {
+            "successful": True,
+            "data": result,
+            "action": "get_member_notifications",
+            "member_id": id_member,
+            "notifications_count": notifications_count,
+            "unread_count": unread_count,
+            "read_count": read_count,
+            "notification_types": notification_types,
+            "message": f"Successfully retrieved {notifications_count} notifications for member {id_member}",
+            "notifications": result
+        }
+        
+        # Add filtering information
+        if filter != "all":
+            response["filter_applied"] = filter
+        if read_filter != "all":
+            response["read_filter_applied"] = read_filter
+        if limit != "50":
+            response["limit_applied"] = limit
+        if page != "0":
+            response["page_applied"] = page
+        
+        # Add helpful information
+        if notification_types:
+            response["note"] = f"Notification types found: {', '.join(notification_types[:5])}{'...' if len(notification_types) > 5 else ''}"
+        else:
+            response["note"] = "No notifications found for this member"
+        
+        # Add read status information
+        if unread_count > 0:
+            response["unread_info"] = f"{unread_count} unread notifications"
+        if read_count > 0:
+            response["read_info"] = f"{read_count} read notifications"
+        
+        # Add pagination information
+        response["pagination_info"] = {
+            "current_page": int(page),
+            "notifications_per_page": int(limit),
+            "total_notifications": notifications_count,
+            "has_more": notifications_count == int(limit)
+        }
+        
+        return response
+    except Exception as e:
+        return {
+            "successful": False,
+            "error": f"Failed to retrieve member notifications: {str(e)}",
+            "action": "get_member_notifications",
+            "member_id": id_member,
+            "message": f"Failed to retrieve notifications for member {id_member}"
+        }
+
+
+@mcp.tool(
+    "TRELLO_GET_MEMBERS_NOTIFICATIONS_BY_ID_MEMBER_BY_FILTER",
+    description="Get member notifications by filter. Retrieves a list of a trello member's notifications, filtered by specified types.",
+)
+def TRELLO_GET_MEMBERS_NOTIFICATIONS_BY_ID_MEMBER_BY_FILTER(
+    id_member: Annotated[str, "The ID or username of the member to get notifications for."],
+    filter: Annotated[str, "The types of notifications to return (e.g., 'all', 'unread', 'read', 'commentCard', 'addedToCard', 'changeCard')."]
+):
+    """Get member notifications by filter. Retrieves a list of a trello member's notifications, filtered by specified types."""
+    err = _validate_required({"id_member": id_member, "filter": filter}, ["id_member", "filter"])
+    if err:
+        return err
+    
+    try:
+        # Get notifications for the member with filter
+        endpoint = f"/members/{id_member}/notifications"
+        
+        # Build query parameters
+        params = {
+            "filter": filter
+        }
+        
+        # Make the API request
+        result = trello_request("GET", endpoint, params=params)
+        
+        if not isinstance(result, list):
+            return {
+                "successful": False,
+                "error": "Invalid notifications data received",
+                "action": "get_member_notifications_filtered",
+                "member_id": id_member,
+                "filter": filter,
+                "message": f"Failed to retrieve notifications with filter '{filter}' for member {id_member}"
+            }
+        
+        # Extract key information
+        notifications_count = len(result)
+        unread_count = len([n for n in result if not n.get("read", True)])
+        read_count = len([n for n in result if n.get("read", False)])
+        notification_types = list(set([n.get("type") for n in result if n.get("type")]))
+        
+        response = {
+            "successful": True,
+            "data": result,
+            "action": "get_member_notifications_filtered",
+            "member_id": id_member,
+            "filter": filter,
+            "notifications_count": notifications_count,
+            "unread_count": unread_count,
+            "read_count": read_count,
+            "notification_types": notification_types,
+            "message": f"Successfully retrieved {notifications_count} notifications with filter '{filter}' for member {id_member}",
+            "notifications": result
+        }
+        
+        # Add filter-specific information
+        if filter == "all":
+            response["note"] = "Showing all notifications"
+            response["filter_description"] = "All notifications for the member"
+        elif filter == "unread":
+            response["note"] = "Showing only unread notifications"
+            response["filter_description"] = "Notifications that have not been read"
+        elif filter == "read":
+            response["note"] = "Showing only read notifications"
+            response["filter_description"] = "Notifications that have been read"
+        elif filter == "commentCard":
+            response["note"] = "Showing only card comment notifications"
+            response["filter_description"] = "Notifications about comments on cards"
+        elif filter == "addedToCard":
+            response["note"] = "Showing only 'added to card' notifications"
+            response["filter_description"] = "Notifications about being added to cards"
+        elif filter == "removedFromCard":
+            response["note"] = "Showing only 'removed from card' notifications"
+            response["filter_description"] = "Notifications about being removed from cards"
+        elif filter == "addedToBoard":
+            response["note"] = "Showing only 'added to board' notifications"
+            response["filter_description"] = "Notifications about being added to boards"
+        elif filter == "removedFromBoard":
+            response["note"] = "Showing only 'removed from board' notifications"
+            response["filter_description"] = "Notifications about being removed from boards"
+        elif filter == "changeCard":
+            response["note"] = "Showing only card change notifications"
+            response["filter_description"] = "Notifications about changes to cards"
+        elif filter == "closeCard":
+            response["note"] = "Showing only card close notifications"
+            response["filter_description"] = "Notifications about cards being closed"
+        elif filter == "reopenCard":
+            response["note"] = "Showing only card reopen notifications"
+            response["filter_description"] = "Notifications about cards being reopened"
+        else:
+            response["note"] = f"Notifications filtered by type: {filter}"
+            response["filter_description"] = f"Notifications matching the '{filter}' filter"
+        
+        # Add helpful information
+        if notification_types:
+            response["note"] = f"Notification types found: {', '.join(notification_types[:5])}{'...' if len(notification_types) > 5 else ''}"
+        else:
+            response["note"] = f"No notifications found matching filter '{filter}' for this member"
+        
+        # Add read status information
+        if unread_count > 0:
+            response["unread_info"] = f"{unread_count} unread notifications"
+        if read_count > 0:
+            response["read_info"] = f"{read_count} read notifications"
+        
+        # Add filter analysis
+        response["filter_analysis"] = {
+            "applied_filter": filter,
+            "total_matching": notifications_count,
+            "unread_matching": unread_count,
+            "read_matching": read_count,
+            "types_found": notification_types
+        }
+        
+        return response
+    except Exception as e:
+        return {
+            "successful": False,
+            "error": f"Failed to retrieve member notifications: {str(e)}",
+            "action": "get_member_notifications_filtered",
+            "member_id": id_member,
+            "filter": filter,
+            "message": f"Failed to retrieve notifications with filter '{filter}' for member {id_member}"
+        }
+
+
+@mcp.tool(
+    "TRELLO_GET_MEMBERS_ORGANIZATIONS_BY_ID_MEMBER",
+    description="Get a specified member's organizations. Fetches organizations a specific trello member belongs to; the idmember must be an id or username of an existing trello member.",
+)
+def TRELLO_GET_MEMBERS_ORGANIZATIONS_BY_ID_MEMBER(
+    id_member: Annotated[str, "The ID or username of the member to get organizations for."],
+    fields: Annotated[str, "The fields to retrieve from the organizations (e.g., id, name, displayName, desc, descData, url, website, logoHash, products, powerUps, prefs, billableMemberCount, invitations, invited, limits, memberships, premiumFeatures). Defaults to all."] = "all",
+    filter: Annotated[str, "The filter criteria for organizations (e.g., 'all', 'members', 'public', 'private'). Defaults to all."] = "all",
+    paid_account: Annotated[str | None, "Whether to filter by paid account status (e.g., 'true', 'false')."] = None
+):
+    """Get a specified member's organizations. Fetches organizations a specific trello member belongs to; the idmember must be an id or username of an existing trello member."""
+    err = _validate_required({"id_member": id_member}, ["id_member"])
+    if err:
+        return err
+    
+    try:
+        # Get organizations for the member
+        endpoint = f"/members/{id_member}/organizations"
+        
+        # Build query parameters
+        params = {}
+        if fields is not None:
+            params["fields"] = fields
+        if filter is not None:
+            params["filter"] = filter
+        if paid_account is not None:
+            params["paid_account"] = paid_account
+        
+        # Make the API request
+        result = trello_request("GET", endpoint, params=params)
+        
+        if not isinstance(result, list):
+            return {
+                "successful": False,
+                "error": "Invalid organizations data received",
+                "action": "get_member_organizations",
+                "member_id": id_member,
+                "message": f"Failed to retrieve organizations for member {id_member}"
+            }
+        
+        # Extract key information
+        organizations_count = len(result)
+        organization_ids = [org.get("id") for org in result if org.get("id")]
+        organization_names = [org.get("name") for org in result if org.get("name")]
+        organization_display_names = [org.get("displayName") for org in result if org.get("displayName")]
+        
+        # Analyze organization types
+        public_orgs = [org for org in result if org.get("prefs", {}).get("permissionLevel") == "public"]
+        private_orgs = [org for org in result if org.get("prefs", {}).get("permissionLevel") == "private"]
+        paid_orgs = [org for org in result if org.get("paid_account", False)]
+        free_orgs = [org for org in result if not org.get("paid_account", False)]
+        
+        response = {
+            "successful": True,
+            "data": result,
+            "action": "get_member_organizations",
+            "member_id": id_member,
+            "organizations_count": organizations_count,
+            "organization_ids": organization_ids,
+            "organization_names": organization_names,
+            "organization_display_names": organization_display_names,
+            "message": f"Successfully retrieved {organizations_count} organizations for member {id_member}",
+            "organizations": result
+        }
+        
+        # Add organization analysis
+        response["organization_analysis"] = {
+            "total_organizations": organizations_count,
+            "public_organizations": len(public_orgs),
+            "private_organizations": len(private_orgs),
+            "paid_organizations": len(paid_orgs),
+            "free_organizations": len(free_orgs)
+        }
+        
+        # Add filter information
+        if filter != "all":
+            response["filter_applied"] = filter
+            response["filter_description"] = f"Organizations filtered by: {filter}"
+        
+        if paid_account is not None:
+            response["paid_account_filter"] = paid_account
+            response["paid_account_description"] = f"Organizations filtered by paid account status: {paid_account}"
+        
+        # Add helpful information
+        if organization_names:
+            response["note"] = f"Organization names: {', '.join(organization_names[:5])}{'...' if len(organization_names) > 5 else ''}"
+        else:
+            response["note"] = "No organizations found for this member"
+        
+        # Add organization details
+        if public_orgs:
+            response["public_orgs"] = public_orgs
+            response["public_org_names"] = [org.get("name") for org in public_orgs]
+        
+        if private_orgs:
+            response["private_orgs"] = private_orgs
+            response["private_org_names"] = [org.get("name") for org in private_orgs]
+        
+        if paid_orgs:
+            response["paid_orgs"] = paid_orgs
+            response["paid_org_names"] = [org.get("name") for org in paid_orgs]
+        
+        if free_orgs:
+            response["free_orgs"] = free_orgs
+            response["free_org_names"] = [org.get("name") for org in free_orgs]
+        
+        # Add organization summary
+        response["organization_summary"] = {
+            "total": organizations_count,
+            "public": len(public_orgs),
+            "private": len(private_orgs),
+            "paid": len(paid_orgs),
+            "free": len(free_orgs)
+        }
+        
+        return response
+    except Exception as e:
+        return {
+            "successful": False,
+            "error": f"Failed to retrieve member organizations: {str(e)}",
+            "action": "get_member_organizations",
+            "member_id": id_member,
+            "message": f"Failed to retrieve organizations for member {id_member}"
+        }
+
+
+@mcp.tool(
+    "TRELLO_GET_MEMBERS_ORGANIZATIONS_BY_ID_MEMBER_BY_FILTER",
+    description="Get member organizations by filter. Fetches a list of organizations a specific trello member belongs to, using a filter to narrow down the results.",
+)
+def TRELLO_GET_MEMBERS_ORGANIZATIONS_BY_ID_MEMBER_BY_FILTER(
+    id_member: Annotated[str, "The ID or username of the member to get organizations for."],
+    filter: Annotated[str, "The filter criteria for organizations (e.g., 'all', 'members', 'public', 'private', 'paid', 'free')."]
+):
+    """Get member organizations by filter. Fetches a list of organizations a specific trello member belongs to, using a filter to narrow down the results."""
+    err = _validate_required({"id_member": id_member, "filter": filter}, ["id_member", "filter"])
+    if err:
+        return err
+    
+    try:
+        # Get organizations for the member with filter
+        endpoint = f"/members/{id_member}/organizations"
+        
+        # Build query parameters
+        params = {
+            "filter": filter
+        }
+        
+        # Make the API request
+        result = trello_request("GET", endpoint, params=params)
+        
+        if not isinstance(result, list):
+            return {
+                "successful": False,
+                "error": "Invalid organizations data received",
+                "action": "get_member_organizations_filtered",
+                "member_id": id_member,
+                "filter": filter,
+                "message": f"Failed to retrieve organizations with filter '{filter}' for member {id_member}"
+            }
+        
+        # Extract key information
+        organizations_count = len(result)
+        organization_ids = [org.get("id") for org in result if org.get("id")]
+        organization_names = [org.get("name") for org in result if org.get("name")]
+        organization_display_names = [org.get("displayName") for org in result if org.get("displayName")]
+        
+        # Analyze organization types
+        public_orgs = [org for org in result if org.get("prefs", {}).get("permissionLevel") == "public"]
+        private_orgs = [org for org in result if org.get("prefs", {}).get("permissionLevel") == "private"]
+        paid_orgs = [org for org in result if org.get("paid_account", False)]
+        free_orgs = [org for org in result if not org.get("paid_account", False)]
+        
+        response = {
+            "successful": True,
+            "data": result,
+            "action": "get_member_organizations_filtered",
+            "member_id": id_member,
+            "filter": filter,
+            "organizations_count": organizations_count,
+            "organization_ids": organization_ids,
+            "organization_names": organization_names,
+            "organization_display_names": organization_display_names,
+            "message": f"Successfully retrieved {organizations_count} organizations with filter '{filter}' for member {id_member}",
+            "organizations": result
+        }
+        
+        # Add filter-specific information
+        if filter == "all":
+            response["note"] = "Showing all organizations"
+            response["filter_description"] = "All organizations the member belongs to"
+        elif filter == "members":
+            response["note"] = "Showing organizations where user is a member"
+            response["filter_description"] = "Organizations where the user has member-level access"
+        elif filter == "public":
+            response["note"] = "Showing only public organizations"
+            response["filter_description"] = "Public organizations visible to all Trello users"
+        elif filter == "private":
+            response["note"] = "Showing only private organizations"
+            response["filter_description"] = "Private organizations visible only to members"
+        elif filter == "paid":
+            response["note"] = "Showing only paid organizations"
+            response["filter_description"] = "Organizations with paid Trello plans"
+        elif filter == "free":
+            response["note"] = "Showing only free organizations"
+            response["filter_description"] = "Organizations using free Trello plans"
+        else:
+            response["note"] = f"Organizations filtered by: {filter}"
+            response["filter_description"] = f"Organizations matching the '{filter}' filter"
+        
+        # Add organization analysis
+        response["organization_analysis"] = {
+            "applied_filter": filter,
+            "total_matching": organizations_count,
+            "public_matching": len(public_orgs),
+            "private_matching": len(private_orgs),
+            "paid_matching": len(paid_orgs),
+            "free_matching": len(free_orgs)
+        }
+        
+        # Add helpful information
+        if organization_names:
+            response["note"] = f"Organization names: {', '.join(organization_names[:5])}{'...' if len(organization_names) > 5 else ''}"
+        else:
+            response["note"] = f"No organizations found matching filter '{filter}' for this member"
+        
+        # Add organization details based on filter
+        if filter == "public" or filter == "all":
+            if public_orgs:
+                response["public_orgs"] = public_orgs
+                response["public_org_names"] = [org.get("name") for org in public_orgs]
+        
+        if filter == "private" or filter == "all":
+            if private_orgs:
+                response["private_orgs"] = private_orgs
+                response["private_org_names"] = [org.get("name") for org in private_orgs]
+        
+        if filter == "paid" or filter == "all":
+            if paid_orgs:
+                response["paid_orgs"] = paid_orgs
+                response["paid_org_names"] = [org.get("name") for org in paid_orgs]
+        
+        if filter == "free" or filter == "all":
+            if free_orgs:
+                response["free_orgs"] = free_orgs
+                response["free_org_names"] = [org.get("name") for org in free_orgs]
+        
+        # Add filter analysis
+        response["filter_analysis"] = {
+            "applied_filter": filter,
+            "total_matching": organizations_count,
+            "public_matching": len(public_orgs),
+            "private_matching": len(private_orgs),
+            "paid_matching": len(paid_orgs),
+            "free_matching": len(free_orgs),
+            "filter_effectiveness": f"Filter '{filter}' returned {organizations_count} organizations"
+        }
+        
+        # Add organization summary
+        response["organization_summary"] = {
+            "total": organizations_count,
+            "public": len(public_orgs),
+            "private": len(private_orgs),
+            "paid": len(paid_orgs),
+            "free": len(free_orgs)
+        }
+        
+        return response
+    except Exception as e:
+        return {
+            "successful": False,
+            "error": f"Failed to retrieve member organizations: {str(e)}",
+            "action": "get_member_organizations_filtered",
+            "member_id": id_member,
+            "filter": filter,
+            "message": f"Failed to retrieve organizations with filter '{filter}' for member {id_member}"
+        }
+
+
+@mcp.tool(
+    "TRELLO_GET_MEMBERS_ORGANIZATIONS_INVITED_BY_ID_MEMBER",
+    description="Retrieve member's invited organizations. Retrieves organizations a trello member has been invited to but has not yet accepted or declined.",
+)
+def TRELLO_GET_MEMBERS_ORGANIZATIONS_INVITED_BY_ID_MEMBER(
+    id_member: Annotated[str, "The ID or username of the member to get invited organizations for."],
+    fields: Annotated[str, "The fields to retrieve from the invited organizations (e.g., id, name, displayName, desc, descData, url, website, logoHash, products, powerUps, prefs, billableMemberCount, invitations, invited, limits, memberships, premiumFeatures). Defaults to all."] = "all"
+):
+    """Retrieve member's invited organizations. Retrieves organizations a trello member has been invited to but has not yet accepted or declined."""
+    err = _validate_required({"id_member": id_member}, ["id_member"])
+    if err:
+        return err
+    
+    try:
+        # Get invited organizations for the member
+        endpoint = f"/members/{id_member}/organizationsInvited"
+        
+        # Build query parameters
+        params = {}
+        if fields is not None:
+            params["fields"] = fields
+        
+        # Make the API request
+        result = trello_request("GET", endpoint, params=params)
+        
+        if not isinstance(result, list):
+            return {
+                "successful": False,
+                "error": "Invalid invited organizations data received",
+                "action": "get_member_organizations_invited",
+                "member_id": id_member,
+                "message": f"Failed to retrieve invited organizations for member {id_member}"
+            }
+        
+        # Extract key information
+        invited_organizations_count = len(result)
+        organization_ids = [org.get("id") for org in result if org.get("id")]
+        organization_names = [org.get("name") for org in result if org.get("name")]
+        organization_display_names = [org.get("displayName") for org in result if org.get("displayName")]
+        
+        # Analyze organization types
+        public_orgs = [org for org in result if org.get("prefs", {}).get("permissionLevel") == "public"]
+        private_orgs = [org for org in result if org.get("prefs", {}).get("permissionLevel") == "private"]
+        paid_orgs = [org for org in result if org.get("paid_account", False)]
+        free_orgs = [org for org in result if not org.get("paid_account", False)]
+        
+        response = {
+            "successful": True,
+            "data": result,
+            "action": "get_member_organizations_invited",
+            "member_id": id_member,
+            "invited_organizations_count": invited_organizations_count,
+            "organization_ids": organization_ids,
+            "organization_names": organization_names,
+            "organization_display_names": organization_display_names,
+            "message": f"Successfully retrieved {invited_organizations_count} invited organizations for member {id_member}",
+            "invited_organizations": result
+        }
+        
+        # Add organization analysis
+        response["organization_analysis"] = {
+            "total_invited_organizations": invited_organizations_count,
+            "public_invited_organizations": len(public_orgs),
+            "private_invited_organizations": len(private_orgs),
+            "paid_invited_organizations": len(paid_orgs),
+            "free_invited_organizations": len(free_orgs)
+        }
+        
+        # Add helpful information
+        if organization_names:
+            response["note"] = f"Invited organization names: {', '.join(organization_names[:5])}{'...' if len(organization_names) > 5 else ''}"
+        else:
+            response["note"] = "No pending organization invitations found for this member"
+        
+        # Add organization details
+        if public_orgs:
+            response["public_invited_orgs"] = public_orgs
+            response["public_invited_org_names"] = [org.get("name") for org in public_orgs]
+        
+        if private_orgs:
+            response["private_invited_orgs"] = private_orgs
+            response["private_invited_org_names"] = [org.get("name") for org in private_orgs]
+        
+        if paid_orgs:
+            response["paid_invited_orgs"] = paid_orgs
+            response["paid_invited_org_names"] = [org.get("name") for org in paid_orgs]
+        
+        if free_orgs:
+            response["free_invited_orgs"] = free_orgs
+            response["free_invited_org_names"] = [org.get("name") for org in free_orgs]
+        
+        # Add invitation summary
+        response["invitation_summary"] = {
+            "total_pending": invited_organizations_count,
+            "public_pending": len(public_orgs),
+            "private_pending": len(private_orgs),
+            "paid_pending": len(paid_orgs),
+            "free_pending": len(free_orgs)
+        }
+        
+        # Add invitation status information
+        response["invitation_status"] = {
+            "status": "pending",
+            "description": "These organizations have invited the member but the invitation has not been accepted or declined",
+            "action_required": "Member needs to accept or decline these invitations",
+            "total_pending": invited_organizations_count
+        }
+        
+        # Add helpful information for managing invitations
+        if invited_organizations_count > 0:
+            response["invitation_management"] = {
+                "note": f"Member has {invited_organizations_count} pending organization invitations",
+                "next_steps": "Use Trello web interface or API to accept/decline invitations",
+                "organizations_awaiting_response": organization_names
+            }
+        else:
+            response["invitation_management"] = {
+                "note": "No pending organization invitations",
+                "status": "All invitations have been processed or no invitations exist"
+            }
+        
+        return response
+    except Exception as e:
+        return {
+            "successful": False,
+            "error": f"Failed to retrieve member invited organizations: {str(e)}",
+            "action": "get_member_organizations_invited",
+            "member_id": id_member,
+            "message": f"Failed to retrieve invited organizations for member {id_member}"
+        }
+
+
+@mcp.tool(
+    "TRELLO_GET_MEMBERS_ORGANIZATIONS_INVITED_BY_ID_MEMBER_BY_FIELD",
+    description="Get field of member's invited organization. Get a specific field of an organization to which the member has a pending invitation; returns data only if such an invitation exists.",
+)
+def TRELLO_GET_MEMBERS_ORGANIZATIONS_INVITED_BY_ID_MEMBER_BY_FIELD(
+    id_member: Annotated[str, "The ID or username of the member to get invited organization field for."],
+    field: Annotated[str, "The specific field to retrieve from the invited organization (e.g., id, name, displayName, desc, url, website, logoHash, prefs, paid_account, billableMemberCount, premiumFeatures)."]
+):
+    """Get field of member's invited organization. Get a specific field of an organization to which the member has a pending invitation; returns data only if such an invitation exists."""
+    err = _validate_required({"id_member": id_member, "field": field}, ["id_member", "field"])
+    if err:
+        return err
+    
+    try:
+        # Get invited organizations for the member with specific field
+        endpoint = f"/members/{id_member}/organizationsInvited"
+        
+        # Build query parameters
+        params = {
+            "fields": field
+        }
+        
+        # Make the API request
+        result = trello_request("GET", endpoint, params=params)
+        
+        if not isinstance(result, list):
+            return {
+                "successful": False,
+                "error": "Invalid invited organizations data received",
+                "action": "get_member_organizations_invited_field",
+                "member_id": id_member,
+                "field": field,
+                "message": f"Failed to retrieve invited organization field '{field}' for member {id_member}"
+            }
+        
+        # Extract key information
+        invited_organizations_count = len(result)
+        
+        # Extract the specific field values
+        field_values = []
+        for org in result:
+            if field in org:
+                field_values.append(org[field])
+            else:
+                field_values.append(None)
+        
+        # Filter out None values for cleaner response
+        valid_field_values = [value for value in field_values if value is not None]
+        
+        response = {
+            "successful": True,
+            "data": result,
+            "action": "get_member_organizations_invited_field",
+            "member_id": id_member,
+            "field": field,
+            "invited_organizations_count": invited_organizations_count,
+            "field_values": field_values,
+            "valid_field_values": valid_field_values,
+            "field_values_count": len(valid_field_values),
+            "message": f"Successfully retrieved field '{field}' from {invited_organizations_count} invited organizations for member {id_member}",
+            "invited_organizations": result
+        }
+        
+        # Add field-specific information
+        if field == "id":
+            response["note"] = "Organization IDs from pending invitations"
+            response["field_description"] = "Unique identifiers of organizations that have invited the member"
+        elif field == "name":
+            response["note"] = "Organization names from pending invitations"
+            response["field_description"] = "Names of organizations that have invited the member"
+        elif field == "displayName":
+            response["note"] = "Organization display names from pending invitations"
+            response["field_description"] = "Display names of organizations that have invited the member"
+        elif field == "desc":
+            response["note"] = "Organization descriptions from pending invitations"
+            response["field_description"] = "Descriptions of organizations that have invited the member"
+        elif field == "url":
+            response["note"] = "Organization URLs from pending invitations"
+            response["field_description"] = "URLs of organizations that have invited the member"
+        elif field == "website":
+            response["note"] = "Organization websites from pending invitations"
+            response["field_description"] = "Website URLs of organizations that have invited the member"
+        elif field == "logoHash":
+            response["note"] = "Organization logo hashes from pending invitations"
+            response["field_description"] = "Logo hashes of organizations that have invited the member"
+        elif field == "prefs":
+            response["note"] = "Organization preferences from pending invitations"
+            response["field_description"] = "Preferences of organizations that have invited the member"
+        elif field == "paid_account":
+            response["note"] = "Organization paid account status from pending invitations"
+            response["field_description"] = "Whether organizations that have invited the member have paid accounts"
+        elif field == "billableMemberCount":
+            response["note"] = "Organization billable member counts from pending invitations"
+            response["field_description"] = "Number of billable members in organizations that have invited the member"
+        elif field == "premiumFeatures":
+            response["note"] = "Organization premium features from pending invitations"
+            response["field_description"] = "Premium features available in organizations that have invited the member"
+        else:
+            response["note"] = f"Field '{field}' values from pending invitations"
+            response["field_description"] = f"Values of field '{field}' from organizations that have invited the member"
+        
+        # Add helpful information
+        if valid_field_values:
+            if len(valid_field_values) <= 5:
+                response["note"] = f"Field '{field}' values: {', '.join(map(str, valid_field_values))}"
+            else:
+                response["note"] = f"Field '{field}' values: {', '.join(map(str, valid_field_values[:5]))}... (and {len(valid_field_values) - 5} more)"
+        else:
+            response["note"] = f"No valid values found for field '{field}' in pending invitations"
+        
+        # Add field analysis
+        response["field_analysis"] = {
+            "requested_field": field,
+            "total_organizations": invited_organizations_count,
+            "organizations_with_field": len(valid_field_values),
+            "organizations_without_field": invited_organizations_count - len(valid_field_values),
+            "field_coverage": f"{len(valid_field_values)}/{invited_organizations_count} organizations have this field"
+        }
+        
+        # Add invitation status
+        response["invitation_status"] = {
+            "status": "pending",
+            "description": "These are organizations with pending invitations",
+            "field_availability": f"Field '{field}' is available in {len(valid_field_values)} out of {invited_organizations_count} organizations"
+        }
+        
+        return response
+    except Exception as e:
+        return {
+            "successful": False,
+            "error": f"Failed to retrieve member invited organization field: {str(e)}",
+            "action": "get_member_organizations_invited_field",
+            "member_id": id_member,
+            "field": field,
+            "message": f"Failed to retrieve invited organization field '{field}' for member {id_member}"
+        }
+
+
+@mcp.tool(
+    "TRELLO_GET_MEMBERS_TOKENS_BY_ID_MEMBER",
+    description="Retrieve member tokens. Gets api token metadata for a trello member; actual token values are excluded for security.",
+)
+def TRELLO_GET_MEMBERS_TOKENS_BY_ID_MEMBER(
+    id_member: Annotated[str, "The ID or username of the member to get tokens for."],
+    filter: Annotated[str, "The filter criteria for tokens (e.g., 'all', 'active', 'expired'). Defaults to all."] = "all"
+):
+    """Retrieve member tokens. Gets api token metadata for a trello member; actual token values are excluded for security."""
+    err = _validate_required({"id_member": id_member}, ["id_member"])
+    if err:
+        return err
+    
+    try:
+        # Get tokens for the member
+        endpoint = f"/members/{id_member}/tokens"
+        
+        # Build query parameters
+        params = {}
+        if filter is not None:
+            params["filter"] = filter
+        
+        # Make the API request
+        result = trello_request("GET", endpoint, params=params)
+        
+        if not isinstance(result, list):
+            return {
+                "successful": False,
+                "error": "Invalid tokens data received",
+                "action": "get_member_tokens",
+                "member_id": id_member,
+                "message": f"Failed to retrieve tokens for member {id_member}"
+            }
+        
+        # Extract key information
+        tokens_count = len(result)
+        token_ids = [token.get("id") for token in result if token.get("id")]
+        token_identifiers = [token.get("identifier") for token in result if token.get("identifier")]
+        token_permissions = [token.get("permissions") for token in result if token.get("permissions")]
+        
+        # Analyze token status
+        active_tokens = [token for token in result if token.get("dateExpires") is None or token.get("dateExpires") == ""]
+        expired_tokens = [token for token in result if token.get("dateExpires") is not None and token.get("dateExpires") != ""]
+        
+        # Analyze token permissions
+        read_tokens = [token for token in result if token.get("permissions") == "read"]
+        write_tokens = [token for token in result if token.get("permissions") == "write"]
+        admin_tokens = [token for token in result if token.get("permissions") == "admin"]
+        
+        response = {
+            "successful": True,
+            "data": result,
+            "action": "get_member_tokens",
+            "member_id": id_member,
+            "tokens_count": tokens_count,
+            "token_ids": token_ids,
+            "token_identifiers": token_identifiers,
+            "token_permissions": token_permissions,
+            "message": f"Successfully retrieved {tokens_count} tokens for member {id_member}",
+            "tokens": result
+        }
+        
+        # Add token analysis
+        response["token_analysis"] = {
+            "total_tokens": tokens_count,
+            "active_tokens": len(active_tokens),
+            "expired_tokens": len(expired_tokens),
+            "read_tokens": len(read_tokens),
+            "write_tokens": len(write_tokens),
+            "admin_tokens": len(admin_tokens)
+        }
+        
+        # Add filter information
+        if filter != "all":
+            response["filter_applied"] = filter
+            response["filter_description"] = f"Tokens filtered by: {filter}"
+        
+        # Add helpful information
+        if token_identifiers:
+            response["note"] = f"Token identifiers: {', '.join(token_identifiers[:5])}{'...' if len(token_identifiers) > 5 else ''}"
+        else:
+            response["note"] = "No tokens found for this member"
+        
+        # Add token details
+        if active_tokens:
+            response["active_tokens"] = active_tokens
+            response["active_token_ids"] = [token.get("id") for token in active_tokens]
+        
+        if expired_tokens:
+            response["expired_tokens"] = expired_tokens
+            response["expired_token_ids"] = [token.get("id") for token in expired_tokens]
+        
+        if read_tokens:
+            response["read_tokens"] = read_tokens
+            response["read_token_ids"] = [token.get("id") for token in read_tokens]
+        
+        if write_tokens:
+            response["write_tokens"] = write_tokens
+            response["write_token_ids"] = [token.get("id") for token in write_tokens]
+        
+        if admin_tokens:
+            response["admin_tokens"] = admin_tokens
+            response["admin_token_ids"] = [token.get("id") for token in admin_tokens]
+        
+        # Add security information
+        response["security_info"] = {
+            "note": "Actual token values are excluded for security reasons",
+            "data_included": "Token metadata only (ID, identifier, permissions, dates)",
+            "data_excluded": "Actual token values, secrets, and sensitive data",
+            "purpose": "Token management and monitoring without exposing credentials"
+        }
+        
+        # Add token summary
+        response["token_summary"] = {
+            "total": tokens_count,
+            "active": len(active_tokens),
+            "expired": len(expired_tokens),
+            "read": len(read_tokens),
+            "write": len(write_tokens),
+            "admin": len(admin_tokens)
+        }
+        
+        # Add token management information
+        if tokens_count > 0:
+            response["token_management"] = {
+                "note": f"Member has {tokens_count} API tokens",
+                "active_tokens": len(active_tokens),
+                "expired_tokens": len(expired_tokens),
+                "permission_breakdown": {
+                    "read": len(read_tokens),
+                    "write": len(write_tokens),
+                    "admin": len(admin_tokens)
+                }
+            }
+        else:
+            response["token_management"] = {
+                "note": "No API tokens found for this member",
+                "status": "Member has not created any API tokens"
+            }
+        
+        return response
+    except Exception as e:
+        return {
+            "successful": False,
+            "error": f"Failed to retrieve member tokens: {str(e)}",
+            "action": "get_member_tokens",
+            "member_id": id_member,
+            "message": f"Failed to retrieve tokens for member {id_member}"
+        }
+
+
+@mcp.tool(
+    "TRELLO_GET_NOTIF_CREATOR_FIELD",
+    description="Get notification creator field. Fetches a specific field of the member who created the specified trello notification.",
+)
+def TRELLO_GET_NOTIF_CREATOR_FIELD(
+    id_notification: Annotated[str, "The ID of the notification to get the creator field for."],
+    field: Annotated[str, "The specific field to retrieve from the notification creator (e.g., id, username, fullName, initials, avatarHash, email, bio, bioData, confirmed, memberType, url, gravatarHash, uploadedAvatarHash, prefs, trophies, uploadedAvatarId, premiumFeatures, idBoards, idOrganizations, loginTypes, newEmail, oneTimeMessagesDismissed, marketingOptIn, messagesDismissed, tags, savedSearches, idEnterprisesAdmin, idEnterprisesDeactivated, limits, marketingOptInDate, idPremOrgsAdmin, avatarSource, emailUnread, loginTypes, newEmail, oneTimeMessagesDismissed, marketingOptIn, messagesDismissed, tags, savedSearches, idEnterprisesAdmin, idEnterprisesDeactivated, limits, marketingOptInDate, idPremOrgsAdmin, avatarSource, emailUnread)."]
+):
+    """Get notification creator field. Fetches a specific field of the member who created the specified trello notification."""
+    err = _validate_required({"id_notification": id_notification, "field": field}, ["id_notification", "field"])
+    if err:
+        return err
+    
+    try:
+        # Get notification creator field
+        endpoint = f"/notifications/{id_notification}/memberCreator"
+        
+        # Build query parameters
+        params = {
+            "fields": field
+        }
+        
+        # Make the API request
+        result = trello_request("GET", endpoint, params=params)
+        
+        if not isinstance(result, dict):
+            return {
+                "successful": False,
+                "error": "Invalid notification creator data received",
+                "action": "get_notification_creator_field",
+                "notification_id": id_notification,
+                "field": field,
+                "message": f"Failed to retrieve notification creator field '{field}' for notification {id_notification}"
+            }
+        
+        # Extract the specific field value
+        field_value = result.get(field)
+        
+        response = {
+            "successful": True,
+            "data": result,
+            "action": "get_notification_creator_field",
+            "notification_id": id_notification,
+            "field": field,
+            "field_value": field_value,
+            "message": f"Successfully retrieved notification creator field '{field}' for notification {id_notification}",
+            "notification_creator": result
+        }
+        
+        # Add field-specific information
+        if field == "id":
+            response["note"] = "Notification creator member ID"
+            response["field_description"] = "Unique identifier of the member who created the notification"
+        elif field == "username":
+            response["note"] = "Notification creator username"
+            response["field_description"] = "Username of the member who created the notification"
+        elif field == "fullName":
+            response["note"] = "Notification creator full name"
+            response["field_description"] = "Full name of the member who created the notification"
+        elif field == "initials":
+            response["note"] = "Notification creator initials"
+            response["field_description"] = "Initials of the member who created the notification"
+        elif field == "avatarHash":
+            response["note"] = "Notification creator avatar hash"
+            response["field_description"] = "Avatar hash of the member who created the notification"
+        elif field == "email":
+            response["note"] = "Notification creator email"
+            response["field_description"] = "Email address of the member who created the notification"
+        elif field == "bio":
+            response["note"] = "Notification creator bio"
+            response["field_description"] = "Biography of the member who created the notification"
+        elif field == "bioData":
+            response["note"] = "Notification creator bio data"
+            response["field_description"] = "Bio data of the member who created the notification"
+        elif field == "confirmed":
+            response["note"] = "Notification creator confirmation status"
+            response["field_description"] = "Whether the member who created the notification has confirmed their account"
+        elif field == "memberType":
+            response["note"] = "Notification creator member type"
+            response["field_description"] = "Type of the member who created the notification"
+        elif field == "url":
+            response["note"] = "Notification creator URL"
+            response["field_description"] = "URL of the member who created the notification"
+        elif field == "gravatarHash":
+            response["note"] = "Notification creator gravatar hash"
+            response["field_description"] = "Gravatar hash of the member who created the notification"
+        elif field == "uploadedAvatarHash":
+            response["note"] = "Notification creator uploaded avatar hash"
+            response["field_description"] = "Uploaded avatar hash of the member who created the notification"
+        elif field == "prefs":
+            response["note"] = "Notification creator preferences"
+            response["field_description"] = "Preferences of the member who created the notification"
+        elif field == "trophies":
+            response["note"] = "Notification creator trophies"
+            response["field_description"] = "Trophies of the member who created the notification"
+        elif field == "uploadedAvatarId":
+            response["note"] = "Notification creator uploaded avatar ID"
+            response["field_description"] = "Uploaded avatar ID of the member who created the notification"
+        elif field == "premiumFeatures":
+            response["note"] = "Notification creator premium features"
+            response["field_description"] = "Premium features available to the member who created the notification"
+        elif field == "idBoards":
+            response["note"] = "Notification creator board IDs"
+            response["field_description"] = "Board IDs associated with the member who created the notification"
+        elif field == "idOrganizations":
+            response["note"] = "Notification creator organization IDs"
+            response["field_description"] = "Organization IDs associated with the member who created the notification"
+        elif field == "loginTypes":
+            response["note"] = "Notification creator login types"
+            response["field_description"] = "Login types used by the member who created the notification"
+        elif field == "newEmail":
+            response["note"] = "Notification creator new email"
+            response["field_description"] = "New email address of the member who created the notification"
+        elif field == "oneTimeMessagesDismissed":
+            response["note"] = "Notification creator one-time messages dismissed"
+            response["field_description"] = "One-time messages dismissed by the member who created the notification"
+        elif field == "marketingOptIn":
+            response["note"] = "Notification creator marketing opt-in status"
+            response["field_description"] = "Marketing opt-in status of the member who created the notification"
+        elif field == "messagesDismissed":
+            response["note"] = "Notification creator messages dismissed"
+            response["field_description"] = "Messages dismissed by the member who created the notification"
+        elif field == "tags":
+            response["note"] = "Notification creator tags"
+            response["field_description"] = "Tags associated with the member who created the notification"
+        elif field == "savedSearches":
+            response["note"] = "Notification creator saved searches"
+            response["field_description"] = "Saved searches of the member who created the notification"
+        elif field == "idEnterprisesAdmin":
+            response["note"] = "Notification creator enterprise admin IDs"
+            response["field_description"] = "Enterprise admin IDs for the member who created the notification"
+        elif field == "idEnterprisesDeactivated":
+            response["note"] = "Notification creator deactivated enterprise IDs"
+            response["field_description"] = "Deactivated enterprise IDs for the member who created the notification"
+        elif field == "limits":
+            response["note"] = "Notification creator limits"
+            response["field_description"] = "Limits for the member who created the notification"
+        elif field == "marketingOptInDate":
+            response["note"] = "Notification creator marketing opt-in date"
+            response["field_description"] = "Marketing opt-in date for the member who created the notification"
+        elif field == "idPremOrgsAdmin":
+            response["note"] = "Notification creator premium organization admin IDs"
+            response["field_description"] = "Premium organization admin IDs for the member who created the notification"
+        elif field == "avatarSource":
+            response["note"] = "Notification creator avatar source"
+            response["field_description"] = "Avatar source for the member who created the notification"
+        elif field == "emailUnread":
+            response["note"] = "Notification creator email unread status"
+            response["field_description"] = "Email unread status for the member who created the notification"
+        else:
+            response["note"] = f"Notification creator field '{field}' value"
+            response["field_description"] = f"Value of field '{field}' for the member who created the notification"
+        
+        # Add helpful information
+        if field_value is not None:
+            if isinstance(field_value, str) and len(field_value) > 50:
+                response["note"] = f"Field '{field}' value: {field_value[:50]}... (truncated)"
+            else:
+                response["note"] = f"Field '{field}' value: {field_value}"
+        else:
+            response["note"] = f"Field '{field}' not found or null for notification creator"
+        
+        # Add field analysis
+        response["field_analysis"] = {
+            "requested_field": field,
+            "field_value": field_value,
+            "field_type": type(field_value).__name__ if field_value is not None else "null",
+            "field_exists": field_value is not None,
+            "notification_id": id_notification
+        }
+        
+        # Add notification context
+        response["notification_context"] = {
+            "notification_id": id_notification,
+            "creator_field": field,
+            "creator_field_value": field_value,
+            "description": f"Field '{field}' from the member who created notification {id_notification}"
+        }
+        
+        return response
+    except Exception as e:
+        return {
+            "successful": False,
+            "error": f"Failed to retrieve notification creator field: {str(e)}",
+            "action": "get_notification_creator_field",
+            "notification_id": id_notification,
+            "field": field,
+            "message": f"Failed to retrieve notification creator field '{field}' for notification {id_notification}"
+        }
+
+
+@mcp.tool(
+    "TRELLO_GET_NOTIFICATION_ORG_FIELD",
+    description="Get notification organization field. Retrieves a specific field from the trello organization associated with a given notification, provided the notification is linked to an organization.",
+)
+def TRELLO_GET_NOTIFICATION_ORG_FIELD(
+    id_notification: Annotated[str, "The ID of the notification to get the organization field for."],
+    field: Annotated[str, "The specific field to retrieve from the organization (e.g., id, name, displayName, desc, descData, url, website, logoHash, products, powerUps, idTags, limits, premiumFeatures, creationMethod, billableMemberCount, idMemberCreator, idEnterprise, enterprise, memberships, invitations, invitations_memberships, prefs, labelNames, boards, billableCollaboratorCount, billableCollaboratorCountPerOrganization, idBoards, idMembers, limits, premiumFeatures, creationMethod, billableMemberCount, idMemberCreator, idEnterprise, enterprise, memberships, invitations, invitations_memberships, prefs, labelNames, boards, billableCollaboratorCount, billableCollaboratorCountPerOrganization, idBoards, idMembers)."]
+):
+    """Get notification organization field. Retrieves a specific field from the trello organization associated with a given notification, provided the notification is linked to an organization."""
+    err = _validate_required({"id_notification": id_notification, "field": field}, ["id_notification", "field"])
+    if err:
+        return err
+    
+    try:
+        # Get notification organization field
+        endpoint = f"/notifications/{id_notification}/organization"
+        
+        # Build query parameters
+        params = {
+            "fields": field
+        }
+        
+        # Make the API request
+        result = trello_request("GET", endpoint, params=params)
+        
+        if not isinstance(result, dict):
+            return {
+                "successful": False,
+                "error": "Invalid notification organization data received",
+                "action": "get_notification_org_field",
+                "notification_id": id_notification,
+                "field": field,
+                "message": f"Failed to retrieve notification organization field '{field}' for notification {id_notification}"
+            }
+        
+        # Extract the specific field value
+        field_value = result.get(field)
+        
+        response = {
+            "successful": True,
+            "data": result,
+            "action": "get_notification_org_field",
+            "notification_id": id_notification,
+            "field": field,
+            "field_value": field_value,
+            "message": f"Successfully retrieved notification organization field '{field}' for notification {id_notification}",
+            "notification_organization": result
+        }
+        
+        # Add field-specific information
+        if field == "id":
+            response["note"] = "Notification organization ID"
+            response["field_description"] = "Unique identifier of the organization associated with the notification"
+        elif field == "name":
+            response["note"] = "Notification organization name"
+            response["field_description"] = "Name of the organization associated with the notification"
+        elif field == "displayName":
+            response["note"] = "Notification organization display name"
+            response["field_description"] = "Display name of the organization associated with the notification"
+        elif field == "desc":
+            response["note"] = "Notification organization description"
+            response["field_description"] = "Description of the organization associated with the notification"
+        elif field == "descData":
+            response["note"] = "Notification organization description data"
+            response["field_description"] = "Description data of the organization associated with the notification"
+        elif field == "url":
+            response["note"] = "Notification organization URL"
+            response["field_description"] = "URL of the organization associated with the notification"
+        elif field == "website":
+            response["note"] = "Notification organization website"
+            response["field_description"] = "Website of the organization associated with the notification"
+        elif field == "logoHash":
+            response["note"] = "Notification organization logo hash"
+            response["field_description"] = "Logo hash of the organization associated with the notification"
+        elif field == "products":
+            response["note"] = "Notification organization products"
+            response["field_description"] = "Products available to the organization associated with the notification"
+        elif field == "powerUps":
+            response["note"] = "Notification organization power-ups"
+            response["field_description"] = "Power-ups available to the organization associated with the notification"
+        elif field == "idTags":
+            response["note"] = "Notification organization tag IDs"
+            response["field_description"] = "Tag IDs associated with the organization"
+        elif field == "limits":
+            response["note"] = "Notification organization limits"
+            response["field_description"] = "Limits for the organization associated with the notification"
+        elif field == "premiumFeatures":
+            response["note"] = "Notification organization premium features"
+            response["field_description"] = "Premium features available to the organization associated with the notification"
+        elif field == "creationMethod":
+            response["note"] = "Notification organization creation method"
+            response["field_description"] = "Method used to create the organization associated with the notification"
+        elif field == "billableMemberCount":
+            response["note"] = "Notification organization billable member count"
+            response["field_description"] = "Number of billable members in the organization associated with the notification"
+        elif field == "idMemberCreator":
+            response["note"] = "Notification organization creator member ID"
+            response["field_description"] = "ID of the member who created the organization associated with the notification"
+        elif field == "idEnterprise":
+            response["note"] = "Notification organization enterprise ID"
+            response["field_description"] = "Enterprise ID associated with the organization"
+        elif field == "enterprise":
+            response["note"] = "Notification organization enterprise data"
+            response["field_description"] = "Enterprise data for the organization associated with the notification"
+        elif field == "memberships":
+            response["note"] = "Notification organization memberships"
+            response["field_description"] = "Memberships in the organization associated with the notification"
+        elif field == "invitations":
+            response["note"] = "Notification organization invitations"
+            response["field_description"] = "Invitations to the organization associated with the notification"
+        elif field == "invitations_memberships":
+            response["note"] = "Notification organization invitation memberships"
+            response["field_description"] = "Invitation memberships for the organization associated with the notification"
+        elif field == "prefs":
+            response["note"] = "Notification organization preferences"
+            response["field_description"] = "Preferences for the organization associated with the notification"
+        elif field == "labelNames":
+            response["note"] = "Notification organization label names"
+            response["field_description"] = "Label names for the organization associated with the notification"
+        elif field == "boards":
+            response["note"] = "Notification organization boards"
+            response["field_description"] = "Boards in the organization associated with the notification"
+        elif field == "billableCollaboratorCount":
+            response["note"] = "Notification organization billable collaborator count"
+            response["field_description"] = "Number of billable collaborators in the organization associated with the notification"
+        elif field == "billableCollaboratorCountPerOrganization":
+            response["note"] = "Notification organization billable collaborator count per organization"
+            response["field_description"] = "Billable collaborator count per organization for the notification"
+        elif field == "idBoards":
+            response["note"] = "Notification organization board IDs"
+            response["field_description"] = "Board IDs in the organization associated with the notification"
+        elif field == "idMembers":
+            response["note"] = "Notification organization member IDs"
+            response["field_description"] = "Member IDs in the organization associated with the notification"
+        else:
+            response["note"] = f"Notification organization field '{field}' value"
+            response["field_description"] = f"Value of field '{field}' for the organization associated with the notification"
+        
+        # Add helpful information
+        if field_value is not None:
+            if isinstance(field_value, str) and len(field_value) > 50:
+                response["note"] = f"Field '{field}' value: {field_value[:50]}... (truncated)"
+            else:
+                response["note"] = f"Field '{field}' value: {field_value}"
+        else:
+            response["note"] = f"Field '{field}' not found or null for notification organization"
+        
+        # Add field analysis
+        response["field_analysis"] = {
+            "requested_field": field,
+            "field_value": field_value,
+            "field_type": type(field_value).__name__ if field_value is not None else "null",
+            "field_exists": field_value is not None,
+            "notification_id": id_notification
+        }
+        
+        # Add notification context
+        response["notification_context"] = {
+            "notification_id": id_notification,
+            "organization_field": field,
+            "organization_field_value": field_value,
+            "description": f"Field '{field}' from the organization associated with notification {id_notification}"
+        }
+        
+        return response
+    except Exception as e:
+        return {
+            "successful": False,
+            "error": f"Failed to retrieve notification organization field: {str(e)}",
+            "action": "get_notification_org_field",
+            "notification_id": id_notification,
+            "field": field,
+            "message": f"Failed to retrieve notification organization field '{field}' for notification {id_notification}"
+        }
+
+
+@mcp.tool(
+    "TRELLO_GET_NOTIFICATIONS_BOARD_BY_ID_NOTIFICATION",
+    description="Get notification board by ID. Gets the trello board associated with a given notification id, returning only board data and allowing selection of specific board fields.",
+)
+def TRELLO_GET_NOTIFICATIONS_BOARD_BY_ID_NOTIFICATION(
+    id_notification: Annotated[str, "The ID of the notification to get the board for."],
+    fields: Annotated[str, "The fields to retrieve from the board (e.g., id, name, desc, closed, idOrganization, pinned, url, prefs, labelNames, shortLink, powerUps, dateLastActivity, dateLastView, shortUrl, idTags, datePluginDisable, creationMethod, ixUpdate, enterprise, limits, starred, descData, idBoardSource, idMemberCreator, idOrganization, pinned, url, prefs, labelNames, shortLink, powerUps, dateLastActivity, dateLastView, shortUrl, idTags, datePluginDisable, creationMethod, ixUpdate, enterprise, limits, starred, descData, idBoardSource, idMemberCreator). Defaults to all."] = "all"
+):
+    """Get notification board by ID. Gets the trello board associated with a given notification id, returning only board data and allowing selection of specific board fields."""
+    err = _validate_required({"id_notification": id_notification}, ["id_notification"])
+    if err:
+        return err
+    
+    try:
+        # Get notification board
+        endpoint = f"/notifications/{id_notification}/board"
+        
+        # Build query parameters
+        params = {}
+        if fields is not None:
+            params["fields"] = fields
+        
+        # Make the API request
+        result = trello_request("GET", endpoint, params=params)
+        
+        if not isinstance(result, dict):
+            return {
+                "successful": False,
+                "error": "Invalid notification board data received",
+                "action": "get_notification_board",
+                "notification_id": id_notification,
+                "message": f"Failed to retrieve board for notification {id_notification}"
+            }
+        
+        # Extract key information
+        board_id = result.get("id")
+        board_name = result.get("name")
+        board_desc = result.get("desc")
+        board_closed = result.get("closed")
+        organization_id = result.get("idOrganization")
+        board_url = result.get("url")
+        board_short_url = result.get("shortUrl")
+        
+        response = {
+            "successful": True,
+            "data": result,
+            "action": "get_notification_board",
+            "notification_id": id_notification,
+            "board_id": board_id,
+            "board_name": board_name,
+            "board_desc": board_desc,
+            "board_closed": board_closed,
+            "organization_id": organization_id,
+            "board_url": board_url,
+            "board_short_url": board_short_url,
+            "message": f"Successfully retrieved board for notification {id_notification}",
+            "notification_board": result
+        }
+        
+        # Add board-specific information
+        if board_name:
+            response["note"] = f"Board '{board_name}' associated with notification {id_notification}"
+        else:
+            response["note"] = f"Board {board_id} associated with notification {id_notification}"
+        
+        # Add board context
+        response["board_context"] = {
+            "notification_id": id_notification,
+            "board_id": board_id,
+            "board_name": board_name,
+            "board_closed": board_closed,
+            "organization_id": organization_id,
+            "description": f"Board associated with notification {id_notification}"
+        }
+        
+        # Add field analysis
+        response["field_analysis"] = {
+            "requested_fields": fields,
+            "board_id": board_id,
+            "board_name": board_name,
+            "board_closed": board_closed,
+            "organization_id": organization_id,
+            "notification_id": id_notification
+        }
+        
+        # Add helpful information
+        if board_url:
+            response["board_urls"] = {
+                "full_url": board_url,
+                "short_url": board_short_url
+            }
+        
+        if organization_id:
+            response["organization_info"] = {
+                "organization_id": organization_id,
+                "note": "This board belongs to an organization"
+            }
+        else:
+            response["organization_info"] = {
+                "note": "This board is not part of an organization"
+            }
+        
+        return response
+    except Exception as e:
+        return {
+            "successful": False,
+            "error": f"Failed to retrieve notification board: {str(e)}",
+            "action": "get_notification_board",
+            "notification_id": id_notification,
+            "message": f"Failed to retrieve board for notification {id_notification}"
+        }
+
 
 @mcp.tool(
     "TRELLO_GET_BOARDS_MEMBERSHIPS_BY_ID_BOARD_BY_ID_MEMBERSHIP",
@@ -5317,6 +8607,407 @@ def TRELLO_GET_BOARDS_BY_ID_BOARD(
         "fields": fields,
         "message": f"Successfully retrieved board {id_board}"
     }
+
+
+# -------------------- NOTIFICATION BOARD FIELD TOOLS --------------------
+
+@mcp.tool(
+    "TRELLO_GET_NOTIFICATIONS_BOARD_BY_ID_NOTIFICATION_BY_FIELD",
+    description="Get notification's board field. Retrieves a specific, valid field from the board associated with a trello notification.",
+)
+def TRELLO_GET_NOTIFICATIONS_BOARD_BY_ID_NOTIFICATION_BY_FIELD(
+    id_notification: Annotated[str, "The ID of the notification to get the board field for."],
+    field: Annotated[str, "The specific field to retrieve from the board (e.g., name, desc, url, closed, idOrganization)."]
+):
+    """Get notification's board field. Retrieves a specific, valid field from the board associated with a trello notification."""
+    err = _validate_required({"id_notification": id_notification, "field": field}, ["id_notification", "field"])
+    if err:
+        return err
+    
+    try:
+        # Get specific field from board for the notification
+        endpoint = f"/notifications/{id_notification}/board"
+        
+        # Build query parameters
+        params = {
+            "fields": field
+        }
+        
+        # Make the API request
+        result = trello_request("GET", endpoint, params=params)
+        
+        if not isinstance(result, dict):
+            return {
+                "successful": False,
+                "error": "Invalid board data received",
+                "action": "get_notification_board_field",
+                "notification_id": id_notification,
+                "field": field,
+                "message": f"Failed to retrieve board field '{field}' for notification {id_notification}"
+            }
+        
+        # Extract the specific field value
+        field_value = result.get(field)
+        
+        return {
+            "successful": True,
+            "data": {field: field_value},
+            "action": "get_notification_board_field",
+            "notification_id": id_notification,
+            "field": field,
+            "field_value": field_value,
+            "message": f"Successfully retrieved board field '{field}' for notification {id_notification}",
+            "board_field": field_value
+        }
+    except Exception as e:
+        return {
+            "successful": False,
+            "error": f"Failed to retrieve notification board field: {str(e)}",
+            "action": "get_notification_board_field",
+            "notification_id": id_notification,
+            "field": field,
+            "message": f"Failed to retrieve board field '{field}' for notification {id_notification}"
+        }
+
+
+# -------------------- NOTIFICATION DETAILS TOOLS --------------------
+
+@mcp.tool(
+    "TRELLO_GET_NOTIFICATIONS_BY_ID_NOTIFICATION",
+    description="Get notification by ID. Retrieves a specific trello notification by its id, optionally including related entities and specific fields for the notification and its related entities.",
+)
+def TRELLO_GET_NOTIFICATIONS_BY_ID_NOTIFICATION(
+    id_notification: Annotated[str, "The ID of the notification to retrieve."],
+    board: Annotated[str | None, "Whether to include board information."] = None,
+    board_fields: Annotated[str, "The fields to retrieve from the board. Defaults to name."] = "name",
+    card: Annotated[str | None, "Whether to include card information."] = None,
+    card_fields: Annotated[str, "The fields to retrieve from the card. Defaults to name."] = "name",
+    display: Annotated[str | None, "Whether to include display information."] = None,
+    entities: Annotated[str | None, "Whether to include entities in the response."] = None,
+    fields: Annotated[str, "The fields to retrieve from the notification. Defaults to all."] = "all",
+    list: Annotated[str | None, "Whether to include list information."] = None,
+    member: Annotated[str | None, "Whether to include member information."] = None,
+    member_creator: Annotated[str | None, "Whether to include member creator information."] = None,
+    member_creator_fields: Annotated[str, "The fields to retrieve from member creators. Defaults to avatarHash, fullName, initials and username."] = "avatarHash,fullName,initials,username",
+    member_fields: Annotated[str, "The fields to retrieve from members. Defaults to avatarHash, fullName, initials and username."] = "avatarHash,fullName,initials,username",
+    organization: Annotated[str | None, "Whether to include organization information."] = None,
+    organization_fields: Annotated[str, "The fields to retrieve from the organization. Defaults to displayName."] = "displayName"
+):
+    """Get notification by ID. Retrieves a specific trello notification by its id, optionally including related entities and specific fields for the notification and its related entities."""
+    err = _validate_required({"id_notification": id_notification}, ["id_notification"])
+    if err:
+        return err
+    
+    try:
+        # Get notification by ID
+        endpoint = f"/notifications/{id_notification}"
+        
+        # Build query parameters
+        params = {}
+        if board is not None:
+            params["board"] = board
+        if board_fields is not None:
+            params["board_fields"] = board_fields
+        if card is not None:
+            params["card"] = card
+        if card_fields is not None:
+            params["card_fields"] = card_fields
+        if display is not None:
+            params["display"] = display
+        if entities is not None:
+            params["entities"] = entities
+        if fields is not None:
+            params["fields"] = fields
+        if list is not None:
+            params["list"] = list
+        if member is not None:
+            params["member"] = member
+        if member_creator is not None:
+            params["memberCreator"] = member_creator
+        if member_creator_fields is not None:
+            params["memberCreator_fields"] = member_creator_fields
+        if member_fields is not None:
+            params["member_fields"] = member_fields
+        if organization is not None:
+            params["organization"] = organization
+        if organization_fields is not None:
+            params["organization_fields"] = organization_fields
+        
+        # Make the API request
+        result = trello_request("GET", endpoint, params=params)
+        
+        if not isinstance(result, dict):
+            return {
+                "successful": False,
+                "error": "Invalid notification data received",
+                "action": "get_notification",
+                "notification_id": id_notification,
+                "message": f"Failed to retrieve notification {id_notification}"
+            }
+        
+        # Extract key information
+        notification_type = result.get("type")
+        notification_date = result.get("date")
+        notification_read = result.get("unread")
+        notification_data = result.get("data", {})
+        
+        response = {
+            "successful": True,
+            "data": result,
+            "action": "get_notification",
+            "notification_id": id_notification,
+            "notification_type": notification_type,
+            "notification_date": notification_date,
+            "notification_read": not notification_read if notification_read is not None else None,
+            "message": f"Successfully retrieved notification {id_notification}",
+            "notification": result
+        }
+        
+        # Add related entities if included
+        if "board" in result:
+            response["board"] = result["board"]
+            response["board_name"] = result["board"].get("name") if isinstance(result["board"], dict) else None
+        
+        if "card" in result:
+            response["card"] = result["card"]
+            response["card_name"] = result["card"].get("name") if isinstance(result["card"], dict) else None
+        
+        if "list" in result:
+            response["list"] = result["list"]
+            response["list_name"] = result["list"].get("name") if isinstance(result["list"], dict) else None
+        
+        if "member" in result:
+            response["member"] = result["member"]
+            response["member_name"] = result["member"].get("fullName") if isinstance(result["member"], dict) else None
+        
+        if "memberCreator" in result:
+            response["member_creator"] = result["memberCreator"]
+            response["member_creator_name"] = result["memberCreator"].get("fullName") if isinstance(result["memberCreator"], dict) else None
+        
+        if "organization" in result:
+            response["organization"] = result["organization"]
+            response["organization_name"] = result["organization"].get("displayName") if isinstance(result["organization"], dict) else None
+        
+        # Add helpful information
+        response["note"] = f"Retrieved notification of type '{notification_type}' with comprehensive entity details"
+        
+        return response
+    except Exception as e:
+        return {
+            "successful": False,
+            "error": f"Failed to retrieve notification: {str(e)}",
+            "action": "get_notification",
+            "notification_id": id_notification,
+            "message": f"Failed to retrieve notification {id_notification}"
+        }
+
+
+@mcp.tool(
+    "TRELLO_GET_NOTIFICATIONS_BY_ID_NOTIFICATION_BY_FIELD",
+    description="Get a notification field. Retrieves a specific field from a trello notification.",
+)
+def TRELLO_GET_NOTIFICATIONS_BY_ID_NOTIFICATION_BY_FIELD(
+    id_notification: Annotated[str, "The ID of the notification to get the field from."],
+    field: Annotated[str, "The specific field to retrieve from the notification (e.g., id, type, date, unread, data)."]
+):
+    """Get a notification field. Retrieves a specific field from a trello notification."""
+    err = _validate_required({"id_notification": id_notification, "field": field}, ["id_notification", "field"])
+    if err:
+        return err
+    
+    try:
+        # Get specific field from notification
+        endpoint = f"/notifications/{id_notification}"
+        
+        # Build query parameters
+        params = {
+            "fields": field
+        }
+        
+        # Make the API request
+        result = trello_request("GET", endpoint, params=params)
+        
+        if not isinstance(result, dict):
+            return {
+                "successful": False,
+                "error": "Invalid notification data received",
+                "action": "get_notification_field",
+                "notification_id": id_notification,
+                "field": field,
+                "message": f"Failed to retrieve notification field '{field}' for notification {id_notification}"
+            }
+        
+        # Extract the specific field value
+        field_value = result.get(field)
+        
+        return {
+            "successful": True,
+            "data": {field: field_value},
+            "action": "get_notification_field",
+            "notification_id": id_notification,
+            "field": field,
+            "field_value": field_value,
+            "message": f"Successfully retrieved notification field '{field}' for notification {id_notification}",
+            "notification_field": field_value
+        }
+    except Exception as e:
+        return {
+            "successful": False,
+            "error": f"Failed to retrieve notification field: {str(e)}",
+            "action": "get_notification_field",
+            "notification_id": id_notification,
+            "field": field,
+            "message": f"Failed to retrieve notification field '{field}' for notification {id_notification}"
+        }
+
+
+@mcp.tool(
+    "TRELLO_GET_NOTIFICATIONS_DISPLAY_BY_ID_NOTIFICATION",
+    description="Get notification display by id. Retrieves the information needed to display an existing trello notification, identified by its id, without altering the notification or fetching its complete metadata.",
+)
+def TRELLO_GET_NOTIFICATIONS_DISPLAY_BY_ID_NOTIFICATION(
+    id_notification: Annotated[str, "The ID of the notification to get display information for."]
+):
+    """Get notification display by id. Retrieves the information needed to display an existing trello notification, identified by its id, without altering the notification or fetching its complete metadata."""
+    err = _validate_required({"id_notification": id_notification}, ["id_notification"])
+    if err:
+        return err
+    
+    try:
+        # Get notification display information
+        endpoint = f"/notifications/{id_notification}/display"
+        
+        # Make the API request
+        result = trello_request("GET", endpoint)
+        
+        if not isinstance(result, dict):
+            return {
+                "successful": False,
+                "error": "Invalid notification display data received",
+                "action": "get_notification_display",
+                "notification_id": id_notification,
+                "message": f"Failed to retrieve display information for notification {id_notification}"
+            }
+        
+        # Extract key display information
+        notification_type = result.get("type")
+        notification_text = result.get("text")
+        notification_date = result.get("date")
+        notification_unread = result.get("unread")
+        notification_data = result.get("data", {})
+        
+        response = {
+            "successful": True,
+            "data": result,
+            "action": "get_notification_display",
+            "notification_id": id_notification,
+            "notification_type": notification_type,
+            "notification_text": notification_text,
+            "notification_date": notification_date,
+            "notification_unread": notification_unread,
+            "message": f"Successfully retrieved display information for notification {id_notification}",
+            "display_info": result
+        }
+        
+        # Add helpful display context
+        if notification_text:
+            response["note"] = f"Display text: {notification_text}"
+        elif notification_type:
+            response["note"] = f"Notification type: {notification_type}"
+        else:
+            response["note"] = f"Display information for notification {id_notification}"
+        
+        return response
+    except Exception as e:
+        return {
+            "successful": False,
+            "error": f"Failed to retrieve notification display: {str(e)}",
+            "action": "get_notification_display",
+            "notification_id": id_notification,
+            "message": f"Failed to retrieve display information for notification {id_notification}"
+        }
+
+
+@mcp.tool(
+    "TRELLO_GET_NOTIFICATIONS_MEMBER_BY_ID_NOTIFICATION",
+    description="Get notification member by id. Fetches details of the member (not the notification content itself) associated with a specific trello notification id.",
+)
+def TRELLO_GET_NOTIFICATIONS_MEMBER_BY_ID_NOTIFICATION(
+    id_notification: Annotated[str, "The ID of the notification to get the member for."],
+    fields: Annotated[str, "The fields to retrieve from the member (e.g., id, username, fullName, initials, avatarHash, bio, bioData, confirmed, memberType, url, gravatarHash, uploadedAvatarHash, prefs, trophies, uploadedAvatarId, premiumFeatures, idBoards, idOrganizations, loginTypes, newEmail, idEnterprisesDeactivated, limits, idTags, avatarUrl, email, idBoardsPinned, ixUpdate, idEnterprisesAdmin, limits, nonPublic, nonPublicAvailable, products, idBoardsPinned, ixUpdate, idEnterprisesAdmin, limits, nonPublic, nonPublicAvailable, products). Defaults to all."] = "all"
+):
+    """Get notification member by id. Fetches details of the member (not the notification content itself) associated with a specific trello notification id."""
+    err = _validate_required({"id_notification": id_notification}, ["id_notification"])
+    if err:
+        return err
+    
+    try:
+        # Get member for the notification
+        endpoint = f"/notifications/{id_notification}/member"
+        
+        # Build query parameters
+        params = {}
+        if fields is not None:
+            params["fields"] = fields
+        
+        # Make the API request
+        result = trello_request("GET", endpoint, params=params)
+        
+        if not isinstance(result, dict):
+            return {
+                "successful": False,
+                "error": "Invalid member data received",
+                "action": "get_notification_member",
+                "notification_id": id_notification,
+                "message": f"Failed to retrieve member for notification {id_notification}"
+            }
+        
+        # Extract key information
+        member_id = result.get("id")
+        username = result.get("username")
+        full_name = result.get("fullName")
+        initials = result.get("initials")
+        avatar_hash = result.get("avatarHash")
+        bio = result.get("bio")
+        confirmed = result.get("confirmed")
+        member_type = result.get("memberType")
+        url = result.get("url")
+        
+        response = {
+            "successful": True,
+            "data": result,
+            "action": "get_notification_member",
+            "notification_id": id_notification,
+            "member_id": member_id,
+            "username": username,
+            "full_name": full_name,
+            "initials": initials,
+            "avatar_hash": avatar_hash,
+            "bio": bio,
+            "confirmed": confirmed,
+            "member_type": member_type,
+            "url": url,
+            "message": f"Successfully retrieved member for notification {id_notification}",
+            "member": result
+        }
+        
+        # Add helpful information
+        if full_name:
+            response["note"] = f"Member '{full_name}' ({username}) associated with notification {id_notification}"
+        elif username:
+            response["note"] = f"Member '{username}' associated with notification {id_notification}"
+        else:
+            response["note"] = f"Member {member_id} associated with notification {id_notification}"
+        
+        return response
+    except Exception as e:
+        return {
+            "successful": False,
+            "error": f"Failed to retrieve notification member: {str(e)}",
+            "action": "get_notification_member",
+            "notification_id": id_notification,
+            "message": f"Failed to retrieve member for notification {id_notification}"
+        }
 
 
 # -------------------- MAIN --------------------
