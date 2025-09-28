@@ -1,6 +1,6 @@
 # Trello MCP Server
 
-A comprehensive Model Context Protocol (MCP) server that provides extensive Trello integration capabilities. This server offers **140 tools** for complete Trello management, enabling seamless card operations, board management, action tracking, and workflow automation through a standardized MCP interface.
+A comprehensive Model Context Protocol (MCP) server that provides extensive Trello integration capabilities. This server offers **203 tools** for complete Trello management, enabling seamless card operations, board management, action tracking, workflow automation, and comprehensive board preference management through a standardized MCP interface.
 
 ## 🚀 Quick Start
 
@@ -105,7 +105,17 @@ uv run python trello_mcp/mcp_server.py
 - **Deadline Management** - Manage card deadlines and reminders
 
 ### 🎨 Customization & Preferences
-- **Board Preferences** - Manage board settings and preferences
+- **Board Preferences** - Comprehensive board settings and preferences management
+- **Board Permission Control** - Manage board access levels (private, org, public)
+- **Comment Permissions** - Control who can comment on cards
+- **Voting Permissions** - Manage who can vote on cards
+- **Invitation Control** - Control who can invite new members
+- **Self-Join Settings** - Allow or require invitations for board access
+- **Calendar Integration** - Enable/disable calendar feeds for due dates
+- **Card Aging** - Set visual aging effects (pirate/regular mode)
+- **Card Covers** - Control card cover visibility
+- **Background Settings** - Customize board backgrounds
+- **Sidebar Preferences** - Control sidebar visibility and components
 - **Member Preferences** - Handle user preferences
 - **Custom Fields** - Work with custom card fields
 
@@ -195,7 +205,40 @@ The server provides tools that can be used by MCP-compatible clients. All tools 
 }
 ```
 
-## Available Tools (140 Tools - Fully Implemented)
+#### Update Board Preferences
+```json
+{
+  "tool": "TRELLO_UPDATE_BOARDS_PREFS_BACKGROUND_BY_ID_BOARD",
+  "parameters": {
+    "id_board": "64a1b2c3d4e5f6789012345",
+    "value": "blue"
+  }
+}
+```
+
+#### Set Board Permissions
+```json
+{
+  "tool": "TRELLO_UPDATE_BOARDS_PREFS_PERMISSION_LEVEL_BY_ID_BOARD",
+  "parameters": {
+    "id_board": "64a1b2c3d4e5f6789012345",
+    "value": "private"
+  }
+}
+```
+
+#### Update Label Names
+```json
+{
+  "tool": "TRELLO_UPDATE_BOARDS_LABEL_NAMES_BLUE_BY_ID_BOARD",
+  "parameters": {
+    "id_board": "64a1b2c3d4e5f6789012345",
+    "value": "High Priority"
+  }
+}
+```
+
+## Available Tools (203 Tools - Fully Implemented)
 
 ### 🔧 Card Operations (25+ tools)
 - `TRELLO_GET_CARDS_BY_ID_CARD` - Get card by ID with full details
@@ -325,6 +368,45 @@ The server provides tools that can be used by MCP-compatible clients. All tools 
 ### 🔄 Session Management (Legacy Tools)
 - `TRELLO_ADD_SESSIONS` - Create/update user sessions
 
+### 🎨 Board Preference Management (130+ tools)
+- `TRELLO_UPDATE_BOARDS_BY_ID_BOARD` - Update comprehensive board attributes
+- `TRELLO_UPDATE_BOARDS_NAME_BY_ID_BOARD` - Update board name
+- `TRELLO_UPDATE_BOARDS_DESC_BY_ID_BOARD` - Update board description
+- `TRELLO_UPDATE_BOARDS_CLOSED_BY_ID_BOARD` - Archive/unarchive boards
+- `TRELLO_UPDATE_BOARDS_SUBSCRIBED_BY_ID_BOARD` - Update subscription status
+- `TRELLO_UPDATE_BOARDS_PREFS_BACKGROUND_BY_ID_BOARD` - Update board background
+- `TRELLO_UPDATE_BOARDS_PREFS_CALENDAR_FEED_ENABLED_BY_ID_BOARD` - Enable/disable calendar feeds
+- `TRELLO_UPDATE_BOARDS_PREFS_CARD_AGING_BY_ID_BOARD` - Set card aging mode
+- `TRELLO_UPDATE_BOARDS_PREFS_CARD_COVERS_BY_ID_BOARD` - Control card cover visibility
+- `TRELLO_UPDATE_BOARDS_PREFS_COMMENTS_BY_ID_BOARD` - Set comment permissions
+- `TRELLO_UPDATE_BOARDS_PREFS_INVITATIONS_BY_ID_BOARD` - Set invitation permissions
+- `TRELLO_UPDATE_BOARDS_PREFS_PERMISSION_LEVEL_BY_ID_BOARD` - Set board access level
+- `TRELLO_UPDATE_BOARDS_PREFS_SELF_JOIN_BY_ID_BOARD` - Control self-join settings
+- `TRELLO_UPDATE_BOARDS_PREFS_VOTING_BY_ID_BOARD` - Set voting permissions
+- `TRELLO_UPDATE_BOARDS_LABEL_NAMES_BLUE_BY_ID_BOARD` - Update blue label name
+- `TRELLO_UPDATE_BOARDS_LABEL_NAMES_GREEN_BY_ID_BOARD` - Update green label name
+- `TRELLO_UPDATE_BOARDS_LABEL_NAMES_ORANGE_BY_ID_BOARD` - Update orange label name
+- `TRELLO_UPDATE_BOARDS_LABEL_NAMES_PURPLE_BY_ID_BOARD` - Update purple label name
+- `TRELLO_UPDATE_BOARDS_LABEL_NAMES_RED_BY_ID_BOARD` - Update red label name
+- `TRELLO_UPDATE_BOARDS_LABEL_NAMES_YELLOW_BY_ID_BOARD` - Update yellow label name
+- `TRELLO_UPDATE_BOARDS_MEMBERS_BY_ID_BOARD` - Add/update board members
+- `TRELLO_UPDATE_BOARDS_MEMBERS_BY_ID_BOARD_BY_ID_MEMBER` - Update member attributes
+- `TRELLO_UPDATE_BOARDS_ID_ORGANIZATION_BY_ID_BOARD` - Move board to organization
+- `TRELLO_UPDATE_BOARDS_MY_PREFS_EMAIL_POSITION_BY_ID_BOARD` - Set email position preference
+- `TRELLO_UPDATE_BOARDS_MY_PREFS_ID_EMAIL_LIST_BY_ID_BOARD` - Set email list preference
+- `TRELLO_UPDATE_BOARDS_MY_PREFS_SHOW_LIST_GUIDE_BY_ID_BOARD` - Set list guide preference
+- `TRELLO_UPDATE_BOARDS_MY_PREFS_SHOW_SIDEBAR_ACTIVITY_BY_ID_BOARD` - Set sidebar activity preference
+- `TRELLO_UPDATE_BOARDS_MY_PREFS_SHOW_SIDEBAR_BY_ID_BOARD` - Set sidebar visibility
+- `TRELLO_UPDATE_BOARDS_MY_PREFS_SHOW_SIDEBAR_MEMBERS_BY_ID_BOARD` - Set sidebar members preference
+
+### 🔧 Deprecated Tools (Legacy Support)
+- `TRELLO_LIST_CREATE_LIST` - Create lists (deprecated wrapper)
+- `TRELLO_LIST_GET_BY_ID_LIST` - Get list by ID (deprecated wrapper)
+- `TRELLO_LIST_ID_BOARD_GET` - Get board by list ID (deprecated wrapper)
+- `TRELLO_MEMBER_GET_BOARDS` - Get member boards (deprecated wrapper)
+- `TRELLO_MEMBER_GET_BOARDS_BY_ID_MEMBER` - Get member boards by ID (deprecated wrapper)
+- `TRELLO_TOKEN_GET_MEMBER_BY_TOKEN` - Get token member (deprecated wrapper)
+
 ### 🔍 Advanced Features
 - **Field-Level Access**: Most tools support "all" as a field value to get complete data
 - **Flexible Parameters**: Tools support multiple parameter combinations
@@ -338,8 +420,9 @@ The server provides tools that can be used by MCP-compatible clients. All tools 
 ## Recent Updates & Improvements
 
 ### 🚀 Current Implementation Status
-- **140 Tools Implemented**: Complete Trello integration with comprehensive coverage
+- **203 Tools Implemented**: Complete Trello integration with comprehensive coverage
 - **Comprehensive GET Operations**: 80+ tools for detailed data retrieval
+- **Board Preference Management**: 50+ tools for complete board customization
 - **Field-Level Access**: Get specific fields or all data with "all" parameter
 - **Card Relationship Tools**: Get board, list, members, stickers, and attachments for cards
 - **Board Management Tools**: Get members, organization, preferences, and detailed board info
@@ -347,6 +430,8 @@ The server provides tools that can be used by MCP-compatible clients. All tools 
 - **Checklist Management Tools**: Get board info, cards, and check items for checklists
 - **Label Management Tools**: Get board info and detailed label information
 - **Action Analysis Tools**: 20+ tools for comprehensive action tracking and analysis
+- **Board Customization Tools**: Complete control over board appearance and behavior
+- **Permission Management**: Granular control over board access and member permissions
 - **Enhanced Error Handling**: Better error messages and API limitation documentation
 
 ### 🔧 Technical Improvements
@@ -358,14 +443,20 @@ The server provides tools that can be used by MCP-compatible clients. All tools 
 - **Type Safety**: Proper type annotations using `str | None` for optional parameters
 
 ### 📊 Tool Categories (Updated)
-- **Card Operations**: 25+ tools for complete card management and relationships
-- **Board Management**: 20+ tools for board operations and detailed info
-- **List Management**: 15+ tools for list operations and relationships
-- **Checklist Management**: 10+ tools for checklist operations and relationships
-- **Label Management**: 5+ tools for label operations and relationships
-- **Action Analysis**: 20+ tools for action tracking and analysis
-- **Legacy Tools**: 50+ tools for create, update, and delete operations
-- **Total Tools**: 140 comprehensive Trello integration tools
+- **Card Operations**: ~25 tools for complete card management and relationships
+- **Board Management**: ~20 tools for board operations and detailed info
+- **Board Preference Management**: ~50 tools for comprehensive board customization
+- **List Management**: ~15 tools for list operations and relationships
+- **Checklist Management**: ~10 tools for checklist operations and relationships
+- **Label Management**: ~5 tools for label operations and relationships
+- **Action Analysis**: ~20 tools for action tracking and analysis
+- **Member Management**: ~10 tools for member operations
+- **Notifications**: ~15 tools for notification management
+- **Organization Management**: ~5 tools for organization operations
+- **Session Management**: ~2 tools for session management
+- **Advanced Features**: ~5 tools for batch operations and search
+- **Deprecated Tools**: ~10 tools with legacy support and deprecation notices
+- **Total Tools**: 203 comprehensive Trello integration tools
 
 ## Response Format
 
