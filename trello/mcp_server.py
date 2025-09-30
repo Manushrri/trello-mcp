@@ -15211,6 +15211,8324 @@ def TRELLO_GET_SESSIONS_SOCKET():
     return response
 
 
+@mcp.tool(
+    "TRELLO_UPDATE_BOARD_STAR_POSITION",
+    description="Update board star position. Updates the display position of a specific starred board for a trello member (referenced by `idmember` or 'me') using its `idboardstar`, allowing reordering to 'top', 'bottom', or a specific positive numerical position (as a string).",
+)
+def TRELLO_UPDATE_BOARD_STAR_POSITION(
+    id_board_star: Annotated[str, "The ID of the board star to update position for."],
+    id_member: Annotated[str, "The ID of the member (or 'me' for current user) who owns the board star."],
+    value: Annotated[str, "The new position value ('top', 'bottom', or a positive numerical position as string)."]
+):
+    """Update board star position. Updates the display position of a specific starred board for a trello member (referenced by `idmember` or 'me') using its `idboardstar`, allowing reordering to 'top', 'bottom', or a specific positive numerical position (as a string)."""
+    err = _validate_required({"id_board_star": id_board_star, "id_member": id_member, "value": value}, ["id_board_star", "id_member", "value"])
+    if err:
+        return err
+    
+    # Validate position value
+    valid_positions = ['top', 'bottom']
+    is_numeric = value.isdigit() and int(value) > 0
+    
+    if value.lower() not in valid_positions and not is_numeric:
+        return {
+            "successful": False,
+            "error": "Invalid position value",
+            "action": "update_board_star_position",
+            "board_star_id": id_board_star,
+            "member_id": id_member,
+            "message": f"Invalid position value '{value}' - must be 'top', 'bottom', or a positive number",
+            "guidance": "Valid position values are 'top', 'bottom', or a positive numerical position (as string).",
+            "suggestion": "Use 'top' to move to top, 'bottom' to move to bottom, or a number like '1', '2', '3' for specific position."
+        }
+    
+    try:
+        endpoint = f"/members/{id_member}/boardStars/{id_board_star}"
+        
+        # Build data payload
+        data = {
+            "pos": value
+        }
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        # Determine the position set
+        if value.lower() == "top":
+            position_set = "top"
+        elif value.lower() == "bottom":
+            position_set = "bottom"
+        else:
+            position_set = f"position {value}"
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_board_star_position",
+            "board_star_id": id_board_star,
+            "member_id": id_member,
+            "new_position": value,
+            "position_set": position_set,
+            "message": f"Successfully updated board star position to {position_set} for member {id_member}"
+        }
+    except Exception as e:
+        error_message = str(e)
+        
+        # Provide specific guidance for common errors
+        if "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_board_star_position",
+                "board_star_id": id_board_star,
+                "member_id": id_member,
+                "message": f"Failed to update board star position - insufficient permissions",
+                "guidance": "You must be the owner of the board star to update its position.",
+                "suggestion": "Verify you have access to the board star or use 'me' as the member ID for your own board stars."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Board star not found: {error_message}",
+                "action": "update_board_star_position",
+                "board_star_id": id_board_star,
+                "member_id": id_member,
+                "message": f"Failed to update board star position - board star not found",
+                "guidance": "The board star ID may be invalid or the board star may have been deleted.",
+                "suggestion": "Verify the board star ID is correct and the board star still exists."
+            }
+        elif "400" in error_message and "pos" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid position value: {error_message}",
+                "action": "update_board_star_position",
+                "board_star_id": id_board_star,
+                "member_id": id_member,
+                "message": f"Failed to update board star position - invalid position '{value}'",
+                "guidance": "Valid position values are 'top', 'bottom', or a positive numerical position (as string).",
+                "suggestion": "Use 'top' to move to top, 'bottom' to move to bottom, or a number like '1', '2', '3' for specific position."
+            }
+        elif "400" in error_message and "member" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid member ID: {error_message}",
+                "action": "update_board_star_position",
+                "board_star_id": id_board_star,
+                "member_id": id_member,
+                "message": f"Failed to update board star position - invalid member ID '{id_member}'",
+                "guidance": "The member ID may be invalid or the member may not exist.",
+                "suggestion": "Use 'me' for the current user or verify the member ID is correct."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update board star position: {error_message}",
+                "action": "update_board_star_position",
+                "board_star_id": id_board_star,
+                "member_id": id_member,
+                "message": f"Failed to update board star position for board star {id_board_star}"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_CARD_CHECKLIST_ITEM_POSITION",
+    description="Update checklist item position. Updates the position of a check item within a checklist on a trello card; the new position can be 'top', 'bottom', or a positive integer.",
+)
+def TRELLO_UPDATE_CARD_CHECKLIST_ITEM_POSITION(
+    id_card: Annotated[str, "The ID of the card containing the checklist."],
+    id_checklist: Annotated[str, "The ID of the checklist containing the check item."],
+    id_check_item: Annotated[str, "The ID of the check item to update position for."],
+    value: Annotated[str, "The new position value ('top', 'bottom', or a positive integer as string)."]
+):
+    """Update checklist item position. Updates the position of a check item within a checklist on a trello card; the new position can be 'top', 'bottom', or a positive integer."""
+    err = _validate_required({"id_card": id_card, "id_checklist": id_checklist, "id_check_item": id_check_item, "value": value}, ["id_card", "id_checklist", "id_check_item", "value"])
+    if err:
+        return err
+    
+    # Validate position value
+    valid_positions = ['top', 'bottom']
+    is_numeric = value.isdigit() and int(value) > 0
+    
+    if value.lower() not in valid_positions and not is_numeric:
+        return {
+            "successful": False,
+            "error": "Invalid position value",
+            "action": "update_checklist_item_position",
+            "card_id": id_card,
+            "checklist_id": id_checklist,
+            "check_item_id": id_check_item,
+            "message": f"Invalid position value '{value}' - must be 'top', 'bottom', or a positive integer",
+            "guidance": "Valid position values are 'top', 'bottom', or a positive integer (as string).",
+            "suggestion": "Use 'top' to move to top, 'bottom' to move to bottom, or a number like '1', '2', '3' for specific position."
+        }
+    
+    try:
+        endpoint = f"/cards/{id_card}/checklist/{id_checklist}/checkItem/{id_check_item}"
+        
+        # Build data payload
+        data = {
+            "pos": value
+        }
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        # Determine the position set
+        if value.lower() == "top":
+            position_set = "top"
+        elif value.lower() == "bottom":
+            position_set = "bottom"
+        else:
+            position_set = f"position {value}"
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_checklist_item_position",
+            "card_id": id_card,
+            "checklist_id": id_checklist,
+            "check_item_id": id_check_item,
+            "new_position": value,
+            "position_set": position_set,
+            "message": f"Successfully updated check item position to {position_set} in checklist {id_checklist}"
+        }
+    except Exception as e:
+        error_message = str(e)
+        
+        # Provide specific guidance for common errors
+        if "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_checklist_item_position",
+                "card_id": id_card,
+                "checklist_id": id_checklist,
+                "check_item_id": id_check_item,
+                "message": f"Failed to update check item position - insufficient permissions",
+                "guidance": "You must have edit access to the card to update checklist item positions.",
+                "suggestion": "Verify you have edit permissions on the card or ask a card admin to grant access."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Resource not found: {error_message}",
+                "action": "update_checklist_item_position",
+                "card_id": id_card,
+                "checklist_id": id_checklist,
+                "check_item_id": id_check_item,
+                "message": f"Failed to update check item position - resource not found",
+                "guidance": "The card, checklist, or check item may not exist or may have been deleted.",
+                "suggestion": "Verify the card ID, checklist ID, and check item ID are correct and still exist."
+            }
+        elif "400" in error_message and "pos" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid position value: {error_message}",
+                "action": "update_checklist_item_position",
+                "card_id": id_card,
+                "checklist_id": id_checklist,
+                "check_item_id": id_check_item,
+                "message": f"Failed to update check item position - invalid position '{value}'",
+                "guidance": "Valid position values are 'top', 'bottom', or a positive integer (as string).",
+                "suggestion": "Use 'top' to move to top, 'bottom' to move to bottom, or a number like '1', '2', '3' for specific position."
+            }
+        elif "400" in error_message and ("card" in error_message.lower() or "checklist" in error_message.lower() or "checkitem" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid resource ID: {error_message}",
+                "action": "update_checklist_item_position",
+                "card_id": id_card,
+                "checklist_id": id_checklist,
+                "check_item_id": id_check_item,
+                "message": f"Failed to update check item position - invalid resource ID",
+                "guidance": "One or more of the provided IDs (card, checklist, check item) may be invalid.",
+                "suggestion": "Verify all IDs are correct: card ID, checklist ID, and check item ID."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update check item position: {error_message}",
+                "action": "update_checklist_item_position",
+                "card_id": id_card,
+                "checklist_id": id_checklist,
+                "check_item_id": id_check_item,
+                "message": f"Failed to update check item position for check item {id_check_item}"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_CARD_CHECKLIST_ITEM_STATE_BY_IDS",
+    description="Update card checklist item state. Updates the state of a specific check item on a trello card's checklist, only affecting its completion status and no other properties.",
+)
+def TRELLO_UPDATE_CARD_CHECKLIST_ITEM_STATE_BY_IDS(
+    id_card: Annotated[str, "The ID of the card containing the checklist."],
+    id_checklist: Annotated[str, "The ID of the checklist containing the check item."],
+    id_check_item: Annotated[str, "The ID of the check item to update state for."],
+    value: Annotated[str, "The new state value ('true' to complete, 'false' to uncomplete)."]
+):
+    """Update card checklist item state. Updates the state of a specific check item on a trello card's checklist, only affecting its completion status and no other properties."""
+    err = _validate_required({"id_card": id_card, "id_checklist": id_checklist, "id_check_item": id_check_item, "value": value}, ["id_card", "id_checklist", "id_check_item", "value"])
+    if err:
+        return err
+    
+    # Validate state value
+    if value.lower() not in ['true', 'false']:
+        return {
+            "successful": False,
+            "error": "Invalid state value",
+            "action": "update_checklist_item_state",
+            "card_id": id_card,
+            "checklist_id": id_checklist,
+            "check_item_id": id_check_item,
+            "message": f"Invalid state value '{value}' - must be 'true' or 'false'",
+            "guidance": "Valid state values are 'true' to complete the item or 'false' to uncomplete it.",
+            "suggestion": "Use 'true' to mark as complete or 'false' to mark as incomplete."
+        }
+    
+    try:
+        endpoint = f"/cards/{id_card}/checklist/{id_checklist}/checkItem/{id_check_item}"
+        
+        # Build data payload
+        data = {
+            "state": value
+        }
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        # Determine the state set
+        state_set = "completed" if value.lower() == "true" else "incomplete"
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_checklist_item_state",
+            "card_id": id_card,
+            "checklist_id": id_checklist,
+            "check_item_id": id_check_item,
+            "new_state": value,
+            "state_set": state_set,
+            "message": f"Successfully updated check item state to {state_set} in checklist {id_checklist}"
+        }
+    except Exception as e:
+        error_message = str(e)
+        
+        # Provide specific guidance for common errors
+        if "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_checklist_item_state",
+                "card_id": id_card,
+                "checklist_id": id_checklist,
+                "check_item_id": id_check_item,
+                "message": f"Failed to update check item state - insufficient permissions",
+                "guidance": "You must have edit access to the card to update checklist item states.",
+                "suggestion": "Verify you have edit permissions on the card or ask a card admin to grant access."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Resource not found: {error_message}",
+                "action": "update_checklist_item_state",
+                "card_id": id_card,
+                "checklist_id": id_checklist,
+                "check_item_id": id_check_item,
+                "message": f"Failed to update check item state - resource not found",
+                "guidance": "The card, checklist, or check item may not exist or may have been deleted.",
+                "suggestion": "Verify the card ID, checklist ID, and check item ID are correct and still exist."
+            }
+        elif "400" in error_message and "state" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid state value: {error_message}",
+                "action": "update_checklist_item_state",
+                "card_id": id_card,
+                "checklist_id": id_checklist,
+                "check_item_id": id_check_item,
+                "message": f"Failed to update check item state - invalid state '{value}'",
+                "guidance": "Valid state values are 'true' to complete the item or 'false' to uncomplete it.",
+                "suggestion": "Use 'true' to mark as complete or 'false' to mark as incomplete."
+            }
+        elif "400" in error_message and ("card" in error_message.lower() or "checklist" in error_message.lower() or "checkitem" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid resource ID: {error_message}",
+                "action": "update_checklist_item_state",
+                "card_id": id_card,
+                "checklist_id": id_checklist,
+                "check_item_id": id_check_item,
+                "message": f"Failed to update check item state - invalid resource ID",
+                "guidance": "One or more of the provided IDs (card, checklist, check item) may be invalid.",
+                "suggestion": "Verify all IDs are correct: card ID, checklist ID, and check item ID."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update check item state: {error_message}",
+                "action": "update_checklist_item_state",
+                "card_id": id_card,
+                "checklist_id": id_checklist,
+                "check_item_id": id_check_item,
+                "message": f"Failed to update check item state for check item {id_check_item}"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_CARD_COMMENT",
+    description="Update card comment. Updates the text for a given comment action (`idaction`) on a specified card (`idcard`), affecting only the text content.",
+)
+def TRELLO_UPDATE_CARD_COMMENT(
+    id_action: Annotated[str, "The ID of the comment action to update."],
+    id_card: Annotated[str, "The ID of the card containing the comment."],
+    text: Annotated[str, "The new text content for the comment."]
+):
+    """Update card comment. Updates the text for a given comment action (`idaction`) on a specified card (`idcard`), affecting only the text content."""
+    err = _validate_required({"id_action": id_action, "id_card": id_card, "text": text}, ["id_action", "id_card", "text"])
+    if err:
+        return err
+    
+    # Validate text is not empty
+    if not text.strip():
+        return {
+            "successful": False,
+            "error": "Empty comment text",
+            "action": "update_card_comment",
+            "action_id": id_action,
+            "card_id": id_card,
+            "message": "Comment text cannot be empty",
+            "guidance": "Provide a non-empty text value for the comment.",
+            "suggestion": "Enter the new comment text you want to update to."
+        }
+    
+    try:
+        endpoint = f"/cards/{id_card}/actions/{id_action}/comments"
+        
+        # Build data payload
+        data = {
+            "text": text
+        }
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_card_comment",
+            "action_id": id_action,
+            "card_id": id_card,
+            "new_text": text,
+            "message": f"Successfully updated comment text for action {id_action} on card {id_card}"
+        }
+    except Exception as e:
+        error_message = str(e)
+        
+        # Provide specific guidance for common errors
+        if "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_card_comment",
+                "action_id": id_action,
+                "card_id": id_card,
+                "message": f"Failed to update comment - insufficient permissions",
+                "guidance": "You must be the author of the comment to update it, or have admin access to the card.",
+                "suggestion": "Verify you are the comment author or have admin permissions on the card."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Resource not found: {error_message}",
+                "action": "update_card_comment",
+                "action_id": id_action,
+                "card_id": id_card,
+                "message": f"Failed to update comment - resource not found",
+                "guidance": "The card or comment action may not exist or may have been deleted.",
+                "suggestion": "Verify the card ID and action ID are correct and still exist."
+            }
+        elif "400" in error_message and "text" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid comment text: {error_message}",
+                "action": "update_card_comment",
+                "action_id": id_action,
+                "card_id": id_card,
+                "message": f"Failed to update comment - invalid text content",
+                "guidance": "The comment text may contain invalid characters or be too long.",
+                "suggestion": "Check the comment text for invalid characters and ensure it's within Trello's length limits."
+            }
+        elif "400" in error_message and ("action" in error_message.lower() or "comment" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid action or comment: {error_message}",
+                "action": "update_card_comment",
+                "action_id": id_action,
+                "card_id": id_card,
+                "message": f"Failed to update comment - invalid action or comment",
+                "guidance": "The action may not be a comment action or may not be editable.",
+                "suggestion": "Verify the action ID corresponds to a comment action that can be edited."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update comment: {error_message}",
+                "action": "update_card_comment",
+                "action_id": id_action,
+                "card_id": id_card,
+                "message": f"Failed to update comment for action {id_action} on card {id_card}"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_CARDS_CLOSED_BY_ID_CARD",
+    description="Update card closed status by id. Updates the 'closed' status of an existing trello card.",
+)
+def TRELLO_UPDATE_CARDS_CLOSED_BY_ID_CARD(
+    id_card: Annotated[str, "The ID of the card to update closed status for."],
+    value: Annotated[str, "The closed status value ('true' to archive/close, 'false' to unarchive/open)."]
+):
+    """Update card closed status by id. Updates the 'closed' status of an existing trello card."""
+    err = _validate_required({"id_card": id_card, "value": value}, ["id_card", "value"])
+    if err:
+        return err
+    
+    # Validate closed status value
+    if value.lower() not in ['true', 'false']:
+        return {
+            "successful": False,
+            "error": "Invalid closed status value",
+            "action": "update_card_closed_status",
+            "card_id": id_card,
+            "message": f"Invalid closed status value '{value}' - must be 'true' or 'false'",
+            "guidance": "Valid closed status values are 'true' to archive/close the card or 'false' to unarchive/open it.",
+            "suggestion": "Use 'true' to archive the card or 'false' to unarchive it."
+        }
+    
+    try:
+        endpoint = f"/cards/{id_card}"
+        
+        # Build data payload
+        data = {
+            "closed": value
+        }
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        # Determine the status set
+        status_set = "archived" if value.lower() == "true" else "unarchived"
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_card_closed_status",
+            "card_id": id_card,
+            "closed_status": value,
+            "status_set": status_set,
+            "message": f"Successfully {status_set} card {id_card}"
+        }
+    except Exception as e:
+        error_message = str(e)
+        
+        # Provide specific guidance for common errors
+        if "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_card_closed_status",
+                "card_id": id_card,
+                "message": f"Failed to update card closed status - insufficient permissions",
+                "guidance": "You must have edit access to the card to update its closed status.",
+                "suggestion": "Verify you have edit permissions on the card or ask a card admin to grant access."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Card not found: {error_message}",
+                "action": "update_card_closed_status",
+                "card_id": id_card,
+                "message": f"Failed to update card closed status - card not found",
+                "guidance": "The card may not exist or may have been deleted.",
+                "suggestion": "Verify the card ID is correct and the card still exists."
+            }
+        elif "400" in error_message and "closed" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid closed status: {error_message}",
+                "action": "update_card_closed_status",
+                "card_id": id_card,
+                "message": f"Failed to update card closed status - invalid status '{value}'",
+                "guidance": "Valid closed status values are 'true' to archive/close the card or 'false' to unarchive/open it.",
+                "suggestion": "Use 'true' to archive the card or 'false' to unarchive it."
+            }
+        elif "400" in error_message and "card" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid card ID: {error_message}",
+                "action": "update_card_closed_status",
+                "card_id": id_card,
+                "message": f"Failed to update card closed status - invalid card ID",
+                "guidance": "The card ID may be invalid or malformed.",
+                "suggestion": "Verify the card ID is correct and properly formatted."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update card closed status: {error_message}",
+                "action": "update_card_closed_status",
+                "card_id": id_card,
+                "message": f"Failed to update card closed status for card {id_card}"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_CARDS_DESC_BY_ID_CARD",
+    description="Update card description. Updates or clears the entire description of an existing trello card; use an empty string for `value` to clear.",
+)
+def TRELLO_UPDATE_CARDS_DESC_BY_ID_CARD(
+    id_card: Annotated[str, "The ID of the card to update description for."],
+    value: Annotated[str, "The new description text for the card (use empty string to clear)."]
+):
+    """Update card description. Updates or clears the entire description of an existing trello card; use an empty string for `value` to clear."""
+    err = _validate_required({"id_card": id_card, "value": value}, ["id_card", "value"])
+    if err:
+        return err
+    
+    try:
+        endpoint = f"/cards/{id_card}"
+        
+        # Build data payload
+        data = {
+            "desc": value
+        }
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        # Determine the action taken
+        if value.strip() == "":
+            action_taken = "cleared"
+            description_status = "empty"
+        else:
+            action_taken = "updated"
+            description_status = "set"
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_card_description",
+            "card_id": id_card,
+            "new_description": value,
+            "action_taken": action_taken,
+            "description_status": description_status,
+            "message": f"Successfully {action_taken} description for card {id_card}"
+        }
+    except Exception as e:
+        error_message = str(e)
+        
+        # Provide specific guidance for common errors
+        if "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_card_description",
+                "card_id": id_card,
+                "message": f"Failed to update card description - insufficient permissions",
+                "guidance": "You must have edit access to the card to update its description.",
+                "suggestion": "Verify you have edit permissions on the card or ask a card admin to grant access."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Card not found: {error_message}",
+                "action": "update_card_description",
+                "card_id": id_card,
+                "message": f"Failed to update card description - card not found",
+                "guidance": "The card may not exist or may have been deleted.",
+                "suggestion": "Verify the card ID is correct and the card still exists."
+            }
+        elif "400" in error_message and "desc" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid description: {error_message}",
+                "action": "update_card_description",
+                "card_id": id_card,
+                "message": f"Failed to update card description - invalid description content",
+                "guidance": "The description may contain invalid characters or be too long.",
+                "suggestion": "Check the description for invalid characters and ensure it's within Trello's length limits."
+            }
+        elif "400" in error_message and "card" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid card ID: {error_message}",
+                "action": "update_card_description",
+                "card_id": id_card,
+                "message": f"Failed to update card description - invalid card ID",
+                "guidance": "The card ID may be invalid or malformed.",
+                "suggestion": "Verify the card ID is correct and properly formatted."
+            }
+        elif "409" in error_message and "closed" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Card is closed: {error_message}",
+                "action": "update_card_description",
+                "card_id": id_card,
+                "message": f"Failed to update card description - card is archived",
+                "guidance": "Closed/archived cards cannot be edited. You must unarchive the card first.",
+                "suggestion": "Use TRELLO_UPDATE_CARDS_CLOSED_BY_ID_CARD to unarchive the card first."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update card description: {error_message}",
+                "action": "update_card_description",
+                "card_id": id_card,
+                "message": f"Failed to update card description for card {id_card}"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_CARDS_DUE_BY_ID_CARD",
+    description="Update card due date. Updates the due date of a specific trello card; the card identified by `idcard` must exist.",
+)
+def TRELLO_UPDATE_CARDS_DUE_BY_ID_CARD(
+    id_card: Annotated[str, "The ID of the card to update due date for."],
+    value: Annotated[str, "The new due date value (ISO 8601 format like '2024-12-31T23:59:59.000Z' or 'null' to clear)."]
+):
+    """Update card due date. Updates the due date of a specific trello card; the card identified by `idcard` must exist."""
+    err = _validate_required({"id_card": id_card, "value": value}, ["id_card", "value"])
+    if err:
+        return err
+    
+    try:
+        endpoint = f"/cards/{id_card}"
+        
+        # Build data payload
+        data = {
+            "due": value
+        }
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        # Determine the action taken
+        if value.lower() == "null" or value.strip() == "":
+            action_taken = "cleared"
+            due_status = "removed"
+        else:
+            action_taken = "updated"
+            due_status = "set"
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_card_due_date",
+            "card_id": id_card,
+            "new_due_date": value,
+            "action_taken": action_taken,
+            "due_status": due_status,
+            "message": f"Successfully {action_taken} due date for card {id_card}"
+        }
+    except Exception as e:
+        error_message = str(e)
+        
+        # Provide specific guidance for common errors
+        if "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_card_due_date",
+                "card_id": id_card,
+                "message": f"Failed to update card due date - insufficient permissions",
+                "guidance": "You must have edit access to the card to update its due date.",
+                "suggestion": "Verify you have edit permissions on the card or ask a card admin to grant access."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Card not found: {error_message}",
+                "action": "update_card_due_date",
+                "card_id": id_card,
+                "message": f"Failed to update card due date - card not found",
+                "guidance": "The card may not exist or may have been deleted.",
+                "suggestion": "Verify the card ID is correct and the card still exists."
+            }
+        elif "400" in error_message and "due" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid due date: {error_message}",
+                "action": "update_card_due_date",
+                "card_id": id_card,
+                "message": f"Failed to update card due date - invalid date format '{value}'",
+                "guidance": "The due date must be in ISO 8601 format (e.g., '2024-12-31T23:59:59.000Z') or 'null' to clear.",
+                "suggestion": "Use ISO 8601 format like '2024-12-31T23:59:59.000Z' or 'null' to clear the due date."
+            }
+        elif "400" in error_message and "card" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid card ID: {error_message}",
+                "action": "update_card_due_date",
+                "card_id": id_card,
+                "message": f"Failed to update card due date - invalid card ID",
+                "guidance": "The card ID may be invalid or malformed.",
+                "suggestion": "Verify the card ID is correct and properly formatted."
+            }
+        elif "409" in error_message and "closed" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Card is closed: {error_message}",
+                "action": "update_card_due_date",
+                "card_id": id_card,
+                "message": f"Failed to update card due date - card is archived",
+                "guidance": "Closed/archived cards cannot be edited. You must unarchive the card first.",
+                "suggestion": "Use TRELLO_UPDATE_CARDS_CLOSED_BY_ID_CARD to unarchive the card first."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update card due date: {error_message}",
+                "action": "update_card_due_date",
+                "card_id": id_card,
+                "message": f"Failed to update card due date for card {id_card}"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_CARDS_ID_BOARD_BY_ID_CARD",
+    description="Move card to board. Moves a trello card to a different board and, optionally, to a specific list on that new board, useful for reorganizing across projects or workflows.",
+)
+def TRELLO_UPDATE_CARDS_ID_BOARD_BY_ID_CARD(
+    id_card: Annotated[str, "The ID of the card to move."],
+    value: Annotated[str, "The ID of the destination board to move the card to."],
+    id_list: Annotated[str, "The ID of the destination list on the new board (optional)."]
+):
+    """Move card to board. Moves a trello card to a different board and, optionally, to a specific list on that new board, useful for reorganizing across projects or workflows."""
+    err = _validate_required({"id_card": id_card, "value": value}, ["id_card", "value"])
+    if err:
+        return err
+    
+    try:
+        endpoint = f"/cards/{id_card}"
+        
+        # Build data payload
+        data = {
+            "idBoard": value
+        }
+        
+        # Add list ID if provided
+        if id_list and id_list.strip():
+            data["idList"] = id_list
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        # Determine the action taken
+        if id_list and id_list.strip():
+            action_taken = "moved to board and list"
+            destination = f"board {value} and list {id_list}"
+        else:
+            action_taken = "moved to board"
+            destination = f"board {value}"
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "move_card_to_board",
+            "card_id": id_card,
+            "destination_board": value,
+            "destination_list": id_list if id_list and id_list.strip() else None,
+            "action_taken": action_taken,
+            "destination": destination,
+            "message": f"Successfully {action_taken} for card {id_card}"
+        }
+    except Exception as e:
+        error_message = str(e)
+        
+        # Provide specific guidance for common errors
+        if "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "move_card_to_board",
+                "card_id": id_card,
+                "message": f"Failed to move card - insufficient permissions",
+                "guidance": "You must have edit access to both the source card and destination board to move cards.",
+                "suggestion": "Verify you have edit permissions on both the card and the destination board."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Resource not found: {error_message}",
+                "action": "move_card_to_board",
+                "card_id": id_card,
+                "message": f"Failed to move card - resource not found",
+                "guidance": "The card, destination board, or destination list may not exist or may have been deleted.",
+                "suggestion": "Verify the card ID, board ID, and list ID are correct and still exist."
+            }
+        elif "400" in error_message and "board" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid board ID: {error_message}",
+                "action": "move_card_to_board",
+                "card_id": id_card,
+                "message": f"Failed to move card - invalid destination board ID '{value}'",
+                "guidance": "The destination board ID may be invalid or malformed.",
+                "suggestion": "Verify the destination board ID is correct and properly formatted."
+            }
+        elif "400" in error_message and "list" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid list ID: {error_message}",
+                "action": "move_card_to_board",
+                "card_id": id_card,
+                "message": f"Failed to move card - invalid destination list ID '{id_list}'",
+                "guidance": "The destination list ID may be invalid or may not belong to the destination board.",
+                "suggestion": "Verify the destination list ID is correct and belongs to the destination board."
+            }
+        elif "400" in error_message and "card" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid card ID: {error_message}",
+                "action": "move_card_to_board",
+                "card_id": id_card,
+                "message": f"Failed to move card - invalid card ID",
+                "guidance": "The card ID may be invalid or malformed.",
+                "suggestion": "Verify the card ID is correct and properly formatted."
+            }
+        elif "409" in error_message and "closed" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Card is closed: {error_message}",
+                "action": "move_card_to_board",
+                "card_id": id_card,
+                "message": f"Failed to move card - card is archived",
+                "guidance": "Closed/archived cards cannot be moved. You must unarchive the card first.",
+                "suggestion": "Use TRELLO_UPDATE_CARDS_CLOSED_BY_ID_CARD to unarchive the card first."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to move card: {error_message}",
+                "action": "move_card_to_board",
+                "card_id": id_card,
+                "message": f"Failed to move card {id_card} to board {value}"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_CARDS_ID_LIST_BY_ID_CARD",
+    description="Update card list ID. Moves a trello card to a different list on the same trello board; this operation is idempotent and only updates the card's list id.",
+)
+def TRELLO_UPDATE_CARDS_ID_LIST_BY_ID_CARD(
+    id_card: Annotated[str, "The ID of the card to move to a different list."],
+    value: Annotated[str, "The ID of the destination list to move the card to."]
+):
+    """Update card list ID. Moves a trello card to a different list on the same trello board; this operation is idempotent and only updates the card's list id."""
+    err = _validate_required({"id_card": id_card, "value": value}, ["id_card", "value"])
+    if err:
+        return err
+    
+    try:
+        endpoint = f"/cards/{id_card}"
+        
+        # Build data payload
+        data = {
+            "idList": value
+        }
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_card_list_id",
+            "card_id": id_card,
+            "new_list_id": value,
+            "message": f"Successfully moved card {id_card} to list {value}"
+        }
+    except Exception as e:
+        error_message = str(e)
+        
+        # Provide specific guidance for common errors
+        if "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_card_list_id",
+                "card_id": id_card,
+                "message": f"Failed to move card - insufficient permissions",
+                "guidance": "You must have edit access to the card to move it to a different list.",
+                "suggestion": "Verify you have edit permissions on the card or ask a card admin to grant access."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Resource not found: {error_message}",
+                "action": "update_card_list_id",
+                "card_id": id_card,
+                "message": f"Failed to move card - resource not found",
+                "guidance": "The card or destination list may not exist or may have been deleted.",
+                "suggestion": "Verify the card ID and list ID are correct and still exist."
+            }
+        elif "400" in error_message and "list" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid list ID: {error_message}",
+                "action": "update_card_list_id",
+                "card_id": id_card,
+                "message": f"Failed to move card - invalid destination list ID '{value}'",
+                "guidance": "The destination list ID may be invalid or may not belong to the same board as the card.",
+                "suggestion": "Verify the list ID is correct and belongs to the same board as the card."
+            }
+        elif "400" in error_message and "card" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid card ID: {error_message}",
+                "action": "update_card_list_id",
+                "card_id": id_card,
+                "message": f"Failed to move card - invalid card ID",
+                "guidance": "The card ID may be invalid or malformed.",
+                "suggestion": "Verify the card ID is correct and properly formatted."
+            }
+        elif "409" in error_message and "closed" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Card is closed: {error_message}",
+                "action": "update_card_list_id",
+                "card_id": id_card,
+                "message": f"Failed to move card - card is archived",
+                "guidance": "Closed/archived cards cannot be moved. You must unarchive the card first.",
+                "suggestion": "Use TRELLO_UPDATE_CARDS_CLOSED_BY_ID_CARD to unarchive the card first."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to move card: {error_message}",
+                "action": "update_card_list_id",
+                "card_id": id_card,
+                "message": f"Failed to move card {id_card} to list {value}"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_CARDS_ID_MEMBERS_BY_ID_CARD",
+    description="Add member to card. Adds a member to a trello card, appending their id to the card's list of member ids; the card must exist and the member must have board permissions.",
+)
+def TRELLO_UPDATE_CARDS_ID_MEMBERS_BY_ID_CARD(
+    id_card: Annotated[str, "The ID of the card to add a member to."],
+    value: Annotated[str, "The ID of the member to add to the card."]
+):
+    """Add member to card. Adds a member to a trello card, appending their id to the card's list of member ids; the card must exist and the member must have board permissions."""
+    err = _validate_required({"id_card": id_card, "value": value}, ["id_card", "value"])
+    if err:
+        return err
+    
+    try:
+        endpoint = f"/cards/{id_card}/idMembers"
+        
+        # Build data payload
+        data = {
+            "value": value
+        }
+        
+        result = trello_request("POST", endpoint, data=data)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "add_member_to_card",
+            "card_id": id_card,
+            "member_id": value,
+            "message": f"Successfully added member {value} to card {id_card}"
+        }
+    except Exception as e:
+        error_message = str(e)
+        
+        # Provide specific guidance for common errors
+        if "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "add_member_to_card",
+                "card_id": id_card,
+                "message": f"Failed to add member - insufficient permissions",
+                "guidance": "You must have edit access to the card and the member must have board permissions.",
+                "suggestion": "Verify you have edit permissions on the card and the member has access to the board."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Resource not found: {error_message}",
+                "action": "add_member_to_card",
+                "card_id": id_card,
+                "message": f"Failed to add member - resource not found",
+                "guidance": "The card or member may not exist or may have been deleted.",
+                "suggestion": "Verify the card ID and member ID are correct and still exist."
+            }
+        elif "400" in error_message and "member is already on the card" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Member already on card: {error_message}",
+                "action": "add_member_to_card",
+                "card_id": id_card,
+                "message": f"Failed to add member - member is already on the card",
+                "guidance": "The member is already assigned to this card.",
+                "suggestion": "The member is already on the card. No action needed."
+            }
+        elif "400" in error_message and "member" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid member ID: {error_message}",
+                "action": "add_member_to_card",
+                "card_id": id_card,
+                "message": f"Failed to add member - invalid member ID '{value}'",
+                "guidance": "The member ID may be invalid or the member may not have board permissions.",
+                "suggestion": "Verify the member ID is correct and the member has access to the board."
+            }
+        elif "400" in error_message and "card" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid card ID: {error_message}",
+                "action": "add_member_to_card",
+                "card_id": id_card,
+                "message": f"Failed to add member - invalid card ID",
+                "guidance": "The card ID may be invalid or malformed.",
+                "suggestion": "Verify the card ID is correct and properly formatted."
+            }
+        elif "409" in error_message and "closed" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Card is closed: {error_message}",
+                "action": "add_member_to_card",
+                "card_id": id_card,
+                "message": f"Failed to add member - card is archived",
+                "guidance": "Closed/archived cards cannot be modified. You must unarchive the card first.",
+                "suggestion": "Use TRELLO_UPDATE_CARDS_CLOSED_BY_ID_CARD to unarchive the card first."
+            }
+        elif "409" in error_message and "member" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Member already on card: {error_message}",
+                "action": "add_member_to_card",
+                "card_id": id_card,
+                "message": f"Failed to add member - member is already on the card",
+                "guidance": "The member is already assigned to this card.",
+                "suggestion": "The member is already on the card. No action needed."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to add member: {error_message}",
+                "action": "add_member_to_card",
+                "card_id": id_card,
+                "message": f"Failed to add member {value} to card {id_card}"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_CARDS_LABELS_BY_ID_CARD",
+    description="Add labels to card. Adds labels to an existing trello card using label IDs. Get label IDs using TRELLO_GET_BOARDS_LABELS_BY_ID_BOARD. Note: This tool adds labels, it doesn't replace existing ones.",
+)
+def TRELLO_UPDATE_CARDS_LABELS_BY_ID_CARD(
+    id_card: Annotated[str, "The ID of the card to add labels to."],
+    value: Annotated[str, "The label ID to add to the card. Get label IDs using TRELLO_GET_BOARDS_LABELS_BY_ID_BOARD."]
+):
+    """Add labels to card. Adds labels to an existing trello card using label IDs. Get label IDs using TRELLO_GET_BOARDS_LABELS_BY_ID_BOARD. Note: This tool adds labels, it doesn't replace existing ones."""
+    err = _validate_required({"id_card": id_card, "value": value}, ["id_card", "value"])
+    if err:
+        return err
+    
+    try:
+        endpoint = f"/cards/{id_card}/idLabels"
+        
+        # Build data payload
+        data = {
+            "value": value
+        }
+        
+        result = trello_request("POST", endpoint, data=data)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "add_label_to_card",
+            "card_id": id_card,
+            "label_id": value,
+            "message": f"Successfully added label {value} to card {id_card}"
+        }
+    except Exception as e:
+        error_message = str(e)
+        
+        # Provide specific guidance for common errors
+        if "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "add_label_to_card",
+                "card_id": id_card,
+                "message": f"Failed to add label - insufficient permissions",
+                "guidance": "You must have edit access to the card to add labels.",
+                "suggestion": "Verify you have edit permissions on the card or ask a card admin to grant access."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Resource not found: {error_message}",
+                "action": "add_label_to_card",
+                "card_id": id_card,
+                "message": f"Failed to add label - resource not found",
+                "guidance": "The card or label may not exist or may have been deleted.",
+                "suggestion": "Verify the card ID and label ID are correct and still exist."
+            }
+        elif "400" in error_message and "label" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid label ID: {error_message}",
+                "action": "add_label_to_card",
+                "card_id": id_card,
+                "message": f"Failed to add label - invalid label ID '{value}'",
+                "guidance": "The label ID may be invalid or the label may not exist on the board.",
+                "suggestion": "Use TRELLO_GET_BOARDS_LABELS_BY_ID_BOARD to get valid label IDs for the board."
+            }
+        elif "400" in error_message and "card" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid card ID: {error_message}",
+                "action": "add_label_to_card",
+                "card_id": id_card,
+                "message": f"Failed to add label - invalid card ID",
+                "guidance": "The card ID may be invalid or malformed.",
+                "suggestion": "Verify the card ID is correct and properly formatted."
+            }
+        elif "409" in error_message and "closed" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Card is closed: {error_message}",
+                "action": "add_label_to_card",
+                "card_id": id_card,
+                "message": f"Failed to add label - card is archived",
+                "guidance": "Closed/archived cards cannot be edited. You must unarchive the card first.",
+                "suggestion": "Use TRELLO_UPDATE_CARDS_CLOSED_BY_ID_CARD to unarchive the card first."
+            }
+        elif "409" in error_message and "label" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Label already on card: {error_message}",
+                "action": "add_label_to_card",
+                "card_id": id_card,
+                "message": f"Failed to add label - label is already on the card",
+                "guidance": "The label is already assigned to this card.",
+                "suggestion": "The label is already on the card. No action needed."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to add label: {error_message}",
+                "action": "add_label_to_card",
+                "card_id": id_card,
+                "message": f"Failed to add label {value} to card {id_card}"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_CARDS_NAME_BY_ID_CARD",
+    description="Update card name. Updates the name of an existing trello card, identified by its id or shortlink; other card properties remain unchanged.",
+)
+def TRELLO_UPDATE_CARDS_NAME_BY_ID_CARD(
+    id_card: Annotated[str, "The ID of the card to update name for."],
+    value: Annotated[str, "The new name for the card."]
+):
+    """Update card name. Updates the name of an existing trello card, identified by its id or shortlink; other card properties remain unchanged."""
+    err = _validate_required({"id_card": id_card, "value": value}, ["id_card", "value"])
+    if err:
+        return err
+    
+    # Validate name is not empty
+    if not value.strip():
+        return {
+            "successful": False,
+            "error": "Empty card name",
+            "action": "update_card_name",
+            "card_id": id_card,
+            "message": "Card name cannot be empty",
+            "guidance": "Provide a non-empty name for the card.",
+            "suggestion": "Enter the new card name you want to set."
+        }
+    
+    try:
+        endpoint = f"/cards/{id_card}"
+        
+        # Build data payload
+        data = {
+            "name": value
+        }
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_card_name",
+            "card_id": id_card,
+            "new_name": value,
+            "message": f"Successfully updated card name to '{value}' for card {id_card}"
+        }
+    except Exception as e:
+        error_message = str(e)
+        
+        # Provide specific guidance for common errors
+        if "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_card_name",
+                "card_id": id_card,
+                "message": f"Failed to update card name - insufficient permissions",
+                "guidance": "You must have edit access to the card to update its name.",
+                "suggestion": "Verify you have edit permissions on the card or ask a card admin to grant access."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Card not found: {error_message}",
+                "action": "update_card_name",
+                "card_id": id_card,
+                "message": f"Failed to update card name - card not found",
+                "guidance": "The card may not exist or may have been deleted.",
+                "suggestion": "Verify the card ID is correct and the card still exists."
+            }
+        elif "400" in error_message and "name" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid card name: {error_message}",
+                "action": "update_card_name",
+                "card_id": id_card,
+                "message": f"Failed to update card name - invalid name '{value}'",
+                "guidance": "The card name may contain invalid characters or be too long.",
+                "suggestion": "Check the card name for invalid characters and ensure it's within Trello's length limits."
+            }
+        elif "400" in error_message and "card" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid card ID: {error_message}",
+                "action": "update_card_name",
+                "card_id": id_card,
+                "message": f"Failed to update card name - invalid card ID",
+                "guidance": "The card ID may be invalid or malformed.",
+                "suggestion": "Verify the card ID is correct and properly formatted."
+            }
+        elif "409" in error_message and "closed" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Card is closed: {error_message}",
+                "action": "update_card_name",
+                "card_id": id_card,
+                "message": f"Failed to update card name - card is archived",
+                "guidance": "Closed/archived cards cannot be edited. You must unarchive the card first.",
+                "suggestion": "Use TRELLO_UPDATE_CARDS_CLOSED_BY_ID_CARD to unarchive the card first."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update card name: {error_message}",
+                "action": "update_card_name",
+                "card_id": id_card,
+                "message": f"Failed to update card name for card {id_card}"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_CARDS_POS_BY_ID_CARD",
+    description="Update card position. Updates a trello card's position within its list to 'top', 'bottom', or a specified 1-indexed positive integer.",
+)
+def TRELLO_UPDATE_CARDS_POS_BY_ID_CARD(
+    id_card: Annotated[str, "The ID of the card to update position for."],
+    value: Annotated[str, "The new position value ('top', 'bottom', or a positive integer as string)."]
+):
+    """Update card position. Updates a trello card's position within its list to 'top', 'bottom', or a specified 1-indexed positive integer."""
+    err = _validate_required({"id_card": id_card, "value": value}, ["id_card", "value"])
+    if err:
+        return err
+    
+    # Validate position value
+    valid_positions = ['top', 'bottom']
+    is_numeric = value.isdigit() and int(value) > 0
+    
+    if value.lower() not in valid_positions and not is_numeric:
+        return {
+            "successful": False,
+            "error": "Invalid position value",
+            "action": "update_card_position",
+            "card_id": id_card,
+            "message": f"Invalid position value '{value}' - must be 'top', 'bottom', or a positive integer",
+            "guidance": "Valid position values are 'top', 'bottom', or a positive integer (as string).",
+            "suggestion": "Use 'top' to move to top, 'bottom' to move to bottom, or a number like '1', '2', '3' for specific position."
+        }
+    
+    try:
+        endpoint = f"/cards/{id_card}"
+        
+        # Build data payload
+        data = {
+            "pos": value
+        }
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        # Determine the position set
+        if value.lower() == "top":
+            position_set = "top"
+        elif value.lower() == "bottom":
+            position_set = "bottom"
+        else:
+            position_set = f"position {value}"
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_card_position",
+            "card_id": id_card,
+            "new_position": value,
+            "position_set": position_set,
+            "message": f"Successfully moved card to {position_set} in list"
+        }
+    except Exception as e:
+        error_message = str(e)
+        
+        # Provide specific guidance for common errors
+        if "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_card_position",
+                "card_id": id_card,
+                "message": f"Failed to update card position - insufficient permissions",
+                "guidance": "You must have edit access to the card to update its position.",
+                "suggestion": "Verify you have edit permissions on the card or ask a card admin to grant access."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Card not found: {error_message}",
+                "action": "update_card_position",
+                "card_id": id_card,
+                "message": f"Failed to update card position - card not found",
+                "guidance": "The card may not exist or may have been deleted.",
+                "suggestion": "Verify the card ID is correct and the card still exists."
+            }
+        elif "400" in error_message and "pos" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid position value: {error_message}",
+                "action": "update_card_position",
+                "card_id": id_card,
+                "message": f"Failed to update card position - invalid position '{value}'",
+                "guidance": "Valid position values are 'top', 'bottom', or a positive integer (as string).",
+                "suggestion": "Use 'top' to move to top, 'bottom' to move to bottom, or a number like '1', '2', '3' for specific position."
+            }
+        elif "400" in error_message and "card" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid card ID: {error_message}",
+                "action": "update_card_position",
+                "card_id": id_card,
+                "message": f"Failed to update card position - invalid card ID",
+                "guidance": "The card ID may be invalid or malformed.",
+                "suggestion": "Verify the card ID is correct and properly formatted."
+            }
+        elif "409" in error_message and "closed" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Card is closed: {error_message}",
+                "action": "update_card_position",
+                "card_id": id_card,
+                "message": f"Failed to update card position - card is archived",
+                "guidance": "Closed/archived cards cannot be edited. You must unarchive the card first.",
+                "suggestion": "Use TRELLO_UPDATE_CARDS_CLOSED_BY_ID_CARD to unarchive the card first."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update card position: {error_message}",
+                "action": "update_card_position",
+                "card_id": id_card,
+                "message": f"Failed to update card position for card {id_card}"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_CARDS_SUBSCRIBED_BY_ID_CARD",
+    description="Update card subscribed status. Updates the user's subscription status for a trello card, if the card exists and is accessible.",
+)
+def TRELLO_UPDATE_CARDS_SUBSCRIBED_BY_ID_CARD(
+    id_card: Annotated[str, "The ID of the card to update subscription status for."],
+    value: Annotated[str, "The subscription status value ('true' to subscribe, 'false' to unsubscribe)."]
+):
+    """Update card subscribed status. Updates the user's subscription status for a trello card, if the card exists and is accessible."""
+    err = _validate_required({"id_card": id_card, "value": value}, ["id_card", "value"])
+    if err:
+        return err
+    
+    # Validate subscription status value
+    if value.lower() not in ['true', 'false']:
+        return {
+            "successful": False,
+            "error": "Invalid subscription status value",
+            "action": "update_card_subscription",
+            "card_id": id_card,
+            "message": f"Invalid subscription status value '{value}' - must be 'true' or 'false'",
+            "guidance": "Valid subscription status values are 'true' to subscribe or 'false' to unsubscribe.",
+            "suggestion": "Use 'true' to subscribe to card notifications or 'false' to unsubscribe."
+        }
+    
+    try:
+        endpoint = f"/cards/{id_card}"
+        
+        # Build data payload
+        data = {
+            "subscribed": value
+        }
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        # Determine the action taken
+        action_taken = "subscribed to" if value.lower() == "true" else "unsubscribed from"
+        status_set = "subscribed" if value.lower() == "true" else "unsubscribed"
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_card_subscription",
+            "card_id": id_card,
+            "subscription_status": value,
+            "status_set": status_set,
+            "action_taken": action_taken,
+            "message": f"Successfully {action_taken} card {id_card}"
+        }
+    except Exception as e:
+        error_message = str(e)
+        
+        # Provide specific guidance for common errors
+        if "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_card_subscription",
+                "card_id": id_card,
+                "message": f"Failed to update subscription - insufficient permissions",
+                "guidance": "You must have access to the card to update subscription status.",
+                "suggestion": "Verify you have access to the card or ask a card admin to grant access."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Card not found: {error_message}",
+                "action": "update_card_subscription",
+                "card_id": id_card,
+                "message": f"Failed to update subscription - card not found",
+                "guidance": "The card may not exist or may have been deleted.",
+                "suggestion": "Verify the card ID is correct and the card still exists."
+            }
+        elif "400" in error_message and "subscribed" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid subscription status: {error_message}",
+                "action": "update_card_subscription",
+                "card_id": id_card,
+                "message": f"Failed to update subscription - invalid status '{value}'",
+                "guidance": "Valid subscription status values are 'true' to subscribe or 'false' to unsubscribe.",
+                "suggestion": "Use 'true' to subscribe to card notifications or 'false' to unsubscribe."
+            }
+        elif "400" in error_message and "card" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid card ID: {error_message}",
+                "action": "update_card_subscription",
+                "card_id": id_card,
+                "message": f"Failed to update subscription - invalid card ID",
+                "guidance": "The card ID may be invalid or malformed.",
+                "suggestion": "Verify the card ID is correct and properly formatted."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update subscription: {error_message}",
+                "action": "update_card_subscription",
+                "card_id": id_card,
+                "message": f"Failed to update subscription status for card {id_card}"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_CHECKLIST_ITEM_BY_IDS",
+    description="Update a checklist item. Updates a check item's attributes (name, position, state) or moves it to a different checklist on the same card, requiring the card id, current checklist id, and check item id.",
+)
+def TRELLO_UPDATE_CHECKLIST_ITEM_BY_IDS(
+    id_card: Annotated[str, "The ID of the card containing the checklist item."],
+    id_check_item: Annotated[str, "The ID of the check item to update."],
+    id_checklist_current: Annotated[str, "The ID of the current checklist containing the item."],
+    id_checklist: Annotated[str | None, "The ID of the destination checklist (if moving the item)."] = None,
+    name: Annotated[str | None, "The new name for the check item."] = None,
+    pos: Annotated[str | None, "The new position for the check item ('top', 'bottom', or positive integer)."] = None,
+    state: Annotated[str | None, "The new state for the check item ('true' to complete, 'false' to uncomplete)."] = None
+):
+    """Update a checklist item. Updates a check item's attributes (name, position, state) or moves it to a different checklist on the same card, requiring the card id, current checklist id, and check item id."""
+    err = _validate_required({"id_card": id_card, "id_check_item": id_check_item, "id_checklist_current": id_checklist_current}, ["id_card", "id_check_item", "id_checklist_current"])
+    if err:
+        return err
+    
+    # Check if at least one update parameter is provided
+    update_params = {"id_checklist": id_checklist, "name": name, "pos": pos, "state": state}
+    provided_params = {k: v for k, v in update_params.items() if v and v.strip()}
+    
+    if not provided_params:
+        return {
+            "successful": False,
+            "error": "No update parameters provided",
+            "action": "update_checklist_item",
+            "card_id": id_card,
+            "checklist_id": id_checklist_current,
+            "check_item_id": id_check_item,
+            "message": "Must provide at least one update parameter (id_checklist, name, pos, or state)",
+            "guidance": "Provide at least one of: id_checklist, name, pos, or state parameters.",
+            "suggestion": "Specify which checklist item attributes you want to update."
+        }
+    
+    # Validate position if provided
+    if pos and pos.strip():
+        valid_positions = ['top', 'bottom']
+        is_numeric = pos.isdigit() and int(pos) > 0
+        
+        if pos.lower() not in valid_positions and not is_numeric:
+            return {
+                "successful": False,
+                "error": "Invalid position value",
+                "action": "update_checklist_item",
+                "card_id": id_card,
+                "checklist_id": id_checklist_current,
+                "check_item_id": id_check_item,
+                "message": f"Invalid position value '{pos}' - must be 'top', 'bottom', or a positive integer",
+                "guidance": "Valid position values are 'top', 'bottom', or a positive integer (as string).",
+                "suggestion": "Use 'top' to move to top, 'bottom' to move to bottom, or a number like '1', '2', '3' for specific position."
+            }
+    
+    # Validate state if provided
+    if state and state.strip():
+        if state.lower() not in ['true', 'false']:
+            return {
+                "successful": False,
+                "error": "Invalid state value",
+                "action": "update_checklist_item",
+                "card_id": id_card,
+                "checklist_id": id_checklist_current,
+                "check_item_id": id_check_item,
+                "message": f"Invalid state value '{state}' - must be 'true' or 'false'",
+                "guidance": "Valid state values are 'true' to complete the item or 'false' to uncomplete it.",
+                "suggestion": "Use 'true' to mark as complete or 'false' to mark as incomplete."
+            }
+    
+    try:
+        endpoint = f"/cards/{id_card}/checklist/{id_checklist_current}/checkItem/{id_check_item}"
+        
+        # Build data payload with only provided parameters
+        data = {}
+        
+        if id_checklist and id_checklist.strip():
+            data["idChecklist"] = id_checklist
+        if name and name.strip():
+            data["name"] = name
+        if pos and pos.strip():
+            data["pos"] = pos
+        if state and state.strip():
+            data["state"] = state
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        # Determine which attributes were updated
+        updated_attributes = list(provided_params.keys())
+        attributes_list = ", ".join(updated_attributes)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_checklist_item",
+            "card_id": id_card,
+            "checklist_id": id_checklist_current,
+            "check_item_id": id_check_item,
+            "updated_attributes": updated_attributes,
+            "attributes_list": attributes_list,
+            "message": f"Successfully updated checklist item attributes: {attributes_list}"
+        }
+    except Exception as e:
+        error_message = str(e)
+        
+        # Provide specific guidance for common errors
+        if "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_checklist_item",
+                "card_id": id_card,
+                "checklist_id": id_checklist_current,
+                "check_item_id": id_check_item,
+                "message": f"Failed to update checklist item - insufficient permissions",
+                "guidance": "You must have edit access to the card to update checklist items.",
+                "suggestion": "Verify you have edit permissions on the card or ask a card admin to grant access."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Resource not found: {error_message}",
+                "action": "update_checklist_item",
+                "card_id": id_card,
+                "checklist_id": id_checklist_current,
+                "check_item_id": id_check_item,
+                "message": f"Failed to update checklist item - resource not found",
+                "guidance": "The card, checklist, or check item may not exist or may have been deleted.",
+                "suggestion": "Verify the card ID, checklist ID, and check item ID are correct and still exist."
+            }
+        elif "400" in error_message and ("pos" in error_message.lower() or "position" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid position: {error_message}",
+                "action": "update_checklist_item",
+                "card_id": id_card,
+                "checklist_id": id_checklist_current,
+                "check_item_id": id_check_item,
+                "message": f"Failed to update checklist item - invalid position '{pos}'",
+                "guidance": "Valid position values are 'top', 'bottom', or a positive integer (as string).",
+                "suggestion": "Use 'top' to move to top, 'bottom' to move to bottom, or a number like '1', '2', '3' for specific position."
+            }
+        elif "400" in error_message and "state" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid state: {error_message}",
+                "action": "update_checklist_item",
+                "card_id": id_card,
+                "checklist_id": id_checklist_current,
+                "check_item_id": id_check_item,
+                "message": f"Failed to update checklist item - invalid state '{state}'",
+                "guidance": "Valid state values are 'true' to complete the item or 'false' to uncomplete it.",
+                "suggestion": "Use 'true' to mark as complete or 'false' to mark as incomplete."
+            }
+        elif "400" in error_message and ("checklist" in error_message.lower() or "checkitem" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid resource ID: {error_message}",
+                "action": "update_checklist_item",
+                "card_id": id_card,
+                "checklist_id": id_checklist_current,
+                "check_item_id": id_check_item,
+                "message": f"Failed to update checklist item - invalid resource ID",
+                "guidance": "One or more of the provided IDs (card, checklist, check item) may be invalid.",
+                "suggestion": "Verify all IDs are correct: card ID, checklist ID, and check item ID."
+            }
+        elif "409" in error_message and "closed" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Card is closed: {error_message}",
+                "action": "update_checklist_item",
+                "card_id": id_card,
+                "checklist_id": id_checklist_current,
+                "check_item_id": id_check_item,
+                "message": f"Failed to update checklist item - card is archived",
+                "guidance": "Closed/archived cards cannot be edited. You must unarchive the card first.",
+                "suggestion": "Use TRELLO_UPDATE_CARDS_CLOSED_BY_ID_CARD to unarchive the card first."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update checklist item: {error_message}",
+                "action": "update_checklist_item",
+                "card_id": id_card,
+                "checklist_id": id_checklist_current,
+                "check_item_id": id_check_item,
+                "message": f"Failed to update checklist item {id_check_item}"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_CHECKLIST_ITEM_NAME_IN_CARD",
+    description="Update checklist item name in card. Updates the name of a specific check item on a checklist within a trello card, provided the card, checklist, and check item all exist.",
+)
+def TRELLO_UPDATE_CHECKLIST_ITEM_NAME_IN_CARD(
+    id_card: Annotated[str, "The ID of the card containing the checklist item."],
+    id_check_item: Annotated[str, "The ID of the check item to update name for."],
+    id_checklist: Annotated[str, "The ID of the checklist containing the check item."],
+    value: Annotated[str, "The new name for the check item."]
+):
+    """Update checklist item name in card. Updates the name of a specific check item on a checklist within a trello card, provided the card, checklist, and check item all exist."""
+    err = _validate_required({"id_card": id_card, "id_check_item": id_check_item, "id_checklist": id_checklist, "value": value}, ["id_card", "id_check_item", "id_checklist", "value"])
+    if err:
+        return err
+    
+    # Validate name is not empty
+    if not value.strip():
+        return {
+            "successful": False,
+            "error": "Empty check item name",
+            "action": "update_checklist_item_name",
+            "card_id": id_card,
+            "checklist_id": id_checklist,
+            "check_item_id": id_check_item,
+            "message": "Check item name cannot be empty",
+            "guidance": "Provide a non-empty name for the check item.",
+            "suggestion": "Enter the new name you want to set for the check item."
+        }
+    
+    try:
+        endpoint = f"/cards/{id_card}/checklist/{id_checklist}/checkItem/{id_check_item}"
+        
+        # Build data payload
+        data = {
+            "name": value
+        }
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_checklist_item_name",
+            "card_id": id_card,
+            "checklist_id": id_checklist,
+            "check_item_id": id_check_item,
+            "new_name": value,
+            "message": f"Successfully updated check item name to '{value}'"
+        }
+    except Exception as e:
+        error_message = str(e)
+        
+        # Provide specific guidance for common errors
+        if "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_checklist_item_name",
+                "card_id": id_card,
+                "checklist_id": id_checklist,
+                "check_item_id": id_check_item,
+                "message": f"Failed to update check item name - insufficient permissions",
+                "guidance": "You must have edit access to the card to update checklist item names.",
+                "suggestion": "Verify you have edit permissions on the card or ask a card admin to grant access."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Resource not found: {error_message}",
+                "action": "update_checklist_item_name",
+                "card_id": id_card,
+                "checklist_id": id_checklist,
+                "check_item_id": id_check_item,
+                "message": f"Failed to update check item name - resource not found",
+                "guidance": "The card, checklist, or check item may not exist or may have been deleted.",
+                "suggestion": "Verify the card ID, checklist ID, and check item ID are correct and still exist."
+            }
+        elif "400" in error_message and "name" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid check item name: {error_message}",
+                "action": "update_checklist_item_name",
+                "card_id": id_card,
+                "checklist_id": id_checklist,
+                "check_item_id": id_check_item,
+                "message": f"Failed to update check item name - invalid name '{value}'",
+                "guidance": "The check item name may contain invalid characters or be too long.",
+                "suggestion": "Check the name for invalid characters and ensure it's within Trello's length limits."
+            }
+        elif "400" in error_message and ("checklist" in error_message.lower() or "checkitem" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid resource ID: {error_message}",
+                "action": "update_checklist_item_name",
+                "card_id": id_card,
+                "checklist_id": id_checklist,
+                "check_item_id": id_check_item,
+                "message": f"Failed to update check item name - invalid resource ID",
+                "guidance": "One or more of the provided IDs (card, checklist, check item) may be invalid.",
+                "suggestion": "Verify all IDs are correct: card ID, checklist ID, and check item ID."
+            }
+        elif "409" in error_message and "closed" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Card is closed: {error_message}",
+                "action": "update_checklist_item_name",
+                "card_id": id_card,
+                "checklist_id": id_checklist,
+                "check_item_id": id_check_item,
+                "message": f"Failed to update check item name - card is archived",
+                "guidance": "Closed/archived cards cannot be edited. You must unarchive the card first.",
+                "suggestion": "Use TRELLO_UPDATE_CARDS_CLOSED_BY_ID_CARD to unarchive the card first."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update check item name: {error_message}",
+                "action": "update_checklist_item_name",
+                "card_id": id_card,
+                "checklist_id": id_checklist,
+                "check_item_id": id_check_item,
+                "message": f"Failed to update check item name for check item {id_check_item}"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_CHECKLISTS_BY_ID_CHECKLIST",
+    description="Update checklist. Updates an existing trello checklist, allowing modification of its name, position, associated card/board, or copying items from a source checklist.",
+)
+def TRELLO_UPDATE_CHECKLISTS_BY_ID_CHECKLIST(
+    id_checklist: Annotated[str, "The ID of the checklist to update."],
+    name: Annotated[str, "The new name for the checklist."],
+    pos: Annotated[str, "The new position for the checklist ('top', 'bottom', or positive integer)."],
+    id_card: Annotated[str, "The ID of the card to move the checklist to."],
+    id_board: Annotated[str, "The ID of the board to move the checklist to."],
+    id_checklist_source: Annotated[str, "The ID of the source checklist to copy items from."]
+):
+    """Update checklist. Updates an existing trello checklist, allowing modification of its name, position, associated card/board, or copying items from a source checklist."""
+    err = _validate_required({"id_checklist": id_checklist}, ["id_checklist"])
+    if err:
+        return err
+    
+    # Check if at least one update parameter is provided
+    update_params = {"name": name, "pos": pos, "id_card": id_card, "id_board": id_board, "id_checklist_source": id_checklist_source}
+    provided_params = {k: v for k, v in update_params.items() if v and v.strip()}
+    
+    if not provided_params:
+        return {
+            "successful": False,
+            "error": "No update parameters provided",
+            "action": "update_checklist",
+            "checklist_id": id_checklist,
+            "message": "Must provide at least one update parameter (name, pos, id_card, id_board, or id_checklist_source)",
+            "guidance": "Provide at least one of: name, pos, id_card, id_board, or id_checklist_source parameters.",
+            "suggestion": "Specify which checklist attributes you want to update."
+        }
+    
+    # Validate position if provided
+    if pos and pos.strip():
+        valid_positions = ['top', 'bottom']
+        is_numeric = pos.isdigit() and int(pos) > 0
+        
+        if pos.lower() not in valid_positions and not is_numeric:
+            return {
+                "successful": False,
+                "error": "Invalid position value",
+                "action": "update_checklist",
+                "checklist_id": id_checklist,
+                "message": f"Invalid position value '{pos}' - must be 'top', 'bottom', or a positive integer",
+                "guidance": "Valid position values are 'top', 'bottom', or a positive integer (as string).",
+                "suggestion": "Use 'top' to move to top, 'bottom' to move to bottom, or a number like '1', '2', '3' for specific position."
+            }
+    
+    try:
+        endpoint = f"/checklists/{id_checklist}"
+        
+        # Build data payload with only provided parameters
+        data = {}
+        
+        if name and name.strip():
+            data["name"] = name
+        if pos and pos.strip():
+            data["pos"] = pos
+        if id_card and id_card.strip():
+            data["idCard"] = id_card
+        if id_board and id_board.strip():
+            data["idBoard"] = id_board
+        if id_checklist_source and id_checklist_source.strip():
+            data["idChecklistSource"] = id_checklist_source
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        # Determine which attributes were updated
+        updated_attributes = list(provided_params.keys())
+        attributes_list = ", ".join(updated_attributes)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_checklist",
+            "checklist_id": id_checklist,
+            "updated_attributes": updated_attributes,
+            "attributes_list": attributes_list,
+            "message": f"Successfully updated checklist attributes: {attributes_list}"
+        }
+    except Exception as e:
+        error_message = str(e)
+        
+        # Provide specific guidance for common errors
+        if "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_checklist",
+                "checklist_id": id_checklist,
+                "message": f"Failed to update checklist - insufficient permissions",
+                "guidance": "You must have edit access to the card/board to update checklists.",
+                "suggestion": "Verify you have edit permissions on the card or board, or ask an admin to grant access."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Resource not found: {error_message}",
+                "action": "update_checklist",
+                "checklist_id": id_checklist,
+                "message": f"Failed to update checklist - resource not found",
+                "guidance": "The checklist, card, or board may not exist or may have been deleted.",
+                "suggestion": "Verify the checklist ID, card ID, and board ID are correct and still exist."
+            }
+        elif "400" in error_message and ("pos" in error_message.lower() or "position" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid position: {error_message}",
+                "action": "update_checklist",
+                "checklist_id": id_checklist,
+                "message": f"Failed to update checklist - invalid position '{pos}'",
+                "guidance": "Valid position values are 'top', 'bottom', or a positive integer (as string).",
+                "suggestion": "Use 'top' to move to top, 'bottom' to move to bottom, or a number like '1', '2', '3' for specific position."
+            }
+        elif "400" in error_message and ("card" in error_message.lower() or "board" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid resource ID: {error_message}",
+                "action": "update_checklist",
+                "checklist_id": id_checklist,
+                "message": f"Failed to update checklist - invalid card or board ID",
+                "guidance": "The card ID or board ID may be invalid or the resources may not exist.",
+                "suggestion": "Verify the card ID and board ID are correct and the resources still exist."
+            }
+        elif "400" in error_message and "name" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid checklist name: {error_message}",
+                "action": "update_checklist",
+                "checklist_id": id_checklist,
+                "message": f"Failed to update checklist - invalid name '{name}'",
+                "guidance": "The checklist name may contain invalid characters or be too long.",
+                "suggestion": "Check the name for invalid characters and ensure it's within Trello's length limits."
+            }
+        elif "409" in error_message and "closed" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Card is closed: {error_message}",
+                "action": "update_checklist",
+                "checklist_id": id_checklist,
+                "message": f"Failed to update checklist - card is archived",
+                "guidance": "Closed/archived cards cannot be edited. You must unarchive the card first.",
+                "suggestion": "Use TRELLO_UPDATE_CARDS_CLOSED_BY_ID_CARD to unarchive the card first."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update checklist: {error_message}",
+                "action": "update_checklist",
+                "checklist_id": id_checklist,
+                "message": f"Failed to update checklist {id_checklist}"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_CHECKLISTS_ID_CARD_BY_ID_CHECKLIST",
+    description="Move checklist to card. Attempts to move a trello checklist to a new parent card; NOTE: This feature is not supported by the Trello API and will return an error. Use TRELLO_ADD_CHECKLISTS_BY_ID_CARD to create a new checklist instead.",
+)
+def TRELLO_UPDATE_CHECKLISTS_ID_CARD_BY_ID_CHECKLIST(
+    id_checklist: Annotated[str, "The ID of the checklist to move."],
+    value: Annotated[str, "The ID of the destination card to move the checklist to."]
+):
+    """Move checklist to card. Attempts to move a trello checklist to a new parent card; NOTE: This feature is not supported by the Trello API and will return an error. Use TRELLO_ADD_CHECKLISTS_BY_ID_CARD to create a new checklist instead."""
+    err = _validate_required({"id_checklist": id_checklist, "value": value}, ["id_checklist", "value"])
+    if err:
+        return err
+    
+    try:
+        endpoint = f"/checklists/{id_checklist}"
+        
+        # Build data payload
+        data = {
+            "idCard": value
+        }
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "move_checklist_to_card",
+            "checklist_id": id_checklist,
+            "destination_card_id": value,
+            "message": f"Successfully moved checklist {id_checklist} to card {value}"
+        }
+    except Exception as e:
+        error_message = str(e)
+        
+        # Provide specific guidance for common errors
+        if "403" in error_message and "moving checklists is not supported" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Feature not supported: {error_message}",
+                "action": "move_checklist_to_card",
+                "checklist_id": id_checklist,
+                "message": f"Failed to move checklist - Trello API does not support moving checklists between cards",
+                "guidance": "Trello API does not support moving checklists between cards. This is a limitation of the Trello API.",
+                "suggestion": "Consider copying the checklist to the new card and deleting the old one, or recreate the checklist on the destination card.",
+                "alternative_approach": "Use TRELLO_ADD_CHECKLISTS_BY_ID_CARD to create a new checklist on the destination card, then copy items manually."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "move_checklist_to_card",
+                "checklist_id": id_checklist,
+                "message": f"Failed to move checklist - insufficient permissions",
+                "guidance": "You must have edit access to both the checklist and the destination card.",
+                "suggestion": "Verify you have edit permissions on both the checklist and the destination card."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Resource not found: {error_message}",
+                "action": "move_checklist_to_card",
+                "checklist_id": id_checklist,
+                "message": f"Failed to move checklist - resource not found",
+                "guidance": "The checklist or destination card may not exist or may have been deleted.",
+                "suggestion": "Verify the checklist ID and destination card ID are correct and still exist."
+            }
+        elif "400" in error_message and "card" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid card ID: {error_message}",
+                "action": "move_checklist_to_card",
+                "checklist_id": id_checklist,
+                "message": f"Failed to move checklist - invalid destination card ID '{value}'",
+                "guidance": "The destination card ID may be invalid or malformed.",
+                "suggestion": "Verify the destination card ID is correct and properly formatted."
+            }
+        elif "400" in error_message and "checklist" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid checklist ID: {error_message}",
+                "action": "move_checklist_to_card",
+                "checklist_id": id_checklist,
+                "message": f"Failed to move checklist - invalid checklist ID",
+                "guidance": "The checklist ID may be invalid or malformed.",
+                "suggestion": "Verify the checklist ID is correct and properly formatted."
+            }
+        elif "409" in error_message and "closed" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Card is closed: {error_message}",
+                "action": "move_checklist_to_card",
+                "checklist_id": id_checklist,
+                "message": f"Failed to move checklist - destination card is archived",
+                "guidance": "Closed/archived cards cannot have checklists moved to them. You must unarchive the card first.",
+                "suggestion": "Use TRELLO_UPDATE_CARDS_CLOSED_BY_ID_CARD to unarchive the destination card first."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to move checklist: {error_message}",
+                "action": "move_checklist_to_card",
+                "checklist_id": id_checklist,
+                "message": f"Failed to move checklist {id_checklist} to card {value}"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_CHECKLISTS_NAME_BY_ID_CHECKLIST",
+    description="Update checklist name. Updates the name of an existing trello checklist.",
+)
+def TRELLO_UPDATE_CHECKLISTS_NAME_BY_ID_CHECKLIST(
+    id_checklist: Annotated[str, "The ID of the checklist to update name for."],
+    value: Annotated[str, "The new name for the checklist."]
+):
+    """Update checklist name. Updates the name of an existing trello checklist."""
+    err = _validate_required({"id_checklist": id_checklist, "value": value}, ["id_checklist", "value"])
+    if err:
+        return err
+    
+    # Validate name is not empty
+    if not value.strip():
+        return {
+            "successful": False,
+            "error": "Empty checklist name",
+            "action": "update_checklist_name",
+            "checklist_id": id_checklist,
+            "message": "Checklist name cannot be empty",
+            "guidance": "Provide a non-empty name for the checklist.",
+            "suggestion": "Enter the new name you want to set for the checklist."
+        }
+    
+    try:
+        endpoint = f"/checklists/{id_checklist}"
+        
+        # Build data payload
+        data = {
+            "name": value
+        }
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_checklist_name",
+            "checklist_id": id_checklist,
+            "new_name": value,
+            "message": f"Successfully updated checklist name to '{value}'"
+        }
+    except Exception as e:
+        error_message = str(e)
+        
+        # Provide specific guidance for common errors
+        if "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_checklist_name",
+                "checklist_id": id_checklist,
+                "message": f"Failed to update checklist name - insufficient permissions",
+                "guidance": "You must have edit access to the checklist to update its name.",
+                "suggestion": "Verify you have edit permissions on the checklist or ask a checklist admin to grant access."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Checklist not found: {error_message}",
+                "action": "update_checklist_name",
+                "checklist_id": id_checklist,
+                "message": f"Failed to update checklist name - checklist not found",
+                "guidance": "The checklist may not exist or may have been deleted.",
+                "suggestion": "Verify the checklist ID is correct and the checklist still exists."
+            }
+        elif "400" in error_message and "name" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid checklist name: {error_message}",
+                "action": "update_checklist_name",
+                "checklist_id": id_checklist,
+                "message": f"Failed to update checklist name - invalid name '{value}'",
+                "guidance": "The checklist name may contain invalid characters or be too long.",
+                "suggestion": "Check the name for invalid characters and ensure it's within Trello's length limits."
+            }
+        elif "400" in error_message and "checklist" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid checklist ID: {error_message}",
+                "action": "update_checklist_name",
+                "checklist_id": id_checklist,
+                "message": f"Failed to update checklist name - invalid checklist ID",
+                "guidance": "The checklist ID may be invalid or malformed.",
+                "suggestion": "Verify the checklist ID is correct and properly formatted."
+            }
+        elif "409" in error_message and "closed" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Card is closed: {error_message}",
+                "action": "update_checklist_name",
+                "checklist_id": id_checklist,
+                "message": f"Failed to update checklist name - associated card is archived",
+                "guidance": "Closed/archived cards cannot have their checklists edited. You must unarchive the card first.",
+                "suggestion": "Use TRELLO_UPDATE_CARDS_CLOSED_BY_ID_CARD to unarchive the associated card first."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update checklist name: {error_message}",
+                "action": "update_checklist_name",
+                "checklist_id": id_checklist,
+                "message": f"Failed to update checklist name for checklist {id_checklist}"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_CHECKLISTS_POS_BY_ID_CHECKLIST",
+    description="Update checklist position by id. Updates the position of an existing checklist on a trello card.",
+)
+def TRELLO_UPDATE_CHECKLISTS_POS_BY_ID_CHECKLIST(
+    id_checklist: Annotated[str, "The ID of the checklist to update position for."],
+    value: Annotated[str, "The new position value ('top', 'bottom', or a positive integer as string)."]
+):
+    """Update checklist position by id. Updates the position of an existing checklist on a trello card."""
+    err = _validate_required({"id_checklist": id_checklist, "value": value}, ["id_checklist", "value"])
+    if err:
+        return err
+    
+    # Validate position value
+    valid_positions = ['top', 'bottom']
+    is_numeric = value.isdigit() and int(value) > 0
+    
+    if value.lower() not in valid_positions and not is_numeric:
+        return {
+            "successful": False,
+            "error": "Invalid position value",
+            "action": "update_checklist_position",
+            "checklist_id": id_checklist,
+            "message": f"Invalid position value '{value}' - must be 'top', 'bottom', or a positive integer",
+            "guidance": "Valid position values are 'top', 'bottom', or a positive integer (as string).",
+            "suggestion": "Use 'top' to move to top, 'bottom' to move to bottom, or a number like '1', '2', '3' for specific position."
+        }
+    
+    try:
+        endpoint = f"/checklists/{id_checklist}"
+        
+        # Build data payload
+        data = {
+            "pos": value
+        }
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        # Determine the position set
+        if value.lower() == "top":
+            position_set = "top"
+        elif value.lower() == "bottom":
+            position_set = "bottom"
+        else:
+            position_set = f"position {value}"
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_checklist_position",
+            "checklist_id": id_checklist,
+            "new_position": value,
+            "position_set": position_set,
+            "message": f"Successfully moved checklist to {position_set}"
+        }
+    except Exception as e:
+        error_message = str(e)
+        
+        # Provide specific guidance for common errors
+        if "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_checklist_position",
+                "checklist_id": id_checklist,
+                "message": f"Failed to update checklist position - insufficient permissions",
+                "guidance": "You must have edit access to the checklist to update its position.",
+                "suggestion": "Verify you have edit permissions on the checklist or ask a checklist admin to grant access."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Checklist not found: {error_message}",
+                "action": "update_checklist_position",
+                "checklist_id": id_checklist,
+                "message": f"Failed to update checklist position - checklist not found",
+                "guidance": "The checklist may not exist or may have been deleted.",
+                "suggestion": "Verify the checklist ID is correct and the checklist still exists."
+            }
+        elif "400" in error_message and "pos" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid position value: {error_message}",
+                "action": "update_checklist_position",
+                "checklist_id": id_checklist,
+                "message": f"Failed to update checklist position - invalid position '{value}'",
+                "guidance": "Valid position values are 'top', 'bottom', or a positive integer (as string).",
+                "suggestion": "Use 'top' to move to top, 'bottom' to move to bottom, or a number like '1', '2', '3' for specific position."
+            }
+        elif "400" in error_message and "checklist" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid checklist ID: {error_message}",
+                "action": "update_checklist_position",
+                "checklist_id": id_checklist,
+                "message": f"Failed to update checklist position - invalid checklist ID",
+                "guidance": "The checklist ID may be invalid or malformed.",
+                "suggestion": "Verify the checklist ID is correct and properly formatted."
+            }
+        elif "409" in error_message and "closed" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Card is closed: {error_message}",
+                "action": "update_checklist_position",
+                "checklist_id": id_checklist,
+                "message": f"Failed to update checklist position - associated card is archived",
+                "guidance": "Closed/archived cards cannot have their checklists edited. You must unarchive the card first.",
+                "suggestion": "Use TRELLO_UPDATE_CARDS_CLOSED_BY_ID_CARD to unarchive the associated card first."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update checklist position: {error_message}",
+                "action": "update_checklist_position",
+                "checklist_id": id_checklist,
+                "message": f"Failed to update checklist position for checklist {id_checklist}"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_LABELS_BY_ID_LABEL",
+    description="Update label attributes. Updates an existing trello label's attributes (color, name, or associated board) by its id; the label must exist.",
+)
+def TRELLO_UPDATE_LABELS_BY_ID_LABEL(
+    id_label: Annotated[str, "The ID of the label to update."],
+    name: Annotated[str, "The new name for the label."] = None,
+    color: Annotated[str, "The new color for the label (red, yellow, orange, green, blue, purple, pink, sky, lime, black, grey, or null)."] = None,
+    id_board: Annotated[str, "The ID of the board to associate the label with."] = None
+):
+    """Update label attributes. Updates an existing trello label's attributes (color, name, or associated board) by its id; the label must exist."""
+    err = _validate_required({"id_label": id_label}, ["id_label"])
+    if err:
+        return err
+    
+    # Check if at least one update parameter is provided
+    update_params = {"name": name, "color": color, "id_board": id_board}
+    provided_params = {k: v for k, v in update_params.items() if v and v.strip()}
+    
+    if not provided_params:
+        return {
+            "successful": False,
+            "error": "No update parameters provided",
+            "action": "update_label_attributes",
+            "label_id": id_label,
+            "message": "Must provide at least one update parameter (name, color, or id_board)",
+            "guidance": "Provide at least one of: name, color, or id_board parameters.",
+            "suggestion": "Specify which label attributes you want to update."
+        }
+    
+    # Validate color if provided
+    if color and color.strip():
+        valid_colors = ['red', 'yellow', 'orange', 'green', 'blue', 'purple', 'pink', 'sky', 'lime', 'black', 'grey', 'null']
+        if color.lower() not in valid_colors:
+            return {
+                "successful": False,
+                "error": "Invalid color value",
+                "action": "update_label_attributes",
+                "label_id": id_label,
+                "message": f"Invalid color value '{color}' - must be one of: {', '.join(valid_colors)}",
+                "guidance": f"Valid color values are: {', '.join(valid_colors)}",
+                "suggestion": f"Use one of the valid colors: {', '.join(valid_colors)}"
+            }
+    
+    try:
+        endpoint = f"/labels/{id_label}"
+        
+        # Build data payload with only provided parameters
+        data = {}
+        
+        if name and name.strip():
+            data["name"] = name
+        if color and color.strip():
+            data["color"] = color.lower()
+        if id_board and id_board.strip():
+            data["idBoard"] = id_board
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        # Determine which attributes were updated
+        updated_attributes = list(provided_params.keys())
+        attributes_list = ", ".join(updated_attributes)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_label_attributes",
+            "label_id": id_label,
+            "updated_attributes": updated_attributes,
+            "attributes_list": attributes_list,
+            "message": f"Successfully updated label attributes: {attributes_list}"
+        }
+    except Exception as e:
+        error_message = str(e)
+        
+        # Provide specific guidance for common errors
+        if "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_label_attributes",
+                "label_id": id_label,
+                "message": f"Failed to update label - insufficient permissions",
+                "guidance": "You must have edit access to the board to update label attributes.",
+                "suggestion": "Verify you have edit permissions on the board or ask a board admin to grant access."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Label not found: {error_message}",
+                "action": "update_label_attributes",
+                "label_id": id_label,
+                "message": f"Failed to update label - label not found",
+                "guidance": "The label may not exist or may have been deleted.",
+                "suggestion": "Verify the label ID is correct and the label still exists."
+            }
+        elif "400" in error_message and "color" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid color: {error_message}",
+                "action": "update_label_attributes",
+                "label_id": id_label,
+                "message": f"Failed to update label - invalid color '{color}'",
+                "guidance": f"Valid color values are: {', '.join(['red', 'yellow', 'orange', 'green', 'blue', 'purple', 'pink', 'sky', 'lime', 'black', 'grey', 'null'])}",
+                "suggestion": f"Use one of the valid colors: {', '.join(['red', 'yellow', 'orange', 'green', 'blue', 'purple', 'pink', 'sky', 'lime', 'black', 'grey', 'null'])}"
+            }
+        elif "400" in error_message and "board" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid board ID: {error_message}",
+                "action": "update_label_attributes",
+                "label_id": id_label,
+                "message": f"Failed to update label - invalid board ID '{id_board}'",
+                "guidance": "The board ID may be invalid or the board may not exist.",
+                "suggestion": "Verify the board ID is correct and the board still exists."
+            }
+        elif "400" in error_message and "name" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid label name: {error_message}",
+                "action": "update_label_attributes",
+                "label_id": id_label,
+                "message": f"Failed to update label - invalid name '{name}'",
+                "guidance": "The label name may contain invalid characters or be too long.",
+                "suggestion": "Check the name for invalid characters and ensure it's within Trello's length limits."
+            }
+        elif "400" in error_message and "label" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid label ID: {error_message}",
+                "action": "update_label_attributes",
+                "label_id": id_label,
+                "message": f"Failed to update label - invalid label ID",
+                "guidance": "The label ID may be invalid or malformed.",
+                "suggestion": "Verify the label ID is correct and properly formatted."
+            }
+        elif "409" in error_message and "closed" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Board is closed: {error_message}",
+                "action": "update_label_attributes",
+                "label_id": id_label,
+                "message": f"Failed to update label - associated board is archived",
+                "guidance": "Closed/archived boards cannot have their labels edited. You must unarchive the board first.",
+                "suggestion": "Use TRELLO_UPDATE_BOARDS_CLOSED_BY_ID_BOARD to unarchive the associated board first."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update label: {error_message}",
+                "action": "update_label_attributes",
+                "label_id": id_label,
+                "message": f"Failed to update label {id_label}"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_LABELS_COLOR_BY_ID_LABEL",
+    description="Update label color. Updates the color of an existing trello label, or removes its color if 'null' is specified for the value.",
+)
+def TRELLO_UPDATE_LABELS_COLOR_BY_ID_LABEL(
+    id_label: Annotated[str, "The ID of the label to update color for."],
+    value: Annotated[str, "The new color for the label (red, yellow, orange, green, blue, purple, pink, sky, lime, black, grey, or null to remove color)."]
+):
+    """Update label color. Updates the color of an existing trello label, or removes its color if 'null' is specified for the value."""
+    err = _validate_required({"id_label": id_label, "value": value}, ["id_label", "value"])
+    if err:
+        return err
+    
+    # Validate color value
+    valid_colors = ['red', 'yellow', 'orange', 'green', 'blue', 'purple', 'pink', 'sky', 'lime', 'black', 'grey', 'null']
+    if value.lower() not in valid_colors:
+        return {
+            "successful": False,
+            "error": "Invalid color value",
+            "action": "update_label_color",
+            "label_id": id_label,
+            "message": f"Invalid color value '{value}' - must be one of: {', '.join(valid_colors)}",
+            "guidance": f"Valid color values are: {', '.join(valid_colors)}",
+            "suggestion": f"Use one of the valid colors: {', '.join(valid_colors)}"
+        }
+    
+    try:
+        endpoint = f"/labels/{id_label}"
+        
+        # Build data payload
+        data = {
+            "color": value.lower()
+        }
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        # Determine the action taken
+        if value.lower() == "null":
+            action_taken = "removed color from"
+            color_set = "no color"
+        else:
+            action_taken = "updated color of"
+            color_set = value.lower()
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_label_color",
+            "label_id": id_label,
+            "new_color": value.lower(),
+            "color_set": color_set,
+            "action_taken": action_taken,
+            "message": f"Successfully {action_taken} label to {color_set}"
+        }
+    except Exception as e:
+        error_message = str(e)
+        
+        # Provide specific guidance for common errors
+        if "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_label_color",
+                "label_id": id_label,
+                "message": f"Failed to update label color - insufficient permissions",
+                "guidance": "You must have edit access to the board to update label colors.",
+                "suggestion": "Verify you have edit permissions on the board or ask a board admin to grant access."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Label not found: {error_message}",
+                "action": "update_label_color",
+                "label_id": id_label,
+                "message": f"Failed to update label color - label not found",
+                "guidance": "The label may not exist or may have been deleted.",
+                "suggestion": "Verify the label ID is correct and the label still exists."
+            }
+        elif "400" in error_message and "color" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid color: {error_message}",
+                "action": "update_label_color",
+                "label_id": id_label,
+                "message": f"Failed to update label color - invalid color '{value}'",
+                "guidance": f"Valid color values are: {', '.join(valid_colors)}",
+                "suggestion": f"Use one of the valid colors: {', '.join(valid_colors)}"
+            }
+        elif "400" in error_message and "label" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid label ID: {error_message}",
+                "action": "update_label_color",
+                "label_id": id_label,
+                "message": f"Failed to update label color - invalid label ID",
+                "guidance": "The label ID may be invalid or malformed.",
+                "suggestion": "Verify the label ID is correct and properly formatted."
+            }
+        elif "409" in error_message and "closed" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Board is closed: {error_message}",
+                "action": "update_label_color",
+                "label_id": id_label,
+                "message": f"Failed to update label color - associated board is archived",
+                "guidance": "Closed/archived boards cannot have their labels edited. You must unarchive the board first.",
+                "suggestion": "Use TRELLO_UPDATE_BOARDS_CLOSED_BY_ID_BOARD to unarchive the associated board first."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update label color: {error_message}",
+                "action": "update_label_color",
+                "label_id": id_label,
+                "message": f"Failed to update label color for label {id_label}"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_LABELS_NAME_BY_ID_LABEL",
+    description="Update label name. Updates the name of an existing trello label, identified by `idlabel`; an empty string for `value` clears the label's name but does not delete the label.",
+)
+def TRELLO_UPDATE_LABELS_NAME_BY_ID_LABEL(
+    id_label: Annotated[str, "The ID of the label to update name for."],
+    value: Annotated[str, "The new name for the label (empty string to clear the name)."]
+):
+    """Update label name. Updates the name of an existing trello label, identified by `idlabel`; an empty string for `value` clears the label's name but does not delete the label."""
+    err = _validate_required({"id_label": id_label, "value": value}, ["id_label", "value"])
+    if err:
+        return err
+    
+    try:
+        endpoint = f"/labels/{id_label}"
+        
+        # Build data payload
+        data = {
+            "name": value
+        }
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        # Determine the action taken
+        if value.strip() == "":
+            action_taken = "cleared name of"
+            name_set = "no name"
+        else:
+            action_taken = "updated name of"
+            name_set = f"'{value}'"
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_label_name",
+            "label_id": id_label,
+            "new_name": value,
+            "name_set": name_set,
+            "action_taken": action_taken,
+            "message": f"Successfully {action_taken} label to {name_set}"
+        }
+    except Exception as e:
+        error_message = str(e)
+        
+        # Provide specific guidance for common errors
+        if "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_label_name",
+                "label_id": id_label,
+                "message": f"Failed to update label name - insufficient permissions",
+                "guidance": "You must have edit access to the board to update label names.",
+                "suggestion": "Verify you have edit permissions on the board or ask a board admin to grant access."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Label not found: {error_message}",
+                "action": "update_label_name",
+                "label_id": id_label,
+                "message": f"Failed to update label name - label not found",
+                "guidance": "The label may not exist or may have been deleted.",
+                "suggestion": "Verify the label ID is correct and the label still exists."
+            }
+        elif "400" in error_message and "name" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid label name: {error_message}",
+                "action": "update_label_name",
+                "label_id": id_label,
+                "message": f"Failed to update label name - invalid name '{value}'",
+                "guidance": "The label name may contain invalid characters or be too long.",
+                "suggestion": "Check the name for invalid characters and ensure it's within Trello's length limits."
+            }
+        elif "400" in error_message and "label" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid label ID: {error_message}",
+                "action": "update_label_name",
+                "label_id": id_label,
+                "message": f"Failed to update label name - invalid label ID",
+                "guidance": "The label ID may be invalid or malformed.",
+                "suggestion": "Verify the label ID is correct and properly formatted."
+            }
+        elif "409" in error_message and "closed" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Board is closed: {error_message}",
+                "action": "update_label_name",
+                "label_id": id_label,
+                "message": f"Failed to update label name - associated board is archived",
+                "guidance": "Closed/archived boards cannot have their labels edited. You must unarchive the board first.",
+                "suggestion": "Use TRELLO_UPDATE_BOARDS_CLOSED_BY_ID_BOARD to unarchive the associated board first."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update label name: {error_message}",
+                "action": "update_label_name",
+                "label_id": id_label,
+                "message": f"Failed to update label name for label {id_label}"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_LISTS_BY_ID_LIST",
+    description="Update list attributes. Updates attributes of an existing trello list, such as name, position, archive status, board, or copies cards from another list, provided the list `idlist` exists.",
+)
+def TRELLO_UPDATE_LISTS_BY_ID_LIST(
+    id_list: Annotated[str, "The ID of the list to update."],
+    name: Annotated[str | None, "The new name for the list."] = None,
+    pos: Annotated[str | None, "The new position for the list ('top', 'bottom', or positive integer)."] = None,
+    closed: Annotated[str | None, "The archive status ('true' to archive, 'false' to unarchive)."] = None,
+    subscribed: Annotated[str | None, "The subscription status ('true' to subscribe, 'false' to unsubscribe)."] = None,
+    id_board: Annotated[str | None, "The ID of the board to move the list to."] = None,
+    id_list_source: Annotated[str | None, "The ID of the source list to copy cards from."] = None
+):
+    """Update list attributes. Updates attributes of an existing trello list, such as name, position, archive status, board, or copies cards from another list, provided the list `idlist` exists."""
+    err = _validate_required({"id_list": id_list}, ["id_list"])
+    if err:
+        return err
+    
+    # Check if at least one update parameter is provided
+    update_params = {"name": name, "pos": pos, "closed": closed, "subscribed": subscribed, "id_board": id_board, "id_list_source": id_list_source}
+    provided_params = {k: v for k, v in update_params.items() if v and v.strip()}
+    
+    if not provided_params:
+        return {
+            "successful": False,
+            "error": "No update parameters provided",
+            "action": "update_list_attributes",
+            "list_id": id_list,
+            "message": "Must provide at least one update parameter (name, pos, closed, subscribed, id_board, or id_list_source)",
+            "guidance": "Provide at least one of: name, pos, closed, subscribed, id_board, or id_list_source parameters.",
+            "suggestion": "Specify which list attributes you want to update."
+        }
+    
+    # Validate position if provided
+    if pos and pos.strip():
+        valid_positions = ['top', 'bottom']
+        is_numeric = pos.isdigit() and int(pos) > 0
+        
+        if pos.lower() not in valid_positions and not is_numeric:
+            return {
+                "successful": False,
+                "error": "Invalid position value",
+                "action": "update_list_attributes",
+                "list_id": id_list,
+                "message": f"Invalid position value '{pos}' - must be 'top', 'bottom', or a positive integer",
+                "guidance": "Valid position values are 'top', 'bottom', or a positive integer (as string).",
+                "suggestion": "Use 'top' to move to top, 'bottom' to move to bottom, or a number like '1', '2', '3' for specific position."
+            }
+    
+    # Validate boolean values if provided
+    if closed and closed.strip():
+        if closed.lower() not in ['true', 'false']:
+            return {
+                "successful": False,
+                "error": "Invalid closed value",
+                "action": "update_list_attributes",
+                "list_id": id_list,
+                "message": f"Invalid closed value '{closed}' - must be 'true' or 'false'",
+                "guidance": "Valid closed values are 'true' to archive or 'false' to unarchive.",
+                "suggestion": "Use 'true' to archive the list or 'false' to unarchive it."
+            }
+    
+    if subscribed and subscribed.strip():
+        if subscribed.lower() not in ['true', 'false']:
+            return {
+                "successful": False,
+                "error": "Invalid subscribed value",
+                "action": "update_list_attributes",
+                "list_id": id_list,
+                "message": f"Invalid subscribed value '{subscribed}' - must be 'true' or 'false'",
+                "guidance": "Valid subscribed values are 'true' to subscribe or 'false' to unsubscribe.",
+                "suggestion": "Use 'true' to subscribe to list notifications or 'false' to unsubscribe."
+            }
+    
+    try:
+        endpoint = f"/lists/{id_list}"
+        
+        # Build data payload with only provided parameters
+        data = {}
+        
+        if name and name.strip():
+            data["name"] = name
+        if pos and pos.strip():
+            data["pos"] = pos
+        if closed and closed.strip():
+            data["closed"] = closed.lower()
+        if subscribed and subscribed.strip():
+            data["subscribed"] = subscribed.lower()
+        if id_board and id_board.strip():
+            data["idBoard"] = id_board
+        if id_list_source and id_list_source.strip():
+            data["idListSource"] = id_list_source
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        # Determine which attributes were updated
+        updated_attributes = list(provided_params.keys())
+        attributes_list = ", ".join(updated_attributes)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_list_attributes",
+            "list_id": id_list,
+            "updated_attributes": updated_attributes,
+            "attributes_list": attributes_list,
+            "message": f"Successfully updated list attributes: {attributes_list}"
+        }
+    except Exception as e:
+        error_message = str(e)
+        
+        # Provide specific guidance for common errors
+        if "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_list_attributes",
+                "list_id": id_list,
+                "message": f"Failed to update list - insufficient permissions",
+                "guidance": "You must have edit access to the board to update list attributes.",
+                "suggestion": "Verify you have edit permissions on the board or ask a board admin to grant access."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"List not found: {error_message}",
+                "action": "update_list_attributes",
+                "list_id": id_list,
+                "message": f"Failed to update list - list not found",
+                "guidance": "The list may not exist or may have been deleted.",
+                "suggestion": "Verify the list ID is correct and the list still exists."
+            }
+        elif "400" in error_message and ("pos" in error_message.lower() or "position" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid position: {error_message}",
+                "action": "update_list_attributes",
+                "list_id": id_list,
+                "message": f"Failed to update list - invalid position '{pos}'",
+                "guidance": "Valid position values are 'top', 'bottom', or a positive integer (as string).",
+                "suggestion": "Use 'top' to move to top, 'bottom' to move to bottom, or a number like '1', '2', '3' for specific position."
+            }
+        elif "400" in error_message and "board" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid board ID: {error_message}",
+                "action": "update_list_attributes",
+                "list_id": id_list,
+                "message": f"Failed to update list - invalid board ID '{id_board}'",
+                "guidance": "The board ID may be invalid or the board may not exist.",
+                "suggestion": "Verify the board ID is correct and the board still exists."
+            }
+        elif "400" in error_message and "name" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid list name: {error_message}",
+                "action": "update_list_attributes",
+                "list_id": id_list,
+                "message": f"Failed to update list - invalid name '{name}'",
+                "guidance": "The list name may contain invalid characters or be too long.",
+                "suggestion": "Check the name for invalid characters and ensure it's within Trello's length limits."
+            }
+        elif "400" in error_message and "list" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid list ID: {error_message}",
+                "action": "update_list_attributes",
+                "list_id": id_list,
+                "message": f"Failed to update list - invalid list ID",
+                "guidance": "The list ID may be invalid or malformed.",
+                "suggestion": "Verify the list ID is correct and properly formatted."
+            }
+        elif "409" in error_message and "closed" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Board is closed: {error_message}",
+                "action": "update_list_attributes",
+                "list_id": id_list,
+                "message": f"Failed to update list - associated board is archived",
+                "guidance": "Closed/archived boards cannot have their lists edited. You must unarchive the board first.",
+                "suggestion": "Use TRELLO_UPDATE_BOARDS_CLOSED_BY_ID_BOARD to unarchive the associated board first."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update list: {error_message}",
+                "action": "update_list_attributes",
+                "list_id": id_list,
+                "message": f"Failed to update list {id_list}"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_LISTS_CLOSED_BY_ID_LIST",
+    description="Update lists closed status. Updates whether an existing trello list is closed (archived); a closed list is hidden from the board view but not deleted and can be re-opened.",
+)
+def TRELLO_UPDATE_LISTS_CLOSED_BY_ID_LIST(
+    id_list: Annotated[str, "The ID of the list to update closed status for."],
+    value: Annotated[str, "The closed status value ('true' to archive, 'false' to unarchive)."]
+):
+    """Update lists closed status. Updates whether an existing trello list is closed (archived); a closed list is hidden from the board view but not deleted and can be re-opened."""
+    err = _validate_required({"id_list": id_list, "value": value}, ["id_list", "value"])
+    if err:
+        return err
+    
+    # Validate closed status value
+    if value.lower() not in ['true', 'false']:
+        return {
+            "successful": False,
+            "error": "Invalid closed status value",
+            "action": "update_list_closed_status",
+            "list_id": id_list,
+            "message": f"Invalid closed status value '{value}' - must be 'true' or 'false'",
+            "guidance": "Valid closed status values are 'true' to archive or 'false' to unarchive.",
+            "suggestion": "Use 'true' to archive the list or 'false' to unarchive it."
+        }
+    
+    try:
+        endpoint = f"/lists/{id_list}"
+        
+        # Build data payload
+        data = {
+            "closed": value.lower()
+        }
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        # Determine the action taken
+        if value.lower() == "true":
+            action_taken = "archived"
+            status_set = "archived"
+        else:
+            action_taken = "unarchived"
+            status_set = "unarchived"
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_list_closed_status",
+            "list_id": id_list,
+            "closed_status": value.lower(),
+            "status_set": status_set,
+            "action_taken": action_taken,
+            "message": f"Successfully {action_taken} list"
+        }
+    except Exception as e:
+        error_message = str(e)
+        
+        # Provide specific guidance for common errors
+        if "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_list_closed_status",
+                "list_id": id_list,
+                "message": f"Failed to update list closed status - insufficient permissions",
+                "guidance": "You must have edit access to the board to update list closed status.",
+                "suggestion": "Verify you have edit permissions on the board or ask a board admin to grant access."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"List not found: {error_message}",
+                "action": "update_list_closed_status",
+                "list_id": id_list,
+                "message": f"Failed to update list closed status - list not found",
+                "guidance": "The list may not exist or may have been deleted.",
+                "suggestion": "Verify the list ID is correct and the list still exists."
+            }
+        elif "400" in error_message and "closed" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid closed status: {error_message}",
+                "action": "update_list_closed_status",
+                "list_id": id_list,
+                "message": f"Failed to update list closed status - invalid status '{value}'",
+                "guidance": "Valid closed status values are 'true' to archive or 'false' to unarchive.",
+                "suggestion": "Use 'true' to archive the list or 'false' to unarchive it."
+            }
+        elif "400" in error_message and "list" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid list ID: {error_message}",
+                "action": "update_list_closed_status",
+                "list_id": id_list,
+                "message": f"Failed to update list closed status - invalid list ID",
+                "guidance": "The list ID may be invalid or malformed.",
+                "suggestion": "Verify the list ID is correct and properly formatted."
+            }
+        elif "409" in error_message and "closed" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Board is closed: {error_message}",
+                "action": "update_list_closed_status",
+                "list_id": id_list,
+                "message": f"Failed to update list closed status - associated board is archived",
+                "guidance": "Closed/archived boards cannot have their lists edited. You must unarchive the board first.",
+                "suggestion": "Use TRELLO_UPDATE_BOARDS_CLOSED_BY_ID_BOARD to unarchive the associated board first."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update list closed status: {error_message}",
+                "action": "update_list_closed_status",
+                "list_id": id_list,
+                "message": f"Failed to update list closed status for list {id_list}"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_LISTS_ID_BOARD_BY_ID_LIST",
+    description="Move list to board. Moves an existing trello list (identified by `idlist`) to an existing destination board (board id in `value`), optionally setting its new position (`pos`).",
+)
+def TRELLO_UPDATE_LISTS_ID_BOARD_BY_ID_LIST(
+    id_list: Annotated[str, "The ID of the list to move."],
+    value: Annotated[str, "The ID of the destination board to move the list to."],
+    pos: Annotated[str, "The new position for the list on the destination board ('top', 'bottom', or positive integer)."] = None
+):
+    """Move list to board. Moves an existing trello list (identified by `idlist`) to an existing destination board (board id in `value`), optionally setting its new position (`pos`)."""
+    err = _validate_required({"id_list": id_list, "value": value}, ["id_list", "value"])
+    if err:
+        return err
+    
+    # Validate position if provided
+    if pos and pos.strip():
+        valid_positions = ['top', 'bottom']
+        is_numeric = pos.isdigit() and int(pos) > 0
+        
+        if pos.lower() not in valid_positions and not is_numeric:
+            return {
+                "successful": False,
+                "error": "Invalid position value",
+                "action": "move_list_to_board",
+                "list_id": id_list,
+                "message": f"Invalid position value '{pos}' - must be 'top', 'bottom', or a positive integer",
+                "guidance": "Valid position values are 'top', 'bottom', or a positive integer (as string).",
+                "suggestion": "Use 'top' to move to top, 'bottom' to move to bottom, or a number like '1', '2', '3' for specific position."
+            }
+    
+    try:
+        endpoint = f"/lists/{id_list}"
+        
+        # Build data payload
+        data = {
+            "idBoard": value
+        }
+        
+        # Add position if provided
+        if pos and pos.strip():
+            data["pos"] = pos
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        # Determine the action taken
+        if pos and pos.strip():
+            if pos.lower() == "top":
+                position_set = "top"
+            elif pos.lower() == "bottom":
+                position_set = "bottom"
+            else:
+                position_set = f"position {pos}"
+            action_taken = f"moved to board and set to {position_set}"
+        else:
+            action_taken = "moved to board"
+            position_set = "default position"
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "move_list_to_board",
+            "list_id": id_list,
+            "destination_board_id": value,
+            "position": pos if pos and pos.strip() else None,
+            "position_set": position_set,
+            "action_taken": action_taken,
+            "message": f"Successfully {action_taken}"
+        }
+    except Exception as e:
+        error_message = str(e)
+        
+        # Provide specific guidance for common errors
+        if "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "move_list_to_board",
+                "list_id": id_list,
+                "message": f"Failed to move list - insufficient permissions",
+                "guidance": "You must have edit access to both the source and destination boards to move lists.",
+                "suggestion": "Verify you have edit permissions on both boards or ask a board admin to grant access."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Resource not found: {error_message}",
+                "action": "move_list_to_board",
+                "list_id": id_list,
+                "message": f"Failed to move list - resource not found",
+                "guidance": "The list or destination board may not exist or may have been deleted.",
+                "suggestion": "Verify the list ID and destination board ID are correct and still exist."
+            }
+        elif "400" in error_message and "board" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid board ID: {error_message}",
+                "action": "move_list_to_board",
+                "list_id": id_list,
+                "message": f"Failed to move list - invalid destination board ID '{value}'",
+                "guidance": "The destination board ID may be invalid or malformed.",
+                "suggestion": "Verify the destination board ID is correct and properly formatted."
+            }
+        elif "400" in error_message and "list" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid list ID: {error_message}",
+                "action": "move_list_to_board",
+                "list_id": id_list,
+                "message": f"Failed to move list - invalid list ID",
+                "guidance": "The list ID may be invalid or malformed.",
+                "suggestion": "Verify the list ID is correct and properly formatted."
+            }
+        elif "400" in error_message and ("pos" in error_message.lower() or "position" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid position: {error_message}",
+                "action": "move_list_to_board",
+                "list_id": id_list,
+                "message": f"Failed to move list - invalid position '{pos}'",
+                "guidance": "Valid position values are 'top', 'bottom', or a positive integer (as string).",
+                "suggestion": "Use 'top' to move to top, 'bottom' to move to bottom, or a number like '1', '2', '3' for specific position."
+            }
+        elif "409" in error_message and "closed" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Board is closed: {error_message}",
+                "action": "move_list_to_board",
+                "list_id": id_list,
+                "message": f"Failed to move list - destination board is archived",
+                "guidance": "Closed/archived boards cannot have lists moved to them. You must unarchive the board first.",
+                "suggestion": "Use TRELLO_UPDATE_BOARDS_CLOSED_BY_ID_BOARD to unarchive the destination board first."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to move list: {error_message}",
+                "action": "move_list_to_board",
+                "list_id": id_list,
+                "message": f"Failed to move list {id_list} to board {value}"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_LISTS_NAME_BY_ID_LIST",
+    description="Update list name. Updates the name of an existing trello list, identified by its id; this only changes the list's name, not its cards or position.",
+)
+def TRELLO_UPDATE_LISTS_NAME_BY_ID_LIST(
+    id_list: Annotated[str, "The ID of the list to update name for."],
+    value: Annotated[str, "The new name for the list."]
+):
+    """Update list name. Updates the name of an existing trello list, identified by its id; this only changes the list's name, not its cards or position."""
+    err = _validate_required({"id_list": id_list, "value": value}, ["id_list", "value"])
+    if err:
+        return err
+    
+    # Validate name is not empty
+    if not value.strip():
+        return {
+            "successful": False,
+            "error": "Empty list name",
+            "action": "update_list_name",
+            "list_id": id_list,
+            "message": "List name cannot be empty",
+            "guidance": "Provide a non-empty name for the list.",
+            "suggestion": "Enter the new name you want to set for the list."
+        }
+    
+    try:
+        endpoint = f"/lists/{id_list}"
+        
+        # Build data payload
+        data = {
+            "name": value
+        }
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_list_name",
+            "list_id": id_list,
+            "new_name": value,
+            "message": f"Successfully updated list name to '{value}'"
+        }
+    except Exception as e:
+        error_message = str(e)
+        
+        # Provide specific guidance for common errors
+        if "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_list_name",
+                "list_id": id_list,
+                "message": f"Failed to update list name - insufficient permissions",
+                "guidance": "You must have edit access to the board to update list names.",
+                "suggestion": "Verify you have edit permissions on the board or ask a board admin to grant access."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"List not found: {error_message}",
+                "action": "update_list_name",
+                "list_id": id_list,
+                "message": f"Failed to update list name - list not found",
+                "guidance": "The list may not exist or may have been deleted.",
+                "suggestion": "Verify the list ID is correct and the list still exists."
+            }
+        elif "400" in error_message and "name" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid list name: {error_message}",
+                "action": "update_list_name",
+                "list_id": id_list,
+                "message": f"Failed to update list name - invalid name '{value}'",
+                "guidance": "The list name may contain invalid characters or be too long.",
+                "suggestion": "Check the name for invalid characters and ensure it's within Trello's length limits."
+            }
+        elif "400" in error_message and "list" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid list ID: {error_message}",
+                "action": "update_list_name",
+                "list_id": id_list,
+                "message": f"Failed to update list name - invalid list ID",
+                "guidance": "The list ID may be invalid or malformed.",
+                "suggestion": "Verify the list ID is correct and properly formatted."
+            }
+        elif "409" in error_message and "closed" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Board is closed: {error_message}",
+                "action": "update_list_name",
+                "list_id": id_list,
+                "message": f"Failed to update list name - associated board is archived",
+                "guidance": "Closed/archived boards cannot have their lists edited. You must unarchive the board first.",
+                "suggestion": "Use TRELLO_UPDATE_BOARDS_CLOSED_BY_ID_BOARD to unarchive the associated board first."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update list name: {error_message}",
+                "action": "update_list_name",
+                "list_id": id_list,
+                "message": f"Failed to update list name for list {id_list}"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_LISTS_POS_BY_ID_LIST",
+    description="Update list position. Changes a trello list's order on a board to 'top', 'bottom', or a specified numeric position, affecting only its position.",
+)
+def TRELLO_UPDATE_LISTS_POS_BY_ID_LIST(
+    id_list: Annotated[str, "The ID of the list to update position for."],
+    value: Annotated[str, "The new position value ('top', 'bottom', or a positive integer as string)."]
+):
+    """Update list position. Changes a trello list's order on a board to 'top', 'bottom', or a specified numeric position, affecting only its position."""
+    err = _validate_required({"id_list": id_list, "value": value}, ["id_list", "value"])
+    if err:
+        return err
+    
+    # Validate position value
+    valid_positions = ['top', 'bottom']
+    is_numeric = value.isdigit() and int(value) > 0
+    
+    if value.lower() not in valid_positions and not is_numeric:
+        return {
+            "successful": False,
+            "error": "Invalid position value",
+            "action": "update_list_position",
+            "list_id": id_list,
+            "message": f"Invalid position value '{value}' - must be 'top', 'bottom', or a positive integer",
+            "guidance": "Valid position values are 'top', 'bottom', or a positive integer (as string).",
+            "suggestion": "Use 'top' to move to top, 'bottom' to move to bottom, or a number like '1', '2', '3' for specific position."
+        }
+    
+    try:
+        endpoint = f"/lists/{id_list}"
+        
+        # Build data payload
+        data = {
+            "pos": value
+        }
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        # Determine the position set
+        if value.lower() == "top":
+            position_set = "top"
+        elif value.lower() == "bottom":
+            position_set = "bottom"
+        else:
+            position_set = f"position {value}"
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_list_position",
+            "list_id": id_list,
+            "new_position": value,
+            "position_set": position_set,
+            "message": f"Successfully moved list to {position_set}"
+        }
+    except Exception as e:
+        error_message = str(e)
+        
+        # Provide specific guidance for common errors
+        if "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_list_position",
+                "list_id": id_list,
+                "message": f"Failed to update list position - insufficient permissions",
+                "guidance": "You must have edit access to the board to update list positions.",
+                "suggestion": "Verify you have edit permissions on the board or ask a board admin to grant access."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"List not found: {error_message}",
+                "action": "update_list_position",
+                "list_id": id_list,
+                "message": f"Failed to update list position - list not found",
+                "guidance": "The list may not exist or may have been deleted.",
+                "suggestion": "Verify the list ID is correct and the list still exists."
+            }
+        elif "400" in error_message and "pos" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid position value: {error_message}",
+                "action": "update_list_position",
+                "list_id": id_list,
+                "message": f"Failed to update list position - invalid position '{value}'",
+                "guidance": "Valid position values are 'top', 'bottom', or a positive integer (as string).",
+                "suggestion": "Use 'top' to move to top, 'bottom' to move to bottom, or a number like '1', '2', '3' for specific position."
+            }
+        elif "400" in error_message and "list" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid list ID: {error_message}",
+                "action": "update_list_position",
+                "list_id": id_list,
+                "message": f"Failed to update list position - invalid list ID",
+                "guidance": "The list ID may be invalid or malformed.",
+                "suggestion": "Verify the list ID is correct and properly formatted."
+            }
+        elif "409" in error_message and "closed" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Board is closed: {error_message}",
+                "action": "update_list_position",
+                "list_id": id_list,
+                "message": f"Failed to update list position - associated board is archived",
+                "guidance": "Closed/archived boards cannot have their lists edited. You must unarchive the board first.",
+                "suggestion": "Use TRELLO_UPDATE_BOARDS_CLOSED_BY_ID_BOARD to unarchive the associated board first."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update list position: {error_message}",
+                "action": "update_list_position",
+                "list_id": id_list,
+                "message": f"Failed to update list position for list {id_list}"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_LISTS_SUBSCRIBED_BY_ID_LIST",
+    description="Update list subscription. Updates the subscription status for a trello list, allowing the user to subscribe or unsubscribe to control notifications.",
+)
+def TRELLO_UPDATE_LISTS_SUBSCRIBED_BY_ID_LIST(
+    id_list: Annotated[str, "The ID of the list to update subscription status for."],
+    value: Annotated[str, "The subscription status value ('true' to subscribe, 'false' to unsubscribe)."]
+):
+    """Update list subscription. Updates the subscription status for a trello list, allowing the user to subscribe or unsubscribe to control notifications."""
+    err = _validate_required({"id_list": id_list, "value": value}, ["id_list", "value"])
+    if err:
+        return err
+    
+    # Validate subscription status value
+    if value.lower() not in ['true', 'false']:
+        return {
+            "successful": False,
+            "error": "Invalid subscription status value",
+            "action": "update_list_subscription",
+            "list_id": id_list,
+            "message": f"Invalid subscription status value '{value}' - must be 'true' or 'false'",
+            "guidance": "Valid subscription status values are 'true' to subscribe or 'false' to unsubscribe.",
+            "suggestion": "Use 'true' to subscribe to list notifications or 'false' to unsubscribe."
+        }
+    
+    try:
+        endpoint = f"/lists/{id_list}"
+        
+        # Build data payload
+        data = {
+            "subscribed": value.lower()
+        }
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        # Determine the action taken
+        if value.lower() == "true":
+            action_taken = "subscribed to"
+            status_set = "subscribed"
+        else:
+            action_taken = "unsubscribed from"
+            status_set = "unsubscribed"
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_list_subscription",
+            "list_id": id_list,
+            "subscription_status": value.lower(),
+            "status_set": status_set,
+            "action_taken": action_taken,
+            "message": f"Successfully {action_taken} list"
+        }
+    except Exception as e:
+        error_message = str(e)
+        
+        # Provide specific guidance for common errors
+        if "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_list_subscription",
+                "list_id": id_list,
+                "message": f"Failed to update list subscription - insufficient permissions",
+                "guidance": "You must have access to the list to update subscription status.",
+                "suggestion": "Verify you have access to the list or ask a list admin to grant access."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"List not found: {error_message}",
+                "action": "update_list_subscription",
+                "list_id": id_list,
+                "message": f"Failed to update list subscription - list not found",
+                "guidance": "The list may not exist or may have been deleted.",
+                "suggestion": "Verify the list ID is correct and the list still exists."
+            }
+        elif "400" in error_message and "subscribed" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid subscription status: {error_message}",
+                "action": "update_list_subscription",
+                "list_id": id_list,
+                "message": f"Failed to update list subscription - invalid status '{value}'",
+                "guidance": "Valid subscription status values are 'true' to subscribe or 'false' to unsubscribe.",
+                "suggestion": "Use 'true' to subscribe to list notifications or 'false' to unsubscribe."
+            }
+        elif "400" in error_message and "list" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid list ID: {error_message}",
+                "action": "update_list_subscription",
+                "list_id": id_list,
+                "message": f"Failed to update list subscription - invalid list ID",
+                "guidance": "The list ID may be invalid or malformed.",
+                "suggestion": "Verify the list ID is correct and properly formatted."
+            }
+        elif "409" in error_message and "closed" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Board is closed: {error_message}",
+                "action": "update_list_subscription",
+                "list_id": id_list,
+                "message": f"Failed to update list subscription - associated board is archived",
+                "guidance": "Closed/archived boards cannot have their lists edited. You must unarchive the board first.",
+                "suggestion": "Use TRELLO_UPDATE_BOARDS_CLOSED_BY_ID_BOARD to unarchive the associated board first."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update list subscription: {error_message}",
+                "action": "update_list_subscription",
+                "list_id": id_list,
+                "message": f"Failed to update list subscription for list {id_list}"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_MEMBER_SAVED_SEARCH",
+    description="Update member saved search. Updates an existing trello member's saved search (name, position, or query) identified by idmember and idsavedsearch.",
+)
+def TRELLO_UPDATE_MEMBER_SAVED_SEARCH(
+    id_member: Annotated[str, "The ID of the member who owns the saved search."],
+    id_saved_search: Annotated[str, "The ID of the saved search to update."],
+    name: Annotated[str | None, "The new name for the saved search."] = None,
+    pos: Annotated[str | None, "The new position for the saved search ('top', 'bottom', or positive integer)."] = None,
+    query: Annotated[str | None, "The new query for the saved search."] = None
+):
+    """Update member saved search. Updates an existing trello member's saved search (name, position, or query) identified by idmember and idsavedsearch."""
+    err = _validate_required({"id_member": id_member, "id_saved_search": id_saved_search}, ["id_member", "id_saved_search"])
+    if err:
+        return err
+    
+    # Check if at least one update parameter is provided
+    update_params = {"name": name, "pos": pos, "query": query}
+    provided_params = {k: v for k, v in update_params.items() if v and v.strip()}
+    
+    if not provided_params:
+        return {
+            "successful": False,
+            "error": "No update parameters provided",
+            "action": "update_member_saved_search",
+            "member_id": id_member,
+            "saved_search_id": id_saved_search,
+            "message": "Must provide at least one update parameter (name, pos, or query)",
+            "guidance": "Provide at least one of: name, pos, or query parameters.",
+            "suggestion": "Specify which saved search properties you want to update."
+        }
+    
+    # Validate position if provided
+    if pos and pos.strip():
+        valid_positions = ['top', 'bottom']
+        is_numeric = pos.isdigit() and int(pos) > 0
+        
+        if pos.lower() not in valid_positions and not is_numeric:
+            return {
+                "successful": False,
+                "error": "Invalid position value",
+                "action": "update_member_saved_search",
+                "member_id": id_member,
+                "saved_search_id": id_saved_search,
+                "message": f"Invalid position value '{pos}' - must be 'top', 'bottom', or a positive integer",
+                "guidance": "Valid position values are 'top', 'bottom', or a positive integer (as string).",
+                "suggestion": "Use 'top' to move to top, 'bottom' to move to bottom, or a number like '1', '2', '3' for specific position."
+            }
+    
+    try:
+        endpoint = f"/members/{id_member}/savedSearches/{id_saved_search}"
+        
+        # Build data payload with only provided parameters
+        data = {}
+        
+        if name and name.strip():
+            data["name"] = name
+        if pos and pos.strip():
+            data["pos"] = pos
+        if query and query.strip():
+            data["query"] = query
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        # Determine which properties were updated
+        updated_properties = list(provided_params.keys())
+        properties_list = ", ".join(updated_properties)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_member_saved_search",
+            "member_id": id_member,
+            "saved_search_id": id_saved_search,
+            "updated_properties": updated_properties,
+            "properties_list": properties_list,
+            "message": f"Successfully updated saved search properties: {properties_list}"
+        }
+    except Exception as e:
+        error_message = str(e)
+        
+        # Provide specific guidance for common errors
+        if "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_member_saved_search",
+                "member_id": id_member,
+                "saved_search_id": id_saved_search,
+                "message": f"Failed to update saved search - insufficient permissions",
+                "guidance": "You must have edit access to the member's saved searches to update them.",
+                "suggestion": "Verify you have edit permissions on the member's saved searches or ask an admin to grant access."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Resource not found: {error_message}",
+                "action": "update_member_saved_search",
+                "member_id": id_member,
+                "saved_search_id": id_saved_search,
+                "message": f"Failed to update saved search - resource not found",
+                "guidance": "The member or saved search may not exist or may have been deleted.",
+                "suggestion": "Verify the member ID and saved search ID are correct and still exist."
+            }
+        elif "400" in error_message and ("pos" in error_message.lower() or "position" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid position: {error_message}",
+                "action": "update_member_saved_search",
+                "member_id": id_member,
+                "saved_search_id": id_saved_search,
+                "message": f"Failed to update saved search - invalid position '{pos}'",
+                "guidance": "Valid position values are 'top', 'bottom', or a positive integer (as string).",
+                "suggestion": "Use 'top' to move to top, 'bottom' to move to bottom, or a number like '1', '2', '3' for specific position."
+            }
+        elif "400" in error_message and "name" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid name: {error_message}",
+                "action": "update_member_saved_search",
+                "member_id": id_member,
+                "saved_search_id": id_saved_search,
+                "message": f"Failed to update saved search - invalid name '{name}'",
+                "guidance": "The saved search name may contain invalid characters or be too long.",
+                "suggestion": "Check the name for invalid characters and ensure it's within Trello's length limits."
+            }
+        elif "400" in error_message and "query" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid query: {error_message}",
+                "action": "update_member_saved_search",
+                "member_id": id_member,
+                "saved_search_id": id_saved_search,
+                "message": f"Failed to update saved search - invalid query '{query}'",
+                "guidance": "The saved search query may contain invalid characters or be malformed.",
+                "suggestion": "Check the query for invalid characters and ensure it follows Trello's search syntax."
+            }
+        elif "400" in error_message and "member" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid member ID: {error_message}",
+                "action": "update_member_saved_search",
+                "member_id": id_member,
+                "saved_search_id": id_saved_search,
+                "message": f"Failed to update saved search - invalid member ID",
+                "guidance": "The member ID may be invalid or malformed.",
+                "suggestion": "Verify the member ID is correct and properly formatted."
+            }
+        elif "400" in error_message and "saved" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid saved search ID: {error_message}",
+                "action": "update_member_saved_search",
+                "member_id": id_member,
+                "saved_search_id": id_saved_search,
+                "message": f"Failed to update saved search - invalid saved search ID",
+                "guidance": "The saved search ID may be invalid or malformed.",
+                "suggestion": "Verify the saved search ID is correct and properly formatted."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update saved search: {error_message}",
+                "action": "update_member_saved_search",
+                "member_id": id_member,
+                "saved_search_id": id_saved_search,
+                "message": f"Failed to update saved search {id_saved_search} for member {id_member}"
+            }
+
+@mcp.tool(
+    "TRELLO_UPDATE_MEMBER_SAVED_SEARCH_NAME",
+    description="Update member saved search name. Updates a trello member's saved search display name (not its criteria), identified by idmember and idsavedsearch; the search must exist and belong to the member.",
+)
+def TRELLO_UPDATE_MEMBER_SAVED_SEARCH_NAME(
+    id_member: Annotated[str, "The ID of the member who owns the saved search."],
+    id_saved_search: Annotated[str, "The ID of the saved search to update name for."],
+    value: Annotated[str, "The new display name for the saved search."]
+):
+    """Update member saved search name. Updates a trello member's saved search display name (not its criteria), identified by idmember and idsavedsearch; the search must exist and belong to the member."""
+    err = _validate_required({"id_member": id_member, "id_saved_search": id_saved_search, "value": value}, ["id_member", "id_saved_search", "value"])
+    if err:
+        return err
+    
+    # Validate value is not empty
+    if not value.strip():
+        return {
+            "successful": False,
+            "error": "Empty saved search name",
+            "action": "update_member_saved_search_name",
+            "member_id": id_member,
+            "saved_search_id": id_saved_search,
+            "message": "Saved search name cannot be empty",
+            "guidance": "Provide a non-empty name for the saved search.",
+            "suggestion": "Enter the new display name you want to set for the saved search."
+        }
+    
+    try:
+        endpoint = f"/members/{id_member}/savedSearches/{id_saved_search}"
+        
+        # Build data payload
+        data = {
+            "name": value
+        }
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_member_saved_search_name",
+            "member_id": id_member,
+            "saved_search_id": id_saved_search,
+            "new_name": value,
+            "message": f"Successfully updated saved search name to '{value}'"
+        }
+    except Exception as e:
+        error_message = str(e)
+        
+        # Provide specific guidance for common errors
+        if "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_member_saved_search_name",
+                "member_id": id_member,
+                "saved_search_id": id_saved_search,
+                "message": f"Failed to update saved search name - insufficient permissions",
+                "guidance": "You must have edit access to the member's saved searches to update their names.",
+                "suggestion": "Verify you have edit permissions on the member's saved searches or ask an admin to grant access."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Resource not found: {error_message}",
+                "action": "update_member_saved_search_name",
+                "member_id": id_member,
+                "saved_search_id": id_saved_search,
+                "message": f"Failed to update saved search name - resource not found",
+                "guidance": "The member or saved search may not exist or may have been deleted.",
+                "suggestion": "Verify the member ID and saved search ID are correct and still exist."
+            }
+        elif "400" in error_message and "name" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid saved search name: {error_message}",
+                "action": "update_member_saved_search_name",
+                "member_id": id_member,
+                "saved_search_id": id_saved_search,
+                "message": f"Failed to update saved search name - invalid name '{value}'",
+                "guidance": "The saved search name may contain invalid characters or be too long.",
+                "suggestion": "Check the name for invalid characters and ensure it's within Trello's length limits."
+            }
+        elif "400" in error_message and "member" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid member ID: {error_message}",
+                "action": "update_member_saved_search_name",
+                "member_id": id_member,
+                "saved_search_id": id_saved_search,
+                "message": f"Failed to update saved search name - invalid member ID",
+                "guidance": "The member ID may be invalid or malformed.",
+                "suggestion": "Verify the member ID is correct and properly formatted."
+            }
+        elif "400" in error_message and "saved" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid saved search ID: {error_message}",
+                "action": "update_member_saved_search_name",
+                "member_id": id_member,
+                "saved_search_id": id_saved_search,
+                "message": f"Failed to update saved search name - invalid saved search ID",
+                "guidance": "The saved search ID may be invalid or malformed.",
+                "suggestion": "Verify the saved search ID is correct and properly formatted."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update saved search name: {error_message}",
+                "action": "update_member_saved_search_name",
+                "member_id": id_member,
+                "saved_search_id": id_saved_search,
+                "message": f"Failed to update saved search name for search {id_saved_search} of member {id_member}"
+            }
+
+@mcp.tool(
+    "TRELLO_UPDATE_MEMBER_SAVED_SEARCH_POS",
+    description="Update member saved search position. Updates the position of a specified saved search for a trello member; other attributes of the saved search or member remain unchanged.",
+)
+def TRELLO_UPDATE_MEMBER_SAVED_SEARCH_POS(
+    id_member: Annotated[str, "The ID of the member who owns the saved search."],
+    id_saved_search: Annotated[str, "The ID of the saved search to update position for."],
+    value: Annotated[str, "The new position value ('top', 'bottom', or positive integer as string)."]
+):
+    """Update member saved search position. Updates the position of a specified saved search for a trello member; other attributes of the saved search or member remain unchanged."""
+    err = _validate_required({"id_member": id_member, "id_saved_search": id_saved_search, "value": value}, ["id_member", "id_saved_search", "value"])
+    if err:
+        return err
+    
+    # Validate position value
+    valid_positions = ['top', 'bottom']
+    is_numeric = value.isdigit() and int(value) > 0
+    
+    if value.lower() not in valid_positions and not is_numeric:
+        return {
+            "successful": False,
+            "error": "Invalid position value",
+            "action": "update_member_saved_search_position",
+            "member_id": id_member,
+            "saved_search_id": id_saved_search,
+            "message": f"Invalid position value '{value}' - must be 'top', 'bottom', or a positive integer",
+            "guidance": "Valid position values are 'top', 'bottom', or a positive integer (as string).",
+            "suggestion": "Use 'top' to move to top, 'bottom' to move to bottom, or a number like '1', '2', '3' for specific position."
+        }
+    
+    try:
+        endpoint = f"/members/{id_member}/savedSearches/{id_saved_search}"
+        
+        # Build data payload
+        data = {
+            "pos": value
+        }
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        # Determine the position set
+        if value.lower() == "top":
+            position_set = "top"
+        elif value.lower() == "bottom":
+            position_set = "bottom"
+        else:
+            position_set = f"position {value}"
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_member_saved_search_position",
+            "member_id": id_member,
+            "saved_search_id": id_saved_search,
+            "new_position": value,
+            "position_set": position_set,
+            "message": f"Successfully moved saved search to {position_set}"
+        }
+    except Exception as e:
+        error_message = str(e)
+        
+        # Provide specific guidance for common errors
+        if "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_member_saved_search_position",
+                "member_id": id_member,
+                "saved_search_id": id_saved_search,
+                "message": f"Failed to update saved search position - insufficient permissions",
+                "guidance": "You must have edit access to the member's saved searches to update their positions.",
+                "suggestion": "Verify you have edit permissions on the member's saved searches or ask an admin to grant access."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Resource not found: {error_message}",
+                "action": "update_member_saved_search_position",
+                "member_id": id_member,
+                "saved_search_id": id_saved_search,
+                "message": f"Failed to update saved search position - resource not found",
+                "guidance": "The member or saved search may not exist or may have been deleted.",
+                "suggestion": "Verify the member ID and saved search ID are correct and still exist."
+            }
+        elif "400" in error_message and ("pos" in error_message.lower() or "position" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid position: {error_message}",
+                "action": "update_member_saved_search_position",
+                "member_id": id_member,
+                "saved_search_id": id_saved_search,
+                "message": f"Failed to update saved search position - invalid position '{value}'",
+                "guidance": "Valid position values are 'top', 'bottom', or a positive integer (as string).",
+                "suggestion": "Use 'top' to move to top, 'bottom' to move to bottom, or a number like '1', '2', '3' for specific position."
+            }
+        elif "400" in error_message and "member" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid member ID: {error_message}",
+                "action": "update_member_saved_search_position",
+                "member_id": id_member,
+                "saved_search_id": id_saved_search,
+                "message": f"Failed to update saved search position - invalid member ID",
+                "guidance": "The member ID may be invalid or malformed.",
+                "suggestion": "Verify the member ID is correct and properly formatted."
+            }
+        elif "400" in error_message and "saved" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid saved search ID: {error_message}",
+                "action": "update_member_saved_search_position",
+                "member_id": id_member,
+                "saved_search_id": id_saved_search,
+                "message": f"Failed to update saved search position - invalid saved search ID",
+                "guidance": "The saved search ID may be invalid or malformed.",
+                "suggestion": "Verify the saved search ID is correct and properly formatted."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update saved search position: {error_message}",
+                "action": "update_member_saved_search_position",
+                "member_id": id_member,
+                "saved_search_id": id_saved_search,
+                "message": f"Failed to update saved search position for search {id_saved_search} of member {id_member}"
+            }
+
+@mcp.tool(
+    "TRELLO_UPDATE_MEMBER_SAVED_SEARCH_QUERY",
+    description="Update member saved search query. Updates the query string of an existing saved search for a trello member.",
+)
+def TRELLO_UPDATE_MEMBER_SAVED_SEARCH_QUERY(
+    id_member: Annotated[str, "The ID of the member who owns the saved search."],
+    id_saved_search: Annotated[str, "The ID of the saved search to update query for."],
+    value: Annotated[str, "The new query string for the saved search."]
+):
+    """Update member saved search query. Updates the query string of an existing saved search for a trello member."""
+    err = _validate_required({"id_member": id_member, "id_saved_search": id_saved_search, "value": value}, ["id_member", "id_saved_search", "value"])
+    if err:
+        return err
+    
+    # Validate value is not empty
+    if not value.strip():
+        return {
+            "successful": False,
+            "error": "Empty saved search query",
+            "action": "update_member_saved_search_query",
+            "member_id": id_member,
+            "saved_search_id": id_saved_search,
+            "message": "Saved search query cannot be empty",
+            "guidance": "Provide a non-empty query string for the saved search.",
+            "suggestion": "Enter the new search query you want to set for the saved search."
+        }
+    
+    try:
+        endpoint = f"/members/{id_member}/savedSearches/{id_saved_search}"
+        
+        # Build data payload
+        data = {
+            "query": value
+        }
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_member_saved_search_query",
+            "member_id": id_member,
+            "saved_search_id": id_saved_search,
+            "new_query": value,
+            "message": f"Successfully updated saved search query to '{value}'"
+        }
+    except Exception as e:
+        error_message = str(e)
+        
+        # Provide specific guidance for common errors
+        if "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_member_saved_search_query",
+                "member_id": id_member,
+                "saved_search_id": id_saved_search,
+                "message": f"Failed to update saved search query - insufficient permissions",
+                "guidance": "You must have edit access to the member's saved searches to update their queries.",
+                "suggestion": "Verify you have edit permissions on the member's saved searches or ask an admin to grant access."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Resource not found: {error_message}",
+                "action": "update_member_saved_search_query",
+                "member_id": id_member,
+                "saved_search_id": id_saved_search,
+                "message": f"Failed to update saved search query - resource not found",
+                "guidance": "The member or saved search may not exist or may have been deleted.",
+                "suggestion": "Verify the member ID and saved search ID are correct and still exist."
+            }
+        elif "400" in error_message and "query" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid saved search query: {error_message}",
+                "action": "update_member_saved_search_query",
+                "member_id": id_member,
+                "saved_search_id": id_saved_search,
+                "message": f"Failed to update saved search query - invalid query '{value}'",
+                "guidance": "The saved search query may contain invalid characters or be malformed.",
+                "suggestion": "Check the query for invalid characters and ensure it follows Trello's search syntax."
+            }
+        elif "400" in error_message and "member" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid member ID: {error_message}",
+                "action": "update_member_saved_search_query",
+                "member_id": id_member,
+                "saved_search_id": id_saved_search,
+                "message": f"Failed to update saved search query - invalid member ID",
+                "guidance": "The member ID may be invalid or malformed.",
+                "suggestion": "Verify the member ID is correct and properly formatted."
+            }
+        elif "400" in error_message and "saved" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid saved search ID: {error_message}",
+                "action": "update_member_saved_search_query",
+                "member_id": id_member,
+                "saved_search_id": id_saved_search,
+                "message": f"Failed to update saved search query - invalid saved search ID",
+                "guidance": "The saved search ID may be invalid or malformed.",
+                "suggestion": "Verify the saved search ID is correct and properly formatted."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update saved search query: {error_message}",
+                "action": "update_member_saved_search_query",
+                "member_id": id_member,
+                "saved_search_id": id_saved_search,
+                "message": f"Failed to update saved search query for search {id_saved_search} of member {id_member}"
+            }
+
+@mcp.tool(
+    "TRELLO_UPDATE_MEMBERS_BIO_BY_ID_MEMBER",
+    description="Update member bio. Updates the bio of a specified trello member. Note: This feature may not be supported by Trello's API due to privacy restrictions.",
+)
+def TRELLO_UPDATE_MEMBERS_BIO_BY_ID_MEMBER(
+    id_member: Annotated[str, "The ID of the member to update bio for."],
+    value: Annotated[str, "The new bio text for the member."]
+):
+    """Update member bio. Updates the bio of a specified trello member."""
+    err = _validate_required({"id_member": id_member, "value": value}, ["id_member", "value"])
+    if err:
+        return err
+    
+    try:
+        endpoint = f"/members/{id_member}"
+        
+        # Build data payload
+        data = {
+            "bio": value
+        }
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_member_bio",
+            "member_id": id_member,
+            "new_bio": value,
+            "message": f"Successfully updated member bio to '{value}'"
+        }
+    except Exception as e:
+        error_message = str(e)
+        
+        # Provide specific guidance for common errors
+        if "401" in error_message and "unauthorized" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"API restriction: {error_message}",
+                "action": "update_member_bio",
+                "member_id": id_member,
+                "message": f"Failed to update member bio - Trello API restriction",
+                "guidance": "Trello's API restricts updating member bio and other profile fields for privacy reasons. This feature may not be supported through the API.",
+                "suggestion": "Update your bio directly through Trello's web interface: Profile → Edit Profile → Bio field."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_member_bio",
+                "member_id": id_member,
+                "message": f"Failed to update member bio - insufficient permissions",
+                "guidance": "You must have edit access to the member profile to update bio.",
+                "suggestion": "Verify you have edit permissions on the member profile or ask an admin to grant access."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Member not found: {error_message}",
+                "action": "update_member_bio",
+                "member_id": id_member,
+                "message": f"Failed to update member bio - member not found",
+                "guidance": "The member may not exist or may have been deleted.",
+                "suggestion": "Verify the member ID is correct and the member still exists."
+            }
+        elif "400" in error_message and "bio" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid bio: {error_message}",
+                "action": "update_member_bio",
+                "member_id": id_member,
+                "message": f"Failed to update member bio - invalid bio '{value}'",
+                "guidance": "The bio may contain invalid characters or be too long.",
+                "suggestion": "Check the bio for invalid characters and ensure it's within Trello's length limits."
+            }
+        elif "400" in error_message and "member" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid member ID: {error_message}",
+                "action": "update_member_bio",
+                "member_id": id_member,
+                "message": f"Failed to update member bio - invalid member ID",
+                "guidance": "The member ID may be invalid or malformed.",
+                "suggestion": "Verify the member ID is correct and properly formatted."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update member bio: {error_message}",
+                "action": "update_member_bio",
+                "member_id": id_member,
+                "message": f"Failed to update member bio for member {id_member}"
+            }
+
+@mcp.tool(
+    "TRELLO_UPDATE_MEMBER_BOARD_BACKGROUND",
+    description="Update Member Board Background. Updates an existing board background's properties (brightness, image file, or tiling) for a specified trello member, using their id and the board background id.",
+)
+def TRELLO_UPDATE_MEMBER_BOARD_BACKGROUND(
+    id_member: Annotated[str, "The ID of the member who owns the board background."],
+    id_board_background: Annotated[str, "The ID of the board background to update."],
+    brightness: Annotated[str | None, "The brightness level for the background ('dark', 'light', or 'normal')."] = None,
+    file: Annotated[str | None, "The image file for the background."] = None,
+    tile: Annotated[str | None, "Whether the background should be tiled ('true' or 'false')."] = None
+):
+    """Update Member Board Background. Updates an existing board background's properties (brightness, image file, or tiling) for a specified trello member, using their id and the board background id."""
+    err = _validate_required({"id_member": id_member, "id_board_background": id_board_background}, ["id_member", "id_board_background"])
+    if err:
+        return err
+    
+    # Check if at least one update parameter is provided
+    update_params = {"brightness": brightness, "file": file, "tile": tile}
+    provided_params = {k: v for k, v in update_params.items() if v and v.strip()}
+    
+    if not provided_params:
+        return {
+            "successful": False,
+            "error": "No update parameters provided",
+            "action": "update_member_board_background",
+            "member_id": id_member,
+            "background_id": id_board_background,
+            "message": "Must provide at least one update parameter (brightness, file, or tile)",
+            "guidance": "Provide at least one of: brightness, file, or tile parameters.",
+            "suggestion": "Specify which background properties you want to update."
+        }
+    
+    # Validate brightness if provided
+    if brightness and brightness.strip():
+        # Trello uses preset brightness values, not numeric values
+        valid_brightness_values = ['dark', 'light', 'normal']
+        if brightness.lower() not in valid_brightness_values:
+            return {
+                "successful": False,
+                "error": "Invalid brightness value",
+                "action": "update_member_board_background",
+                "member_id": id_member,
+                "background_id": id_board_background,
+                "message": f"Invalid brightness value '{brightness}' - must be one of: {', '.join(valid_brightness_values)}",
+                "guidance": f"Brightness must be one of: {', '.join(valid_brightness_values)}",
+                "suggestion": f"Use one of these values: {', '.join(valid_brightness_values)}"
+            }
+    
+    # Validate tile if provided
+    if tile and tile.strip():
+        if tile.lower() not in ['true', 'false']:
+            return {
+                "successful": False,
+                "error": "Invalid tile value",
+                "action": "update_member_board_background",
+                "member_id": id_member,
+                "background_id": id_board_background,
+                "message": f"Invalid tile value '{tile}' - must be 'true' or 'false'",
+                "guidance": "Valid tile values are 'true' to enable tiling or 'false' to disable tiling.",
+                "suggestion": "Use 'true' to tile the background or 'false' to not tile it."
+            }
+    
+    try:
+        endpoint = f"/members/{id_member}/boardBackgrounds/{id_board_background}"
+        
+        # Build data payload with only provided parameters
+        data = {}
+        
+        if brightness and brightness.strip():
+            data["brightness"] = brightness.lower()
+        if file and file.strip():
+            data["file"] = file
+        if tile and tile.strip():
+            data["tile"] = tile.lower()
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        # Determine which properties were updated
+        updated_properties = list(provided_params.keys())
+        properties_list = ", ".join(updated_properties)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_member_board_background",
+            "member_id": id_member,
+            "background_id": id_board_background,
+            "updated_properties": updated_properties,
+            "properties_list": properties_list,
+            "message": f"Successfully updated board background properties: {properties_list}"
+        }
+    except Exception as e:
+        error_message = str(e)
+        
+        # Provide specific guidance for common errors
+        if "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_member_board_background",
+                "member_id": id_member,
+                "background_id": id_board_background,
+                "message": f"Failed to update board background - insufficient permissions",
+                "guidance": "You must have access to the member's board backgrounds to update them.",
+                "suggestion": "Verify you have access to the member's board backgrounds or ask the member to grant access."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Resource not found: {error_message}",
+                "action": "update_member_board_background",
+                "member_id": id_member,
+                "background_id": id_board_background,
+                "message": f"Failed to update board background - resource not found",
+                "guidance": "The member or board background may not exist or may have been deleted.",
+                "suggestion": "Verify the member ID and board background ID are correct and still exist."
+            }
+        elif "400" in error_message and "brightness" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid brightness: {error_message}",
+                "action": "update_member_board_background",
+                "member_id": id_member,
+                "background_id": id_board_background,
+                "message": f"Failed to update board background - invalid brightness '{brightness}'",
+                "guidance": "Brightness must be a number between 0 and 100.",
+                "suggestion": "Use a value between 0 (darkest) and 100 (brightest)."
+            }
+        elif "400" in error_message and "file" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid file: {error_message}",
+                "action": "update_member_board_background",
+                "member_id": id_member,
+                "background_id": id_board_background,
+                "message": f"Failed to update board background - invalid file '{file}'",
+                "guidance": "The file may be invalid or not supported by Trello.",
+                "suggestion": "Verify the file is a valid image format supported by Trello."
+            }
+        elif "400" in error_message and "tile" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Invalid tile value: {error_message}",
+                "action": "update_member_board_background",
+                "member_id": id_member,
+                "background_id": id_board_background,
+                "message": f"Failed to update board background - invalid tile value '{tile}'",
+                "guidance": "Valid tile values are 'true' to enable tiling or 'false' to disable tiling.",
+                "suggestion": "Use 'true' to tile the background or 'false' to not tile it."
+            }
+        elif "400" in error_message and ("member" in error_message.lower() or "background" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid resource ID: {error_message}",
+                "action": "update_member_board_background",
+                "member_id": id_member,
+                "background_id": id_board_background,
+                "message": f"Failed to update board background - invalid resource ID",
+                "guidance": "The member ID or board background ID may be invalid.",
+                "suggestion": "Verify the member ID and board background ID are correct and properly formatted."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update board background: {error_message}",
+                "action": "update_member_board_background",
+                "member_id": id_member,
+                "background_id": id_board_background,
+                "message": f"Failed to update board background {id_board_background} for member {id_member}"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_MEMBERS_BY_ID_MEMBER",
+    description="Update member by ID. Updates an existing trello member's profile information, preferences, or username. Note: This requires special token permissions beyond standard read/write access.",
+)
+def TRELLO_UPDATE_MEMBERS_BY_ID_MEMBER(
+    id_member: Annotated[str, "The ID of the member to update."],
+    avatar_source: Annotated[str | None, "The source for the member's avatar (e.g., 'gravatar', 'upload')."] = None,
+    bio: Annotated[str | None, "The member's bio/description."] = None,
+    full_name: Annotated[str | None, "The member's full name."] = None,
+    initials: Annotated[str | None, "The member's initials."] = None,
+    prefs__color_blind: Annotated[str | None, "Color blind preference ('true' or 'false')."] = None,
+    prefs__locale: Annotated[str | None, "The member's locale preference (e.g., 'en', 'es', 'fr')."] = None,
+    prefs__minutes_between_summaries: Annotated[str | None, "Minutes between email summaries (e.g., '60', '1440')."] = None,
+    username: Annotated[str | None, "The member's username."] = None
+):
+    """Update member by ID. Updates an existing trello member's profile information, preferences, or username."""
+    err = _validate_required({"id_member": id_member}, ["id_member"])
+    if err:
+        return {
+            "successful": False,
+            "error": str(err),
+            "action": "update_member",
+            "member_id": id_member,
+            "message": "Missing required parameter: id_member"
+        }
+
+    # Prepare the data payload with only provided parameters
+    data = {}
+    
+    if avatar_source is not None:
+        data["avatarSource"] = avatar_source
+    if bio is not None:
+        data["bio"] = bio
+    if full_name is not None:
+        data["fullName"] = full_name
+    if initials is not None:
+        data["initials"] = initials
+    if prefs__color_blind is not None:
+        data["prefs/colorBlind"] = prefs__color_blind
+    if prefs__locale is not None:
+        data["prefs/locale"] = prefs__locale
+    if prefs__minutes_between_summaries is not None:
+        data["prefs/minutesBetweenSummaries"] = prefs__minutes_between_summaries
+    if username is not None:
+        data["username"] = username
+
+    # If no data to update, return error
+    if not data:
+        return {
+            "successful": False,
+            "error": "No update parameters provided",
+            "action": "update_member",
+            "member_id": id_member,
+            "message": "At least one update parameter must be provided",
+            "guidance": "Provide at least one of: avatarSource, bio, fullName, initials, prefs__color_blind, prefs__locale, prefs__minutes_between_summaries, or username"
+        }
+
+    try:
+        result = trello_request("PUT", f"/members/{id_member}", data=data)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_member",
+            "member_id": id_member,
+            "message": f"Successfully updated member {id_member}",
+            "updated_fields": list(data.keys())
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("username" in error_message.lower() or "invalid" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid data: {error_message}",
+                "action": "update_member",
+                "member_id": id_member,
+                "message": f"Failed to update member - invalid data provided",
+                "guidance": "Check that the username is available and valid, and that preference values are correct.",
+                "suggestion": "Verify username availability and ensure preference values match expected formats (e.g., 'true'/'false' for boolean prefs)."
+            }
+        elif "401" in error_message and "member permission" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Token permissions insufficient: {error_message}",
+                "action": "update_member",
+                "member_id": id_member,
+                "message": f"Failed to update member - token lacks member update permissions",
+                "guidance": "Updating member profiles requires special token permissions beyond standard read/write access.",
+                "suggestion": "Generate a new token with member update permissions at: https://trello.com/1/authorize?expiration=never&name=YourAppName&scope=read,write&response_type=token&key=YOUR_API_KEY",
+                "note": "You may need to contact Trello support or check if your API key has the necessary member management permissions."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_member",
+                "member_id": id_member,
+                "message": f"Failed to update member - insufficient permissions",
+                "guidance": "You can only update your own member profile or need admin permissions.",
+                "suggestion": "Ensure you have permission to update this member's profile or that you're updating your own profile."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Member not found: {error_message}",
+                "action": "update_member",
+                "member_id": id_member,
+                "message": f"Failed to update member - member not found",
+                "guidance": "The member ID may be invalid or the member may not exist.",
+                "suggestion": "Verify the member ID is correct and that the member exists."
+            }
+        elif "409" in error_message and "username" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Username conflict: {error_message}",
+                "action": "update_member",
+                "member_id": id_member,
+                "message": f"Failed to update member - username already taken",
+                "guidance": "The username you're trying to set is already in use by another member.",
+                "suggestion": "Choose a different username that is not already taken."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update member: {error_message}",
+                "action": "update_member",
+                "member_id": id_member,
+                "message": f"Failed to update member {id_member}"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_MEMBER_S_CUSTOM_BOARD_BACKGROUNDS",
+    description="Update member's custom board background. Updates a specific existing custom board background for a trello member.",
+)
+def TRELLO_UPDATE_MEMBER_S_CUSTOM_BOARD_BACKGROUNDS(
+    id_member: Annotated[str, "The ID of the member who owns the board background."],
+    id_board_background: Annotated[str, "The ID of the board background to update."],
+    brightness: Annotated[str | None, "The brightness level for the background ('dark', 'light', or 'normal')."] = None,
+    file: Annotated[str | None, "The image file for the background."] = None,
+    tile: Annotated[str | None, "Whether the background should be tiled ('true' or 'false')."] = None
+):
+    """Update member's custom board background. Updates a specific existing custom board background for a trello member."""
+    err = _validate_required({"id_member": id_member, "id_board_background": id_board_background}, ["id_member", "id_board_background"])
+    if err:
+        return {
+            "successful": False,
+            "error": str(err),
+            "action": "update_member_custom_board_background",
+            "member_id": id_member,
+            "background_id": id_board_background,
+            "message": "Missing required parameters"
+        }
+    
+    # Check if at least one update parameter is provided
+    update_params = {"brightness": brightness, "file": file, "tile": tile}
+    provided_params = {k: v for k, v in update_params.items() if v and v.strip()}
+    
+    if not provided_params:
+        return {
+            "successful": False,
+            "error": "No update parameters provided",
+            "action": "update_member_custom_board_background",
+            "member_id": id_member,
+            "background_id": id_board_background,
+            "message": "Must provide at least one update parameter (brightness, file, or tile)",
+            "guidance": "Provide at least one of: brightness, file, or tile parameters.",
+            "suggestion": "Specify which background properties you want to update."
+        }
+    
+    # Validate brightness if provided
+    if brightness and brightness.strip():
+        # Trello uses preset brightness values, not numeric values
+        valid_brightness_values = ['dark', 'light', 'normal']
+        if brightness.lower() not in valid_brightness_values:
+            return {
+                "successful": False,
+                "error": "Invalid brightness value",
+                "action": "update_member_custom_board_background",
+                "member_id": id_member,
+                "background_id": id_board_background,
+                "message": f"Invalid brightness value '{brightness}' - must be one of: {', '.join(valid_brightness_values)}",
+                "guidance": f"Brightness must be one of: {', '.join(valid_brightness_values)}",
+                "suggestion": f"Use one of these values: {', '.join(valid_brightness_values)}"
+            }
+    
+    # Validate tile if provided
+    if tile and tile.strip():
+        if tile.lower() not in ['true', 'false']:
+            return {
+                "successful": False,
+                "error": "Invalid tile value",
+                "action": "update_member_custom_board_background",
+                "member_id": id_member,
+                "background_id": id_board_background,
+                "message": f"Invalid tile value '{tile}' - must be 'true' or 'false'",
+                "guidance": "Valid tile values are 'true' to enable tiling or 'false' to disable tiling.",
+                "suggestion": "Use 'true' to tile the background or 'false' to not tile it."
+            }
+    
+    try:
+        endpoint = f"/members/{id_member}/boardBackgrounds/{id_board_background}"
+        
+        # Build data payload with only provided parameters
+        data = {}
+        
+        if brightness and brightness.strip():
+            data["brightness"] = brightness.lower()
+        if file and file.strip():
+            data["file"] = file
+        if tile and tile.strip():
+            data["tile"] = tile.lower()
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        # Determine which properties were updated
+        updated_properties = list(provided_params.keys())
+        properties_list = ", ".join(updated_properties)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_member_custom_board_background",
+            "member_id": id_member,
+            "background_id": id_board_background,
+            "updated_properties": updated_properties,
+            "properties_list": properties_list,
+            "message": f"Successfully updated custom board background properties: {properties_list}"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("brightness" in error_message.lower() or "tile" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid parameter value: {error_message}",
+                "action": "update_member_custom_board_background",
+                "member_id": id_member,
+                "background_id": id_board_background,
+                "message": f"Failed to update custom board background - invalid parameter value",
+                "guidance": "Check that brightness is between 0-100 and tile is 'true' or 'false'.",
+                "suggestion": "Verify parameter values match expected formats."
+            }
+        elif "400" in error_message and ("member" in error_message.lower() or "background" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid resource ID: {error_message}",
+                "action": "update_member_custom_board_background",
+                "member_id": id_member,
+                "background_id": id_board_background,
+                "message": f"Failed to update custom board background - invalid resource ID",
+                "guidance": "The member ID or board background ID may be invalid.",
+                "suggestion": "Verify the member ID and board background ID are correct and properly formatted."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_member_custom_board_background",
+                "member_id": id_member,
+                "background_id": id_board_background,
+                "message": f"Failed to update custom board background - insufficient permissions",
+                "guidance": "You can only update your own custom board backgrounds.",
+                "suggestion": "Ensure you have permission to update this member's custom board background."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Resource not found: {error_message}",
+                "action": "update_member_custom_board_background",
+                "member_id": id_member,
+                "background_id": id_board_background,
+                "message": f"Failed to update custom board background - resource not found",
+                "guidance": "The member or board background may not exist.",
+                "suggestion": "Verify the member ID and board background ID are correct and exist."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update custom board background: {error_message}",
+                "action": "update_member_custom_board_background",
+                "member_id": id_member,
+                "background_id": id_board_background,
+                "message": f"Failed to update custom board background {id_board_background} for member {id_member}"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_MEMBERS_FULL_NAME_BY_ID_MEMBER",
+    description="Update member full name by id. Updates the full name for a trello member, identified by their valid id or username; this operation only affects the full name, leaving other profile information unchanged.",
+)
+def TRELLO_UPDATE_MEMBERS_FULL_NAME_BY_ID_MEMBER(
+    id_member: Annotated[str, "The ID of the member to update the full name for."],
+    value: Annotated[str, "The new full name for the member."]
+):
+    """Update member full name by id. Updates the full name for a trello member, identified by their valid id or username; this operation only affects the full name, leaving other profile information unchanged."""
+    err = _validate_required({"id_member": id_member, "value": value}, ["id_member", "value"])
+    if err:
+        return {
+            "successful": False,
+            "error": str(err),
+            "action": "update_member_full_name",
+            "member_id": id_member,
+            "message": "Missing required parameters"
+        }
+
+    # Validate that the full name is not empty
+    if not value.strip():
+        return {
+            "successful": False,
+            "error": "Empty full name provided",
+            "action": "update_member_full_name",
+            "member_id": id_member,
+            "message": "Full name cannot be empty",
+            "guidance": "Provide a non-empty full name for the member.",
+            "suggestion": "Enter a valid full name for the member."
+        }
+
+    try:
+        endpoint = f"/members/{id_member}"
+        data = {"fullName": value.strip()}
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_member_full_name",
+            "member_id": id_member,
+            "new_full_name": value.strip(),
+            "message": f"Successfully updated full name to '{value.strip()}' for member {id_member}"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("invalid" in error_message.lower() or "bad request" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid request: {error_message}",
+                "action": "update_member_full_name",
+                "member_id": id_member,
+                "message": f"Failed to update full name - invalid request",
+                "guidance": "Check that the member ID is valid and the full name is properly formatted.",
+                "suggestion": "Verify the member ID is correct and try again."
+            }
+        elif "401" in error_message and "member permission" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Token permissions insufficient: {error_message}",
+                "action": "update_member_full_name",
+                "member_id": id_member,
+                "message": f"Failed to update full name - token lacks member update permissions",
+                "guidance": "Updating member profiles requires special token permissions beyond standard read/write access.",
+                "suggestion": "Generate a new token with member update permissions at: https://trello.com/1/authorize?expiration=never&name=YourAppName&scope=read,write&response_type=token&key=YOUR_API_KEY",
+                "note": "You may need to contact Trello support or check if your API key has the necessary member management permissions."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_member_full_name",
+                "member_id": id_member,
+                "message": f"Failed to update full name - insufficient permissions",
+                "guidance": "You can only update your own member profile or need admin permissions.",
+                "suggestion": "Ensure you have permission to update this member's profile or that you're updating your own profile."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Member not found: {error_message}",
+                "action": "update_member_full_name",
+                "member_id": id_member,
+                "message": f"Failed to update full name - member not found",
+                "guidance": "The member ID may be invalid or the member may not exist.",
+                "suggestion": "Verify the member ID is correct and that the member exists."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update full name: {error_message}",
+                "action": "update_member_full_name",
+                "member_id": id_member,
+                "message": f"Failed to update full name for member {id_member}"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_MEMBERS_INITIALS_BY_ID_MEMBER",
+    description="Update member initials. Updates the initials for a specified trello member, identified by their id or username.",
+)
+def TRELLO_UPDATE_MEMBERS_INITIALS_BY_ID_MEMBER(
+    id_member: Annotated[str, "The ID of the member to update the initials for."],
+    value: Annotated[str, "The new initials for the member."]
+):
+    """Update member initials. Updates the initials for a specified trello member, identified by their id or username."""
+    err = _validate_required({"id_member": id_member, "value": value}, ["id_member", "value"])
+    if err:
+        return {
+            "successful": False,
+            "error": str(err),
+            "action": "update_member_initials",
+            "member_id": id_member,
+            "message": "Missing required parameters"
+        }
+
+    # Validate that the initials are not empty
+    if not value.strip():
+        return {
+            "successful": False,
+            "error": "Empty initials provided",
+            "action": "update_member_initials",
+            "member_id": id_member,
+            "message": "Initials cannot be empty",
+            "guidance": "Provide non-empty initials for the member.",
+            "suggestion": "Enter valid initials for the member."
+        }
+
+    # Validate initials length (typically 1-3 characters)
+    initials = value.strip()
+    if len(initials) > 10:  # Reasonable upper limit
+        return {
+            "successful": False,
+            "error": "Initials too long",
+            "action": "update_member_initials",
+            "member_id": id_member,
+            "message": f"Initials '{initials}' are too long (maximum 10 characters)",
+            "guidance": "Initials should be short, typically 1-3 characters.",
+            "suggestion": "Use shorter initials for the member."
+        }
+
+    try:
+        endpoint = f"/members/{id_member}"
+        data = {"initials": initials}
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_member_initials",
+            "member_id": id_member,
+            "new_initials": initials,
+            "message": f"Successfully updated initials to '{initials}' for member {id_member}"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("invalid" in error_message.lower() or "bad request" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid request: {error_message}",
+                "action": "update_member_initials",
+                "member_id": id_member,
+                "message": f"Failed to update initials - invalid request",
+                "guidance": "Check that the member ID is valid and the initials are properly formatted.",
+                "suggestion": "Verify the member ID is correct and try again."
+            }
+        elif "401" in error_message and "member permission" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Token permissions insufficient: {error_message}",
+                "action": "update_member_initials",
+                "member_id": id_member,
+                "message": f"Failed to update initials - token lacks member update permissions",
+                "guidance": "Updating member profiles requires special token permissions beyond standard read/write access.",
+                "suggestion": "Generate a new token with member update permissions at: https://trello.com/1/authorize?expiration=never&name=YourAppName&scope=read,write&response_type=token&key=YOUR_API_KEY",
+                "note": "You may need to contact Trello support or check if your API key has the necessary member management permissions."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_member_initials",
+                "member_id": id_member,
+                "message": f"Failed to update initials - insufficient permissions",
+                "guidance": "You can only update your own member profile or need admin permissions.",
+                "suggestion": "Ensure you have permission to update this member's profile or that you're updating your own profile."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Member not found: {error_message}",
+                "action": "update_member_initials",
+                "member_id": id_member,
+                "message": f"Failed to update initials - member not found",
+                "guidance": "The member ID may be invalid or the member may not exist.",
+                "suggestion": "Verify the member ID is correct and that the member exists."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update initials: {error_message}",
+                "action": "update_member_initials",
+                "member_id": id_member,
+                "message": f"Failed to update initials for member {id_member}"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_MEMBERS_PREFS_COLOR_BLIND_BY_ID_MEMBER",
+    description="Update member color blind preference. Updates a trello member's color blind preference, which only changes their specific display without affecting others.",
+)
+def TRELLO_UPDATE_MEMBERS_PREFS_COLOR_BLIND_BY_ID_MEMBER(
+    id_member: Annotated[str, "The ID of the member to update the color blind preference for."],
+    value: Annotated[str, "The color blind preference value ('true' or 'false')."]
+):
+    """Update member color blind preference. Updates a trello member's color blind preference, which only changes their specific display without affecting others."""
+    err = _validate_required({"id_member": id_member, "value": value}, ["id_member", "value"])
+    if err:
+        return {
+            "successful": False,
+            "error": str(err),
+            "action": "update_member_color_blind_pref",
+            "member_id": id_member,
+            "message": "Missing required parameters"
+        }
+
+    # Validate color blind preference value
+    color_blind_value = value.strip().lower()
+    if color_blind_value not in ['true', 'false']:
+        return {
+            "successful": False,
+            "error": "Invalid color blind preference value",
+            "action": "update_member_color_blind_pref",
+            "member_id": id_member,
+            "message": f"Invalid color blind preference value '{value}' - must be 'true' or 'false'",
+            "guidance": "Color blind preference must be 'true' to enable or 'false' to disable.",
+            "suggestion": "Use 'true' to enable color blind mode or 'false' to disable it."
+        }
+
+    try:
+        endpoint = f"/members/{id_member}"
+        data = {"prefs/colorBlind": color_blind_value}
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_member_color_blind_pref",
+            "member_id": id_member,
+            "new_color_blind_pref": color_blind_value,
+            "message": f"Successfully updated color blind preference to '{color_blind_value}' for member {id_member}"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("invalid" in error_message.lower() or "bad request" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid request: {error_message}",
+                "action": "update_member_color_blind_pref",
+                "member_id": id_member,
+                "message": f"Failed to update color blind preference - invalid request",
+                "guidance": "Check that the member ID is valid and the preference value is properly formatted.",
+                "suggestion": "Verify the member ID is correct and try again."
+            }
+        elif "401" in error_message and "member permission" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Token permissions insufficient: {error_message}",
+                "action": "update_member_color_blind_pref",
+                "member_id": id_member,
+                "message": f"Failed to update color blind preference - token lacks member update permissions",
+                "guidance": "Updating member profiles requires special token permissions beyond standard read/write access.",
+                "suggestion": "Generate a new token with member update permissions at: https://trello.com/1/authorize?expiration=never&name=YourAppName&scope=read,write&response_type=token&key=YOUR_API_KEY",
+                "note": "You may need to contact Trello support or check if your API key has the necessary member management permissions."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_member_color_blind_pref",
+                "member_id": id_member,
+                "message": f"Failed to update color blind preference - insufficient permissions",
+                "guidance": "You can only update your own member profile or need admin permissions.",
+                "suggestion": "Ensure you have permission to update this member's profile or that you're updating your own profile."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Member not found: {error_message}",
+                "action": "update_member_color_blind_pref",
+                "member_id": id_member,
+                "message": f"Failed to update color blind preference - member not found",
+                "guidance": "The member ID may be invalid or the member may not exist.",
+                "suggestion": "Verify the member ID is correct and that the member exists."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update color blind preference: {error_message}",
+                "action": "update_member_color_blind_pref",
+                "member_id": id_member,
+                "message": f"Failed to update color blind preference for member {id_member}"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_MEMBERS_PREFS_LOCALE_BY_ID_MEMBER",
+    description="Update member locale preference. Updates a trello member's locale preference; affects date/time display (not existing content translation) and an empty `value` may reset to default.",
+)
+def TRELLO_UPDATE_MEMBERS_PREFS_LOCALE_BY_ID_MEMBER(
+    id_member: Annotated[str, "The ID of the member to update the locale preference for."],
+    value: Annotated[str, "The locale preference value (e.g., 'en', 'es', 'fr', 'de', 'it', 'pt', 'ru', 'ja', 'ko', 'zh')."]
+):
+    """Update member locale preference. Updates a trello member's locale preference; affects date/time display (not existing content translation) and an empty `value` may reset to default."""
+    err = _validate_required({"id_member": id_member, "value": value}, ["id_member", "value"])
+    if err:
+        return {
+            "successful": False,
+            "error": str(err),
+            "action": "update_member_locale_pref",
+            "member_id": id_member,
+            "message": "Missing required parameters"
+        }
+
+    # Validate locale preference value
+    locale_value = value.strip()
+    
+    # Common locale codes validation (basic check)
+    if locale_value and len(locale_value) < 2:
+        return {
+            "successful": False,
+            "error": "Invalid locale value",
+            "action": "update_member_locale_pref",
+            "member_id": id_member,
+            "message": f"Invalid locale value '{value}' - must be at least 2 characters",
+            "guidance": "Locale should be a valid language code (e.g., 'en', 'es', 'fr').",
+            "suggestion": "Use a valid locale code like 'en' for English, 'es' for Spanish, etc."
+        }
+
+    try:
+        endpoint = f"/members/{id_member}"
+        data = {"prefs/locale": locale_value}
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_member_locale_pref",
+            "member_id": id_member,
+            "new_locale_pref": locale_value,
+            "message": f"Successfully updated locale preference to '{locale_value}' for member {id_member}"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("invalid" in error_message.lower() or "bad request" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid request: {error_message}",
+                "action": "update_member_locale_pref",
+                "member_id": id_member,
+                "message": f"Failed to update locale preference - invalid request",
+                "guidance": "Check that the member ID is valid and the locale value is properly formatted.",
+                "suggestion": "Verify the member ID is correct and try again."
+            }
+        elif "401" in error_message and "member permission" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Token permissions insufficient: {error_message}",
+                "action": "update_member_locale_pref",
+                "member_id": id_member,
+                "message": f"Failed to update locale preference - token lacks member update permissions",
+                "guidance": "Updating member profiles requires special token permissions beyond standard read/write access.",
+                "suggestion": "Generate a new token with member update permissions at: https://trello.com/1/authorize?expiration=never&name=YourAppName&scope=read,write&response_type=token&key=YOUR_API_KEY",
+                "note": "You may need to contact Trello support or check if your API key has the necessary member management permissions."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_member_locale_pref",
+                "member_id": id_member,
+                "message": f"Failed to update locale preference - insufficient permissions",
+                "guidance": "You can only update your own member profile or need admin permissions.",
+                "suggestion": "Ensure you have permission to update this member's profile or that you're updating your own profile."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Member not found: {error_message}",
+                "action": "update_member_locale_pref",
+                "member_id": id_member,
+                "message": f"Failed to update locale preference - member not found",
+                "guidance": "The member ID may be invalid or the member may not exist.",
+                "suggestion": "Verify the member ID is correct and that the member exists."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update locale preference: {error_message}",
+                "action": "update_member_locale_pref",
+                "member_id": id_member,
+                "message": f"Failed to update locale preference for member {id_member}"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_MEMBER_SUMMARY_INTERVAL",
+    description="Update Member Summary Interval. Updates a trello member's preference for the frequency of email summary notifications; this setting affects only summary notifications.",
+)
+def TRELLO_UPDATE_MEMBER_SUMMARY_INTERVAL(
+    id_member: Annotated[str, "The ID of the member to update the summary interval for."],
+    value: Annotated[str, "The summary interval value in minutes (e.g., '60', '1440', '10080')."]
+):
+    """Update Member Summary Interval. Updates a trello member's preference for the frequency of email summary notifications; this setting affects only summary notifications."""
+    err = _validate_required({"id_member": id_member, "value": value}, ["id_member", "value"])
+    if err:
+        return {
+            "successful": False,
+            "error": str(err),
+            "action": "update_member_summary_interval",
+            "member_id": id_member,
+            "message": "Missing required parameters"
+        }
+
+    # Validate summary interval value
+    interval_value = value.strip()
+    
+    try:
+        interval_minutes = int(interval_value)
+        if interval_minutes < 0:
+            return {
+                "successful": False,
+                "error": "Invalid summary interval value",
+                "action": "update_member_summary_interval",
+                "member_id": id_member,
+                "message": f"Invalid summary interval value '{value}' - must be a positive number",
+                "guidance": "Summary interval must be a positive number of minutes.",
+                "suggestion": "Use a positive number of minutes (e.g., 60 for hourly, 1440 for daily)."
+            }
+    except ValueError:
+        return {
+            "successful": False,
+            "error": "Invalid summary interval value",
+            "action": "update_member_summary_interval",
+            "member_id": id_member,
+            "message": f"Invalid summary interval value '{value}' - must be a number",
+            "guidance": "Summary interval must be a number representing minutes.",
+            "suggestion": "Use a number of minutes (e.g., 60 for hourly, 1440 for daily)."
+        }
+
+    try:
+        endpoint = f"/members/{id_member}"
+        data = {"prefs/minutesBetweenSummaries": interval_value}
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_member_summary_interval",
+            "member_id": id_member,
+            "new_summary_interval": interval_value,
+            "message": f"Successfully updated summary interval to '{interval_value}' minutes for member {id_member}"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("invalid" in error_message.lower() or "bad request" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid request: {error_message}",
+                "action": "update_member_summary_interval",
+                "member_id": id_member,
+                "message": f"Failed to update summary interval - invalid request",
+                "guidance": "Check that the member ID is valid and the interval value is properly formatted.",
+                "suggestion": "Verify the member ID is correct and try again."
+            }
+        elif "401" in error_message and "member permission" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Token permissions insufficient: {error_message}",
+                "action": "update_member_summary_interval",
+                "member_id": id_member,
+                "message": f"Failed to update summary interval - token lacks member update permissions",
+                "guidance": "Updating member profiles requires special token permissions beyond standard read/write access.",
+                "suggestion": "Generate a new token with member update permissions at: https://trello.com/1/authorize?expiration=never&name=YourAppName&scope=read,write&response_type=token&key=YOUR_API_KEY",
+                "note": "You may need to contact Trello support or check if your API key has the necessary member management permissions."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_member_summary_interval",
+                "member_id": id_member,
+                "message": f"Failed to update summary interval - insufficient permissions",
+                "guidance": "You can only update your own member profile or need admin permissions.",
+                "suggestion": "Ensure you have permission to update this member's profile or that you're updating your own profile."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Member not found: {error_message}",
+                "action": "update_member_summary_interval",
+                "member_id": id_member,
+                "message": f"Failed to update summary interval - member not found",
+                "guidance": "The member ID may be invalid or the member may not exist.",
+                "suggestion": "Verify the member ID is correct and that the member exists."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update summary interval: {error_message}",
+                "action": "update_member_summary_interval",
+                "member_id": id_member,
+                "message": f"Failed to update summary interval for member {id_member}"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_MEMBERS_USERNAME_BY_ID_MEMBER",
+    description="Update member username. Updates the username for an existing trello member, identified by their id or current username.",
+)
+def TRELLO_UPDATE_MEMBERS_USERNAME_BY_ID_MEMBER(
+    id_member: Annotated[str, "The ID of the member to update the username for."],
+    value: Annotated[str, "The new username for the member."]
+):
+    """Update member username. Updates the username for an existing trello member, identified by their id or current username."""
+    err = _validate_required({"id_member": id_member, "value": value}, ["id_member", "value"])
+    if err:
+        return {
+            "successful": False,
+            "error": str(err),
+            "action": "update_member_username",
+            "member_id": id_member,
+            "message": "Missing required parameters"
+        }
+
+    # Validate username
+    username = value.strip()
+    if not username:
+        return {
+            "successful": False,
+            "error": "Empty username provided",
+            "action": "update_member_username",
+            "member_id": id_member,
+            "message": "Username cannot be empty",
+            "guidance": "Provide a non-empty username for the member.",
+            "suggestion": "Enter a valid username for the member."
+        }
+
+    # Basic username validation
+    if len(username) < 3:
+        return {
+            "successful": False,
+            "error": "Username too short",
+            "action": "update_member_username",
+            "member_id": id_member,
+            "message": f"Username '{username}' is too short (minimum 3 characters)",
+            "guidance": "Username must be at least 3 characters long.",
+            "suggestion": "Use a longer username for the member."
+        }
+
+    if len(username) > 20:
+        return {
+            "successful": False,
+            "error": "Username too long",
+            "action": "update_member_username",
+            "member_id": id_member,
+            "message": f"Username '{username}' is too long (maximum 20 characters)",
+            "guidance": "Username must be no more than 20 characters long.",
+            "suggestion": "Use a shorter username for the member."
+        }
+
+    try:
+        endpoint = f"/members/{id_member}"
+        data = {"username": username}
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_member_username",
+            "member_id": id_member,
+            "new_username": username,
+            "message": f"Successfully updated username to '{username}' for member {id_member}"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("username" in error_message.lower() or "invalid" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid username: {error_message}",
+                "action": "update_member_username",
+                "member_id": id_member,
+                "message": f"Failed to update username - invalid username",
+                "guidance": "Check that the username is valid and available.",
+                "suggestion": "Try a different username that is available and follows Trello's username rules."
+            }
+        elif "401" in error_message and "member permission" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Token permissions insufficient: {error_message}",
+                "action": "update_member_username",
+                "member_id": id_member,
+                "message": f"Failed to update username - token lacks member update permissions",
+                "guidance": "Updating member profiles requires special token permissions beyond standard read/write access.",
+                "suggestion": "Generate a new token with member update permissions at: https://trello.com/1/authorize?expiration=never&name=YourAppName&scope=read,write&response_type=token&key=YOUR_API_KEY",
+                "note": "You may need to contact Trello support or check if your API key has the necessary member management permissions."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_member_username",
+                "member_id": id_member,
+                "message": f"Failed to update username - insufficient permissions",
+                "guidance": "You can only update your own member profile or need admin permissions.",
+                "suggestion": "Ensure you have permission to update this member's profile or that you're updating your own profile."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Member not found: {error_message}",
+                "action": "update_member_username",
+                "member_id": id_member,
+                "message": f"Failed to update username - member not found",
+                "guidance": "The member ID may be invalid or the member may not exist.",
+                "suggestion": "Verify the member ID is correct and that the member exists."
+            }
+        elif "409" in error_message and "username" in error_message.lower():
+            return {
+                "successful": False,
+                "error": f"Username conflict: {error_message}",
+                "action": "update_member_username",
+                "member_id": id_member,
+                "message": f"Failed to update username - username already taken",
+                "guidance": "The username you're trying to set is already in use by another member.",
+                "suggestion": "Choose a different username that is not already taken."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update username: {error_message}",
+                "action": "update_member_username",
+                "member_id": id_member,
+                "message": f"Failed to update username for member {id_member}"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_NOTIFICATIONS_BY_ID_NOTIFICATION",
+    description="Update notification status by id. Updates only the 'unread' status of a specific trello notification.",
+)
+def TRELLO_UPDATE_NOTIFICATIONS_BY_ID_NOTIFICATION(
+    id_notification: Annotated[str, "The ID of the notification to update."],
+    unread: Annotated[str, "The unread status ('true' or 'false')."]
+):
+    """Update notification status by id. Updates only the 'unread' status of a specific trello notification."""
+    err = _validate_required({"id_notification": id_notification, "unread": unread}, ["id_notification", "unread"])
+    if err:
+        return {
+            "successful": False,
+            "error": str(err),
+            "action": "update_notification_status",
+            "notification_id": id_notification,
+            "message": "Missing required parameters"
+        }
+
+    # Validate unread status value
+    unread_value = unread.strip().lower()
+    if unread_value not in ['true', 'false']:
+        return {
+            "successful": False,
+            "error": "Invalid unread status value",
+            "action": "update_notification_status",
+            "notification_id": id_notification,
+            "message": f"Invalid unread status value '{unread}' - must be 'true' or 'false'",
+            "guidance": "Unread status must be 'true' to mark as unread or 'false' to mark as read.",
+            "suggestion": "Use 'true' to mark as unread or 'false' to mark as read."
+        }
+
+    try:
+        endpoint = f"/notifications/{id_notification}"
+        data = {"unread": unread_value}
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_notification_status",
+            "notification_id": id_notification,
+            "new_unread_status": unread_value,
+            "message": f"Successfully updated notification status to '{unread_value}' for notification {id_notification}"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("invalid" in error_message.lower() or "bad request" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid request: {error_message}",
+                "action": "update_notification_status",
+                "notification_id": id_notification,
+                "message": f"Failed to update notification status - invalid request",
+                "guidance": "Check that the notification ID is valid and the unread value is properly formatted.",
+                "suggestion": "Verify the notification ID is correct and try again."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_notification_status",
+                "notification_id": id_notification,
+                "message": f"Failed to update notification status - insufficient permissions",
+                "guidance": "You can only update your own notifications.",
+                "suggestion": "Ensure you have permission to update this notification."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Notification not found: {error_message}",
+                "action": "update_notification_status",
+                "notification_id": id_notification,
+                "message": f"Failed to update notification status - notification not found",
+                "guidance": "The notification ID may be invalid or the notification may not exist.",
+                "suggestion": "Verify the notification ID is correct and that the notification exists."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update notification status: {error_message}",
+                "action": "update_notification_status",
+                "notification_id": id_notification,
+                "message": f"Failed to update notification status for notification {id_notification}"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_NOTIFICATION_UNREAD_STATUS",
+    description="Update notification unread status. Marks an existing and accessible trello notification as read or unread.",
+)
+def TRELLO_UPDATE_NOTIFICATION_UNREAD_STATUS(
+    id_notification: Annotated[str, "The ID of the notification to update."],
+    value: Annotated[str, "The unread status value ('true' or 'false')."]
+):
+    """Update notification unread status. Marks an existing and accessible trello notification as read or unread."""
+    err = _validate_required({"id_notification": id_notification, "value": value}, ["id_notification", "value"])
+    if err:
+        return {
+            "successful": False,
+            "error": str(err),
+            "action": "update_notification_unread_status",
+            "notification_id": id_notification,
+            "message": "Missing required parameters"
+        }
+
+    # Validate unread status value
+    unread_value = value.strip().lower()
+    if unread_value not in ['true', 'false']:
+        return {
+            "successful": False,
+            "error": "Invalid unread status value",
+            "action": "update_notification_unread_status",
+            "notification_id": id_notification,
+            "message": f"Invalid unread status value '{value}' - must be 'true' or 'false'",
+            "guidance": "Unread status must be 'true' to mark as unread or 'false' to mark as read.",
+            "suggestion": "Use 'true' to mark as unread or 'false' to mark as read."
+        }
+
+    try:
+        endpoint = f"/notifications/{id_notification}"
+        data = {"unread": unread_value}
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_notification_unread_status",
+            "notification_id": id_notification,
+            "new_unread_status": unread_value,
+            "message": f"Successfully updated notification unread status to '{unread_value}' for notification {id_notification}"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("invalid" in error_message.lower() or "bad request" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid request: {error_message}",
+                "action": "update_notification_unread_status",
+                "notification_id": id_notification,
+                "message": f"Failed to update notification unread status - invalid request",
+                "guidance": "Check that the notification ID is valid and the unread value is properly formatted.",
+                "suggestion": "Verify the notification ID is correct and try again."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_notification_unread_status",
+                "notification_id": id_notification,
+                "message": f"Failed to update notification unread status - insufficient permissions",
+                "guidance": "You can only update your own notifications.",
+                "suggestion": "Ensure you have permission to update this notification."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Notification not found: {error_message}",
+                "action": "update_notification_unread_status",
+                "notification_id": id_notification,
+                "message": f"Failed to update notification unread status - notification not found",
+                "guidance": "The notification ID may be invalid or the notification may not exist.",
+                "suggestion": "Verify the notification ID is correct and that the notification exists."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update notification unread status: {error_message}",
+                "action": "update_notification_unread_status",
+                "notification_id": id_notification,
+                "message": f"Failed to update notification unread status for notification {id_notification}"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_ORGANIZATIONS_BY_ID_ORG",
+    description="Update organization attributes. Updates various attributes of an existing trello organization, identified by `idorg`.",
+)
+def TRELLO_UPDATE_ORGANIZATIONS_BY_ID_ORG(
+    id_org: Annotated[str, "The ID of the organization to update."],
+    desc: Annotated[str | None, "The description of the organization."] = None,
+    display_name: Annotated[str | None, "The display name of the organization."] = None,
+    name: Annotated[str | None, "The name of the organization."] = None,
+    prefs__associated_domain: Annotated[str | None, "The associated domain for the organization."] = None,
+    prefs__board_visibility_restrict__org: Annotated[str | None, "Board visibility restriction for organization ('admin', 'none')."] = None,
+    prefs__board_visibility_restrict__private: Annotated[str | None, "Board visibility restriction for private ('admin', 'none')."] = None,
+    prefs__board_visibility_restrict__public: Annotated[str | None, "Board visibility restriction for public ('admin', 'none')."] = None,
+    prefs__external_members_disabled: Annotated[str | None, "Whether external members are disabled ('true' or 'false')."] = None,
+    prefs__google_apps_version: Annotated[str | None, "Google Apps version for the organization."] = None,
+    prefs__org_invite_restrict: Annotated[str | None, "Organization invite restriction ('admins', 'all')."] = None,
+    prefs__permission_level: Annotated[str | None, "Permission level ('private', 'org', 'public')."] = None,
+    website: Annotated[str | None, "The website URL of the organization."] = None
+):
+    """Update organization attributes. Updates various attributes of an existing trello organization, identified by `idorg`."""
+    err = _validate_required({"id_org": id_org}, ["id_org"])
+    if err:
+        return {
+            "successful": False,
+            "error": str(err),
+            "action": "update_organization",
+            "organization_id": id_org,
+            "message": "Missing required parameter: id_org"
+        }
+
+    # Prepare the data payload with only provided parameters
+    data = {}
+    
+    if desc is not None:
+        data["desc"] = desc
+    if display_name is not None:
+        data["displayName"] = display_name
+    if name is not None:
+        data["name"] = name
+    if prefs__associated_domain is not None:
+        data["prefs/associatedDomain"] = prefs__associated_domain
+    if prefs__board_visibility_restrict__org is not None:
+        data["prefs/boardVisibilityRestrict/org"] = prefs__board_visibility_restrict__org
+    if prefs__board_visibility_restrict__private is not None:
+        data["prefs/boardVisibilityRestrict/private"] = prefs__board_visibility_restrict__private
+    if prefs__board_visibility_restrict__public is not None:
+        data["prefs/boardVisibilityRestrict/public"] = prefs__board_visibility_restrict__public
+    if prefs__external_members_disabled is not None:
+        data["prefs/externalMembersDisabled"] = prefs__external_members_disabled
+    if prefs__google_apps_version is not None:
+        data["prefs/googleAppsVersion"] = prefs__google_apps_version
+    if prefs__org_invite_restrict is not None:
+        data["prefs/orgInviteRestrict"] = prefs__org_invite_restrict
+    if prefs__permission_level is not None:
+        data["prefs/permissionLevel"] = prefs__permission_level
+    if website is not None:
+        data["website"] = website
+
+    # If no data to update, return error
+    if not data:
+        return {
+            "successful": False,
+            "error": "No update parameters provided",
+            "action": "update_organization",
+            "organization_id": id_org,
+            "message": "At least one update parameter must be provided",
+            "guidance": "Provide at least one of: desc, displayName, name, prefs__associated_domain, prefs__board_visibility_restrict__org, prefs__board_visibility_restrict__private, prefs__board_visibility_restrict__public, prefs__external_members_disabled, prefs__google_apps_version, prefs__org_invite_restrict, prefs__permission_level, or website"
+        }
+
+    # Validate specific preference values
+    if prefs__board_visibility_restrict__org and prefs__board_visibility_restrict__org not in ['admin', 'none']:
+        return {
+            "successful": False,
+            "error": "Invalid board visibility restriction for org",
+            "action": "update_organization",
+            "organization_id": id_org,
+            "message": f"Invalid prefs__board_visibility_restrict__org value '{prefs__board_visibility_restrict__org}' - must be 'admin' or 'none'",
+            "guidance": "Board visibility restriction for org must be 'admin' or 'none'.",
+            "suggestion": "Use 'admin' to restrict to admins or 'none' for no restriction."
+        }
+
+    if prefs__board_visibility_restrict__private and prefs__board_visibility_restrict__private not in ['admin', 'none']:
+        return {
+            "successful": False,
+            "error": "Invalid board visibility restriction for private",
+            "action": "update_organization",
+            "organization_id": id_org,
+            "message": f"Invalid prefs__board_visibility_restrict__private value '{prefs__board_visibility_restrict__private}' - must be 'admin' or 'none'",
+            "guidance": "Board visibility restriction for private must be 'admin' or 'none'.",
+            "suggestion": "Use 'admin' to restrict to admins or 'none' for no restriction."
+        }
+
+    if prefs__board_visibility_restrict__public and prefs__board_visibility_restrict__public not in ['admin', 'none']:
+        return {
+            "successful": False,
+            "error": "Invalid board visibility restriction for public",
+            "action": "update_organization",
+            "organization_id": id_org,
+            "message": f"Invalid prefs__board_visibility_restrict__public value '{prefs__board_visibility_restrict__public}' - must be 'admin' or 'none'",
+            "guidance": "Board visibility restriction for public must be 'admin' or 'none'.",
+            "suggestion": "Use 'admin' to restrict to admins or 'none' for no restriction."
+        }
+
+    if prefs__external_members_disabled and prefs__external_members_disabled.lower() not in ['true', 'false']:
+        return {
+            "successful": False,
+            "error": "Invalid external members disabled value",
+            "action": "update_organization",
+            "organization_id": id_org,
+            "message": f"Invalid prefs__external_members_disabled value '{prefs__external_members_disabled}' - must be 'true' or 'false'",
+            "guidance": "External members disabled must be 'true' or 'false'.",
+            "suggestion": "Use 'true' to disable external members or 'false' to enable them."
+        }
+
+    if prefs__org_invite_restrict and prefs__org_invite_restrict not in ['admins', 'all']:
+        return {
+            "successful": False,
+            "error": "Invalid org invite restrict value",
+            "action": "update_organization",
+            "organization_id": id_org,
+            "message": f"Invalid prefs__org_invite_restrict value '{prefs__org_invite_restrict}' - must be 'admins' or 'all'",
+            "guidance": "Organization invite restriction must be 'admins' or 'all'.",
+            "suggestion": "Use 'admins' to restrict to admins or 'all' to allow all members."
+        }
+
+    if prefs__permission_level and prefs__permission_level not in ['private', 'org', 'public']:
+        return {
+            "successful": False,
+            "error": "Invalid permission level value",
+            "action": "update_organization",
+            "organization_id": id_org,
+            "message": f"Invalid prefs__permission_level value '{prefs__permission_level}' - must be 'private', 'org', or 'public'",
+            "guidance": "Permission level must be 'private', 'org', or 'public'.",
+            "suggestion": "Use 'private' for private, 'org' for organization, or 'public' for public."
+        }
+
+    try:
+        endpoint = f"/organizations/{id_org}"
+        result = trello_request("PUT", endpoint, data=data)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_organization",
+            "organization_id": id_org,
+            "updated_fields": list(data.keys()),
+            "message": f"Successfully updated organization {id_org}"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("invalid" in error_message.lower() or "bad request" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid request: {error_message}",
+                "action": "update_organization",
+                "organization_id": id_org,
+                "message": f"Failed to update organization - invalid request",
+                "guidance": "Check that the organization ID is valid and the parameters are properly formatted.",
+                "suggestion": "Verify the organization ID is correct and try again."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_organization",
+                "organization_id": id_org,
+                "message": f"Failed to update organization - insufficient permissions",
+                "guidance": "You need admin permissions to update organization attributes.",
+                "suggestion": "Ensure you have admin permissions for this organization."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Organization not found: {error_message}",
+                "action": "update_organization",
+                "organization_id": id_org,
+                "message": f"Failed to update organization - organization not found",
+                "guidance": "The organization ID may be invalid or the organization may not exist.",
+                "suggestion": "Verify the organization ID is correct and that the organization exists."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update organization: {error_message}",
+                "action": "update_organization",
+                "organization_id": id_org,
+                "message": f"Failed to update organization {id_org}"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_ORGANIZATIONS_DESC_BY_ID_ORG",
+    description="Update organization description. Updates or clears the description for an existing trello organization, identified by its id or name, to a new string up to 16384 characters.",
+)
+def TRELLO_UPDATE_ORGANIZATIONS_DESC_BY_ID_ORG(
+    id_org: Annotated[str, "The ID of the organization to update the description for."],
+    value: Annotated[str | None, "The new description for the organization (up to 16384 characters)."] = None
+):
+    """Update organization description. Updates or clears the description for an existing trello organization, identified by its id or name, to a new string up to 16384 characters."""
+    err = _validate_required({"id_org": id_org}, ["id_org"])
+    if err:
+        return {
+            "successful": False,
+            "error": str(err),
+            "action": "update_organization_description",
+            "organization_id": id_org,
+            "message": "Missing required parameter: id_org"
+        }
+
+    # If no value provided, return error
+    if not value or not value.strip():
+        return {
+            "successful": False,
+            "error": "No description provided",
+            "action": "update_organization_description",
+            "organization_id": id_org,
+            "message": "Description value is required",
+            "guidance": "Provide a description for the organization.",
+            "suggestion": "Enter a description for the organization."
+        }
+
+    # Validate description length
+    description = value.strip()
+    if len(description) > 16384:
+        return {
+            "successful": False,
+            "error": "Description too long",
+            "action": "update_organization_description",
+            "organization_id": id_org,
+            "message": f"Description is too long ({len(description)} characters) - maximum 16384 characters allowed",
+            "guidance": "Organization description must be 16384 characters or less.",
+            "suggestion": "Shorten the description to 16384 characters or less."
+        }
+
+    try:
+        endpoint = f"/organizations/{id_org}"
+        data = {"desc": description}
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_organization_description",
+            "organization_id": id_org,
+            "new_description": description,
+            "message": f"Successfully updated organization description for {id_org}"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("invalid" in error_message.lower() or "bad request" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid request: {error_message}",
+                "action": "update_organization_description",
+                "organization_id": id_org,
+                "message": f"Failed to update organization description - invalid request",
+                "guidance": "Check that the organization ID is valid and the description is properly formatted.",
+                "suggestion": "Verify the organization ID is correct and try again."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_organization_description",
+                "organization_id": id_org,
+                "message": f"Failed to update organization description - insufficient permissions",
+                "guidance": "You need admin permissions to update organization description.",
+                "suggestion": "Ensure you have admin permissions for this organization."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Organization not found: {error_message}",
+                "action": "update_organization_description",
+                "organization_id": id_org,
+                "message": f"Failed to update organization description - organization not found",
+                "guidance": "The organization ID may be invalid or the organization may not exist.",
+                "suggestion": "Verify the organization ID is correct and that the organization exists."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update organization description: {error_message}",
+                "action": "update_organization_description",
+                "organization_id": id_org,
+                "message": f"Failed to update organization description for {id_org}"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_ORGANIZATIONS_DISPLAY_NAME_BY_ID_ORG",
+    description="Update organization display name. Updates the display name of a trello organization, identifiable by its current id or name (`idorg`), to the new `value`; other attributes remain unaffected.",
+)
+def TRELLO_UPDATE_ORGANIZATIONS_DISPLAY_NAME_BY_ID_ORG(
+    id_org: Annotated[str, "The ID of the organization to update the display name for."],
+    value: Annotated[str | None, "The new display name for the organization."] = None
+):
+    """Update organization display name. Updates the display name of a trello organization, identifiable by its current id or name (`idorg`), to the new `value`; other attributes remain unaffected."""
+    err = _validate_required({"id_org": id_org}, ["id_org"])
+    if err:
+        return {
+            "successful": False,
+            "error": str(err),
+            "action": "update_organization_display_name",
+            "organization_id": id_org,
+            "message": "Missing required parameter: id_org"
+        }
+
+    # If no value provided, return error
+    if not value or not value.strip():
+        return {
+            "successful": False,
+            "error": "No display name provided",
+            "action": "update_organization_display_name",
+            "organization_id": id_org,
+            "message": "Display name value is required",
+            "guidance": "Provide a display name for the organization.",
+            "suggestion": "Enter a display name for the organization."
+        }
+
+    # Validate display name
+    display_name = value.strip()
+    if not display_name:
+        return {
+            "successful": False,
+            "error": "Empty display name provided",
+            "action": "update_organization_display_name",
+            "organization_id": id_org,
+            "message": "Display name cannot be empty",
+            "guidance": "Provide a non-empty display name for the organization.",
+            "suggestion": "Enter a valid display name for the organization."
+        }
+
+    try:
+        endpoint = f"/organizations/{id_org}"
+        data = {"displayName": display_name}
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_organization_display_name",
+            "organization_id": id_org,
+            "new_display_name": display_name,
+            "message": f"Successfully updated organization display name to '{display_name}' for {id_org}"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("invalid" in error_message.lower() or "bad request" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid request: {error_message}",
+                "action": "update_organization_display_name",
+                "organization_id": id_org,
+                "message": f"Failed to update organization display name - invalid request",
+                "guidance": "Check that the organization ID is valid and the display name is properly formatted.",
+                "suggestion": "Verify the organization ID is correct and try again."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_organization_display_name",
+                "organization_id": id_org,
+                "message": f"Failed to update organization display name - insufficient permissions",
+                "guidance": "You need admin permissions to update organization display name.",
+                "suggestion": "Ensure you have admin permissions for this organization."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Organization not found: {error_message}",
+                "action": "update_organization_display_name",
+                "organization_id": id_org,
+                "message": f"Failed to update organization display name - organization not found",
+                "guidance": "The organization ID may be invalid or the organization may not exist.",
+                "suggestion": "Verify the organization ID is correct and that the organization exists."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update organization display name: {error_message}",
+                "action": "update_organization_display_name",
+                "organization_id": id_org,
+                "message": f"Failed to update organization display name for {id_org}"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_ORGANIZATIONS_MEMBERS_BY_ID_ORG",
+    description="Update an organization member. Adds/updates a member in a specified trello organization (`idorg`); `email` and `type` are api-required, `fullname` is needed if `email` is new to trello.",
+)
+def TRELLO_UPDATE_ORGANIZATIONS_MEMBERS_BY_ID_ORG(
+    id_org: Annotated[str, "The ID of the organization to add/update the member in."],
+    email: Annotated[str | None, "The email address of the member to add/update."] = None,
+    type: Annotated[str | None, "The membership type ('admin', 'normal', 'observer')."] = None,
+    full_name: Annotated[str | None, "The full name of the member (required if email is new to Trello)."] = None
+):
+    """Update an organization member. Adds/updates a member in a specified trello organization (`idorg`); `email` and `type` are api-required, `fullname` is needed if `email` is new to trello."""
+    err = _validate_required({"id_org": id_org}, ["id_org"])
+    if err:
+        return {
+            "successful": False,
+            "error": str(err),
+            "action": "update_organization_member",
+            "organization_id": id_org,
+            "message": "Missing required parameter: id_org"
+        }
+
+    # Check if at least one member parameter is provided
+    if not email and not type and not full_name:
+        return {
+            "successful": False,
+            "error": "No member parameters provided",
+            "action": "update_organization_member",
+            "organization_id": id_org,
+            "message": "Must provide at least one member parameter (email, type, or full_name)",
+            "guidance": "Provide at least one of: email, type, or full_name parameters.",
+            "suggestion": "Specify which member details you want to add/update."
+        }
+
+    # Validate membership type if provided
+    if type and type.strip():
+        membership_type = type.strip().lower()
+        if membership_type not in ['admin', 'normal', 'observer']:
+            return {
+                "successful": False,
+                "error": "Invalid membership type",
+                "action": "update_organization_member",
+                "organization_id": id_org,
+                "message": f"Invalid membership type '{type}' - must be 'admin', 'normal', or 'observer'",
+                "guidance": "Membership type must be 'admin', 'normal', or 'observer'.",
+                "suggestion": "Use 'admin' for admin access, 'normal' for regular access, or 'observer' for read-only access."
+            }
+
+    # Validate email format if provided
+    if email and email.strip():
+        email_address = email.strip()
+        if '@' not in email_address:
+            return {
+                "successful": False,
+                "error": "Invalid email format",
+                "action": "update_organization_member",
+                "organization_id": id_org,
+                "message": f"Invalid email format '{email}'",
+                "guidance": "Email must be a valid email address.",
+                "suggestion": "Provide a valid email address for the member."
+            }
+
+    try:
+        endpoint = f"/organizations/{id_org}/members"
+        data = {}
+        
+        if email and email.strip():
+            data["email"] = email.strip()
+        if type and type.strip():
+            data["type"] = type.strip().lower()
+        if full_name and full_name.strip():
+            data["fullName"] = full_name.strip()
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_organization_member",
+            "organization_id": id_org,
+            "member_email": email_address,
+            "membership_type": membership_type,
+            "message": f"Successfully added/updated member {email_address} in organization {id_org}"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("email" in error_message.lower() or "invalid" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid member data: {error_message}",
+                "action": "update_organization_member",
+                "organization_id": id_org,
+                "message": f"Failed to add/update member - invalid member data",
+                "guidance": "Check that the email is valid and the membership type is correct.",
+                "suggestion": "Verify the email address and membership type are valid."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_organization_member",
+                "organization_id": id_org,
+                "message": f"Failed to add/update member - insufficient permissions",
+                "guidance": "You need admin permissions to add/update organization members.",
+                "suggestion": "Ensure you have admin permissions for this organization."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Organization not found: {error_message}",
+                "action": "update_organization_member",
+                "organization_id": id_org,
+                "message": f"Failed to add/update member - organization not found",
+                "guidance": "The organization ID may be invalid or the organization may not exist.",
+                "suggestion": "Verify the organization ID is correct and that the organization exists."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to add/update member: {error_message}",
+                "action": "update_organization_member",
+                "organization_id": id_org,
+                "message": f"Failed to add/update member in organization {id_org}"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_ORGANIZATIONS_MEMBERS_BY_ID_ORG_BY_ID_MEMBER",
+    description="Update organization member. Updates a member's details (email, full name, or type) in a trello organization, applying changes only to the fields provided.",
+)
+def TRELLO_UPDATE_ORGANIZATIONS_MEMBERS_BY_ID_ORG_BY_ID_MEMBER(
+    id_org: Annotated[str, "The ID of the organization containing the member."],
+    id_member: Annotated[str, "The ID of the member to update."],
+    email: Annotated[str | None, "The new email address for the member."] = None,
+    full_name: Annotated[str | None, "The new full name for the member."] = None,
+    type: Annotated[str | None, "The new membership type ('admin', 'normal', 'observer')."] = None
+):
+    """Update organization member. Updates a member's details (email, full name, or type) in a trello organization, applying changes only to the fields provided."""
+    err = _validate_required({"id_org": id_org, "id_member": id_member}, ["id_org", "id_member"])
+    if err:
+        return {
+            "successful": False,
+            "error": str(err),
+            "action": "update_organization_member_details",
+            "organization_id": id_org,
+            "member_id": id_member,
+            "message": "Missing required parameters"
+        }
+
+    # Check if at least one update parameter is provided
+    update_params = {"email": email, "full_name": full_name, "type": type}
+    provided_params = {k: v for k, v in update_params.items() if v and v.strip()}
+    
+    if not provided_params:
+        return {
+            "successful": False,
+            "error": "No update parameters provided",
+            "action": "update_organization_member_details",
+            "organization_id": id_org,
+            "member_id": id_member,
+            "message": "Must provide at least one update parameter (email, full_name, or type)",
+            "guidance": "Provide at least one of: email, full_name, or type parameters.",
+            "suggestion": "Specify which member details you want to update."
+        }
+
+    # Prepare the data payload with only provided parameters
+    data = {}
+    
+    if email and email.strip():
+        email_address = email.strip()
+        if '@' not in email_address:
+            return {
+                "successful": False,
+                "error": "Invalid email format",
+                "action": "update_organization_member_details",
+                "organization_id": id_org,
+                "member_id": id_member,
+                "message": f"Invalid email format '{email}'",
+                "guidance": "Email must be a valid email address.",
+                "suggestion": "Provide a valid email address for the member."
+            }
+        data["email"] = email_address
+    
+    if full_name and full_name.strip():
+        data["fullName"] = full_name.strip()
+    
+    if type and type.strip():
+        membership_type = type.strip().lower()
+        if membership_type not in ['admin', 'normal', 'observer']:
+            return {
+                "successful": False,
+                "error": "Invalid membership type",
+                "action": "update_organization_member_details",
+                "organization_id": id_org,
+                "member_id": id_member,
+                "message": f"Invalid membership type '{type}' - must be 'admin', 'normal', or 'observer'",
+                "guidance": "Membership type must be 'admin', 'normal', or 'observer'.",
+                "suggestion": "Use 'admin' for admin access, 'normal' for regular access, or 'observer' for read-only access."
+            }
+        data["type"] = membership_type
+
+    try:
+        endpoint = f"/organizations/{id_org}/members/{id_member}"
+        result = trello_request("PUT", endpoint, data=data)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_organization_member_details",
+            "organization_id": id_org,
+            "member_id": id_member,
+            "updated_fields": list(data.keys()),
+            "message": f"Successfully updated member {id_member} in organization {id_org}"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("email" in error_message.lower() or "invalid" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid member data: {error_message}",
+                "action": "update_organization_member_details",
+                "organization_id": id_org,
+                "member_id": id_member,
+                "message": f"Failed to update member - invalid member data",
+                "guidance": "Check that the email is valid and the membership type is correct.",
+                "suggestion": "Verify the email address and membership type are valid."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_organization_member_details",
+                "organization_id": id_org,
+                "member_id": id_member,
+                "message": f"Failed to update member - insufficient permissions",
+                "guidance": "You need admin permissions to update organization members.",
+                "suggestion": "Ensure you have admin permissions for this organization."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Resource not found: {error_message}",
+                "action": "update_organization_member_details",
+                "organization_id": id_org,
+                "member_id": id_member,
+                "message": f"Failed to update member - organization or member not found",
+                "guidance": "The organization ID or member ID may be invalid.",
+                "suggestion": "Verify the organization ID and member ID are correct and exist."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update member: {error_message}",
+                "action": "update_organization_member_details",
+                "organization_id": id_org,
+                "member_id": id_member,
+                "message": f"Failed to update member {id_member} in organization {id_org}"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_ORGANIZATIONS_NAME_BY_ID_ORG",
+    description="Update organization name by id. Updates the unique programmatic identifier (used in urls and api interactions) for an existing trello organization; this is an irreversible operation, effective immediately, and only affects this identifier.",
+)
+def TRELLO_UPDATE_ORGANIZATIONS_NAME_BY_ID_ORG(
+    id_org: Annotated[str, "The ID of the organization to update the name for."],
+    value: Annotated[str | None, "The new programmatic name for the organization."] = None
+):
+    """Update organization name by id. Updates the unique programmatic identifier (used in urls and api interactions) for an existing trello organization; this is an irreversible operation, effective immediately, and only affects this identifier."""
+    err = _validate_required({"id_org": id_org}, ["id_org"])
+    if err:
+        return {
+            "successful": False,
+            "error": str(err),
+            "action": "update_organization_name",
+            "organization_id": id_org,
+            "message": "Missing required parameter: id_org"
+        }
+
+    # If no value provided, return error
+    if not value or not value.strip():
+        return {
+            "successful": False,
+            "error": "No organization name provided",
+            "action": "update_organization_name",
+            "organization_id": id_org,
+            "message": "Organization name value is required",
+            "guidance": "Provide a new programmatic name for the organization.",
+            "suggestion": "Enter a new organization name (this is irreversible)."
+        }
+
+    # Validate organization name
+    org_name = value.strip()
+    if not org_name:
+        return {
+            "successful": False,
+            "error": "Empty organization name provided",
+            "action": "update_organization_name",
+            "organization_id": id_org,
+            "message": "Organization name cannot be empty",
+            "guidance": "Provide a non-empty organization name.",
+            "suggestion": "Enter a valid organization name."
+        }
+
+    try:
+        endpoint = f"/organizations/{id_org}"
+        data = {"name": org_name}
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_organization_name",
+            "organization_id": id_org,
+            "new_organization_name": org_name,
+            "message": f"Successfully updated organization name to '{org_name}' for {id_org}"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("invalid" in error_message.lower() or "bad request" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid request: {error_message}",
+                "action": "update_organization_name",
+                "organization_id": id_org,
+                "message": f"Failed to update organization name - invalid request",
+                "guidance": "Check that the organization ID is valid and the name is properly formatted.",
+                "suggestion": "Verify the organization ID is correct and try again."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_organization_name",
+                "organization_id": id_org,
+                "message": f"Failed to update organization name - insufficient permissions",
+                "guidance": "You need admin permissions to update organization name.",
+                "suggestion": "Ensure you have admin permissions for this organization."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Organization not found: {error_message}",
+                "action": "update_organization_name",
+                "organization_id": id_org,
+                "message": f"Failed to update organization name - organization not found",
+                "guidance": "The organization ID may be invalid or the organization may not exist.",
+                "suggestion": "Verify the organization ID is correct and that the organization exists."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update organization name: {error_message}",
+                "action": "update_organization_name",
+                "organization_id": id_org,
+                "message": f"Failed to update organization name for {id_org}"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_ORGANIZATIONS_PREFS_GOOGLE_APPS_VERSION_BY_ID_ORG",
+    description="Update organization Google Apps version. Updates the google apps integration version preference for a specified trello organization, to manage compatibility or features related to google workspace services.",
+)
+def TRELLO_UPDATE_ORGANIZATIONS_PREFS_GOOGLE_APPS_VERSION_BY_ID_ORG(
+    id_org: Annotated[str, "The ID of the organization to update the Google Apps version for."],
+    value: Annotated[str | None, "The Google Apps version for the organization."] = None
+):
+    """Update organization Google Apps version. Updates the google apps integration version preference for a specified trello organization, to manage compatibility or features related to google workspace services."""
+    err = _validate_required({"id_org": id_org}, ["id_org"])
+    if err:
+        return {
+            "successful": False,
+            "error": str(err),
+            "action": "update_organization_google_apps_version",
+            "organization_id": id_org,
+            "message": "Missing required parameter: id_org"
+        }
+
+    # If no value provided, return error
+    if not value or not value.strip():
+        return {
+            "successful": False,
+            "error": "No Google Apps version provided",
+            "action": "update_organization_google_apps_version",
+            "organization_id": id_org,
+            "message": "Google Apps version value is required",
+            "guidance": "Provide a Google Apps version for the organization.",
+            "suggestion": "Enter a Google Apps version for the organization."
+        }
+
+    try:
+        endpoint = f"/organizations/{id_org}"
+        data = {"prefs/googleAppsVersion": value.strip()}
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_organization_google_apps_version",
+            "organization_id": id_org,
+            "new_google_apps_version": value.strip(),
+            "message": f"Successfully updated Google Apps version to '{value.strip()}' for organization {id_org}"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("invalid" in error_message.lower() or "bad request" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid request: {error_message}",
+                "action": "update_organization_google_apps_version",
+                "organization_id": id_org,
+                "message": f"Failed to update Google Apps version - invalid request",
+                "guidance": "Check that the organization ID is valid and the Google Apps version is properly formatted.",
+                "suggestion": "Verify the organization ID is correct and try again."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_organization_google_apps_version",
+                "organization_id": id_org,
+                "message": f"Failed to update Google Apps version - insufficient permissions",
+                "guidance": "You need admin permissions to update organization Google Apps version.",
+                "suggestion": "Ensure you have admin permissions for this organization."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Organization not found: {error_message}",
+                "action": "update_organization_google_apps_version",
+                "organization_id": id_org,
+                "message": f"Failed to update Google Apps version - organization not found",
+                "guidance": "The organization ID may be invalid or the organization may not exist.",
+                "suggestion": "Verify the organization ID is correct and that the organization exists."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update Google Apps version: {error_message}",
+                "action": "update_organization_google_apps_version",
+                "organization_id": id_org,
+                "message": f"Failed to update Google Apps version for organization {id_org}"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_ORGANIZATIONS_PREFS_ORG_INVITE_RESTRICT_BY_ID_ORG",
+    description="Update organization invite restriction. Modifies a trello organization's invitation policy using an email, domain, or keyword rule, affecting only future invites, not existing members.",
+)
+def TRELLO_UPDATE_ORGANIZATIONS_PREFS_ORG_INVITE_RESTRICT_BY_ID_ORG(
+    id_org: Annotated[str, "The ID of the organization to update the invite restriction for."],
+    value: Annotated[str | None, "The invite restriction rule (email, domain, or keyword)."] = None
+):
+    """Update organization invite restriction. Modifies a trello organization's invitation policy using an email, domain, or keyword rule, affecting only future invites, not existing members."""
+    err = _validate_required({"id_org": id_org}, ["id_org"])
+    if err:
+        return {
+            "successful": False,
+            "error": str(err),
+            "action": "update_organization_invite_restrict",
+            "organization_id": id_org,
+            "message": "Missing required parameter: id_org"
+        }
+
+    # If no value provided, return error
+    if not value or not value.strip():
+        return {
+            "successful": False,
+            "error": "No invite restriction provided",
+            "action": "update_organization_invite_restrict",
+            "organization_id": id_org,
+            "message": "Invite restriction value is required",
+            "guidance": "Provide an invite restriction rule for the organization.",
+            "suggestion": "Enter an email, domain, or keyword rule for the organization."
+        }
+
+    try:
+        endpoint = f"/organizations/{id_org}"
+        data = {"prefs/orgInviteRestrict": value.strip()}
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_organization_invite_restrict",
+            "organization_id": id_org,
+            "new_invite_restrict": value.strip(),
+            "message": f"Successfully updated invite restriction to '{value.strip()}' for organization {id_org}"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("invalid" in error_message.lower() or "bad request" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid request: {error_message}",
+                "action": "update_organization_invite_restrict",
+                "organization_id": id_org,
+                "message": f"Failed to update invite restriction - invalid request",
+                "guidance": "Check that the organization ID is valid and the invite restriction is properly formatted.",
+                "suggestion": "Verify the organization ID is correct and try again."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_organization_invite_restrict",
+                "organization_id": id_org,
+                "message": f"Failed to update invite restriction - insufficient permissions",
+                "guidance": "You need admin permissions to update organization invite restriction.",
+                "suggestion": "Ensure you have admin permissions for this organization."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Organization not found: {error_message}",
+                "action": "update_organization_invite_restrict",
+                "organization_id": id_org,
+                "message": f"Failed to update invite restriction - organization not found",
+                "guidance": "The organization ID may be invalid or the organization may not exist.",
+                "suggestion": "Verify the organization ID is correct and that the organization exists."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update invite restriction: {error_message}",
+                "action": "update_organization_invite_restrict",
+                "organization_id": id_org,
+                "message": f"Failed to update invite restriction for organization {id_org}"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_ORGANIZATIONS_PREFS_PERMISSION_LEVEL_BY_ID_ORG",
+    description="Update organization permission level. Updates a trello organization's `permissionlevel` preference, determining if it's members-only or link-accessible, and affecting new board default visibility.",
+)
+def TRELLO_UPDATE_ORGANIZATIONS_PREFS_PERMISSION_LEVEL_BY_ID_ORG(
+    id_org: Annotated[str, "The ID of the organization to update the permission level for."],
+    value: Annotated[str | None, "The permission level ('private', 'org', 'public')."] = None
+):
+    """Update organization permission level. Updates a trello organization's `permissionlevel` preference, determining if it's members-only or link-accessible, and affecting new board default visibility."""
+    err = _validate_required({"id_org": id_org}, ["id_org"])
+    if err:
+        return {
+            "successful": False,
+            "error": str(err),
+            "action": "update_organization_permission_level",
+            "organization_id": id_org,
+            "message": "Missing required parameter: id_org"
+        }
+
+    # If no value provided, return error
+    if not value or not value.strip():
+        return {
+            "successful": False,
+            "error": "No permission level provided",
+            "action": "update_organization_permission_level",
+            "organization_id": id_org,
+            "message": "Permission level value is required",
+            "guidance": "Provide a permission level for the organization.",
+            "suggestion": "Enter a permission level: 'private', 'org', or 'public'."
+        }
+
+    # Validate permission level
+    permission_level = value.strip().lower()
+    if permission_level not in ['private', 'org', 'public']:
+        return {
+            "successful": False,
+            "error": "Invalid permission level",
+            "action": "update_organization_permission_level",
+            "organization_id": id_org,
+            "message": f"Invalid permission level '{value}' - must be 'private', 'org', or 'public'",
+            "guidance": "Permission level must be 'private', 'org', or 'public'.",
+            "suggestion": "Use 'private' for members-only, 'org' for organization access, or 'public' for public access."
+        }
+
+    try:
+        endpoint = f"/organizations/{id_org}"
+        data = {"prefs/permissionLevel": permission_level}
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_organization_permission_level",
+            "organization_id": id_org,
+            "new_permission_level": permission_level,
+            "message": f"Successfully updated permission level to '{permission_level}' for organization {id_org}"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("invalid" in error_message.lower() or "bad request" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid request: {error_message}",
+                "action": "update_organization_permission_level",
+                "organization_id": id_org,
+                "message": f"Failed to update permission level - invalid request",
+                "guidance": "Check that the organization ID is valid and the permission level is properly formatted.",
+                "suggestion": "Verify the organization ID is correct and try again."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_organization_permission_level",
+                "organization_id": id_org,
+                "message": f"Failed to update permission level - insufficient permissions",
+                "guidance": "You need admin permissions to update organization permission level.",
+                "suggestion": "Ensure you have admin permissions for this organization."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Organization not found: {error_message}",
+                "action": "update_organization_permission_level",
+                "organization_id": id_org,
+                "message": f"Failed to update permission level - organization not found",
+                "guidance": "The organization ID may be invalid or the organization may not exist.",
+                "suggestion": "Verify the organization ID is correct and that the organization exists."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update permission level: {error_message}",
+                "action": "update_organization_permission_level",
+                "organization_id": id_org,
+                "message": f"Failed to update permission level for organization {id_org}"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_ORGANIZATIONS_WEBSITE_BY_ID_ORG",
+    description="Update organization website. Updates the website url for a specified trello organization.",
+)
+def TRELLO_UPDATE_ORGANIZATIONS_WEBSITE_BY_ID_ORG(
+    id_org: Annotated[str, "The ID of the organization to update the website for."],
+    value: Annotated[str | None, "The new website URL for the organization."] = None
+):
+    """Update organization website. Updates the website url for a specified trello organization."""
+    err = _validate_required({"id_org": id_org}, ["id_org"])
+    if err:
+        return {
+            "successful": False,
+            "error": str(err),
+            "action": "update_organization_website",
+            "organization_id": id_org,
+            "message": "Missing required parameter: id_org"
+        }
+
+    # If no value provided, return error
+    if not value or not value.strip():
+        return {
+            "successful": False,
+            "error": "No website URL provided",
+            "action": "update_organization_website",
+            "organization_id": id_org,
+            "message": "Website URL value is required",
+            "guidance": "Provide a website URL for the organization.",
+            "suggestion": "Enter a valid website URL for the organization."
+        }
+
+    # Basic URL validation
+    website_url = value.strip()
+    if not website_url.startswith(('http://', 'https://')):
+        website_url = 'https://' + website_url
+
+    try:
+        endpoint = f"/organizations/{id_org}"
+        data = {"website": website_url}
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_organization_website",
+            "organization_id": id_org,
+            "new_website": website_url,
+            "message": f"Successfully updated website to '{website_url}' for organization {id_org}"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("invalid" in error_message.lower() or "bad request" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid request: {error_message}",
+                "action": "update_organization_website",
+                "organization_id": id_org,
+                "message": f"Failed to update website - invalid request",
+                "guidance": "Check that the organization ID is valid and the website URL is properly formatted.",
+                "suggestion": "Verify the organization ID is correct and try again."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_organization_website",
+                "organization_id": id_org,
+                "message": f"Failed to update website - insufficient permissions",
+                "guidance": "You need admin permissions to update organization website.",
+                "suggestion": "Ensure you have admin permissions for this organization."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Organization not found: {error_message}",
+                "action": "update_organization_website",
+                "organization_id": id_org,
+                "message": f"Failed to update website - organization not found",
+                "guidance": "The organization ID may be invalid or the organization may not exist.",
+                "suggestion": "Verify the organization ID is correct and that the organization exists."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update website: {error_message}",
+                "action": "update_organization_website",
+                "organization_id": id_org,
+                "message": f"Failed to update website for organization {id_org}"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_ORG_ASSOCIATED_DOMAIN_PREFS",
+    description="Update an organization's associated domain preferences. Updates or removes the google workspace domain associated with a trello organization, often to configure features like sso or automatic user provisioning.",
+)
+def TRELLO_UPDATE_ORG_ASSOCIATED_DOMAIN_PREFS(
+    id_org: Annotated[str, "The ID of the organization to update the associated domain for."],
+    value: Annotated[str | None, "The associated domain for the organization (e.g., 'company.com')."] = None
+):
+    """Update an organization's associated domain preferences. Updates or removes the google workspace domain associated with a trello organization, often to configure features like sso or automatic user provisioning."""
+    err = _validate_required({"id_org": id_org}, ["id_org"])
+    if err:
+        return {
+            "successful": False,
+            "error": str(err),
+            "action": "update_organization_associated_domain",
+            "organization_id": id_org,
+            "message": "Missing required parameter: id_org"
+        }
+
+    # If no value provided, return error
+    if not value or not value.strip():
+        return {
+            "successful": False,
+            "error": "No associated domain provided",
+            "action": "update_organization_associated_domain",
+            "organization_id": id_org,
+            "message": "Associated domain value is required",
+            "guidance": "Provide an associated domain for the organization.",
+            "suggestion": "Enter a domain name (e.g., 'company.com') for the organization."
+        }
+
+    # Basic domain validation
+    domain = value.strip()
+    if '.' not in domain:
+        return {
+            "successful": False,
+            "error": "Invalid domain format",
+            "action": "update_organization_associated_domain",
+            "organization_id": id_org,
+            "message": f"Invalid domain format '{domain}' - must be a valid domain name",
+            "guidance": "Domain must be a valid domain name (e.g., 'company.com').",
+            "suggestion": "Enter a valid domain name like 'company.com'."
+        }
+
+    try:
+        endpoint = f"/organizations/{id_org}"
+        data = {"prefs/associatedDomain": domain}
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_organization_associated_domain",
+            "organization_id": id_org,
+            "new_associated_domain": domain,
+            "message": f"Successfully updated associated domain to '{domain}' for organization {id_org}"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("invalid" in error_message.lower() or "bad request" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid request: {error_message}",
+                "action": "update_organization_associated_domain",
+                "organization_id": id_org,
+                "message": f"Failed to update associated domain - invalid request",
+                "guidance": "Check that the organization ID is valid and the domain is properly formatted.",
+                "suggestion": "Verify the organization ID is correct and try again."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_organization_associated_domain",
+                "organization_id": id_org,
+                "message": f"Failed to update associated domain - insufficient permissions",
+                "guidance": "You need admin permissions to update organization associated domain.",
+                "suggestion": "Ensure you have admin permissions for this organization."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Organization not found: {error_message}",
+                "action": "update_organization_associated_domain",
+                "organization_id": id_org,
+                "message": f"Failed to update associated domain - organization not found",
+                "guidance": "The organization ID may be invalid or the organization may not exist.",
+                "suggestion": "Verify the organization ID is correct and that the organization exists."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update associated domain: {error_message}",
+                "action": "update_organization_associated_domain",
+                "organization_id": id_org,
+                "message": f"Failed to update associated domain for organization {id_org}"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_ORG_BOARD_VISIBILITY",
+    description="Update organization board visibility preference. Updates the preference controlling who can set board visibility to 'organization-visible' within an existing trello organization.",
+)
+def TRELLO_UPDATE_ORG_BOARD_VISIBILITY(
+    id_org: Annotated[str, "The ID of the organization to update the board visibility preference for."],
+    value: Annotated[str | None, "The board visibility restriction ('admin' or 'none')."] = None
+):
+    """Update organization board visibility preference. Updates the preference controlling who can set board visibility to 'organization-visible' within an existing trello organization."""
+    err = _validate_required({"id_org": id_org}, ["id_org"])
+    if err:
+        return {
+            "successful": False,
+            "error": str(err),
+            "action": "update_organization_board_visibility",
+            "organization_id": id_org,
+            "message": "Missing required parameter: id_org"
+        }
+
+    # If no value provided, return error
+    if not value or not value.strip():
+        return {
+            "successful": False,
+            "error": "No board visibility preference provided",
+            "action": "update_organization_board_visibility",
+            "organization_id": id_org,
+            "message": "Board visibility preference value is required",
+            "guidance": "Provide a board visibility preference for the organization.",
+            "suggestion": "Enter 'admin' to restrict to admins or 'none' for no restriction."
+        }
+
+    # Validate board visibility preference
+    visibility_pref = value.strip().lower()
+    if visibility_pref not in ['admin', 'none']:
+        return {
+            "successful": False,
+            "error": "Invalid board visibility preference",
+            "action": "update_organization_board_visibility",
+            "organization_id": id_org,
+            "message": f"Invalid board visibility preference '{value}' - must be 'admin' or 'none'",
+            "guidance": "Board visibility preference must be 'admin' or 'none'.",
+            "suggestion": "Use 'admin' to restrict to admins or 'none' for no restriction."
+        }
+
+    try:
+        endpoint = f"/organizations/{id_org}"
+        data = {"prefs/boardVisibilityRestrict/org": visibility_pref}
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_organization_board_visibility",
+            "organization_id": id_org,
+            "new_board_visibility_pref": visibility_pref,
+            "message": f"Successfully updated board visibility preference to '{visibility_pref}' for organization {id_org}"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("invalid" in error_message.lower() or "bad request" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid request: {error_message}",
+                "action": "update_organization_board_visibility",
+                "organization_id": id_org,
+                "message": f"Failed to update board visibility preference - invalid request",
+                "guidance": "Check that the organization ID is valid and the preference is properly formatted.",
+                "suggestion": "Verify the organization ID is correct and try again."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_organization_board_visibility",
+                "organization_id": id_org,
+                "message": f"Failed to update board visibility preference - insufficient permissions",
+                "guidance": "You need admin permissions to update organization board visibility preference.",
+                "suggestion": "Ensure you have admin permissions for this organization."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Organization not found: {error_message}",
+                "action": "update_organization_board_visibility",
+                "organization_id": id_org,
+                "message": f"Failed to update board visibility preference - organization not found",
+                "guidance": "The organization ID may be invalid or the organization may not exist.",
+                "suggestion": "Verify the organization ID is correct and that the organization exists."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update board visibility preference: {error_message}",
+                "action": "update_organization_board_visibility",
+                "organization_id": id_org,
+                "message": f"Failed to update board visibility preference for organization {id_org}"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_ORG_EXTERNAL_MEMBERS_ACCESS",
+    description="Update an organization's external members access. Updates the 'externalmembersdisabled' preference for a trello organization to control whether non-members can be added to its boards.",
+)
+def TRELLO_UPDATE_ORG_EXTERNAL_MEMBERS_ACCESS(
+    id_org: Annotated[str, "The ID of the organization to update external members access for."],
+    value: Annotated[str | None, "Whether to disable external members ('true' or 'false')."] = None
+):
+    """Update an organization's external members access. Updates the 'externalmembersdisabled' preference for a trello organization to control whether non-members can be added to its boards."""
+    err = _validate_required({"id_org": id_org}, ["id_org"])
+    if err:
+        return {
+            "successful": False,
+            "error": str(err),
+            "action": "update_organization_external_members_access",
+            "organization_id": id_org,
+            "message": "Missing required parameter: id_org"
+        }
+
+    # If no value provided, return error
+    if not value or not value.strip():
+        return {
+            "successful": False,
+            "error": "No external members access preference provided",
+            "action": "update_organization_external_members_access",
+            "organization_id": id_org,
+            "message": "External members access preference value is required",
+            "guidance": "Provide a preference for external members access.",
+            "suggestion": "Enter 'true' to disable external members or 'false' to allow them."
+        }
+
+    # Validate external members access preference
+    external_members_pref = value.strip().lower()
+    if external_members_pref not in ['true', 'false']:
+        return {
+            "successful": False,
+            "error": "Invalid external members access preference",
+            "action": "update_organization_external_members_access",
+            "organization_id": id_org,
+            "message": f"Invalid external members access preference '{value}' - must be 'true' or 'false'",
+            "guidance": "External members access preference must be 'true' or 'false'.",
+            "suggestion": "Use 'true' to disable external members or 'false' to allow them."
+        }
+
+    try:
+        endpoint = f"/organizations/{id_org}"
+        data = {"prefs/externalMembersDisabled": external_members_pref}
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_organization_external_members_access",
+            "organization_id": id_org,
+            "new_external_members_pref": external_members_pref,
+            "message": f"Successfully updated external members access to '{external_members_pref}' for organization {id_org}"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("invalid" in error_message.lower() or "bad request" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid request: {error_message}",
+                "action": "update_organization_external_members_access",
+                "organization_id": id_org,
+                "message": f"Failed to update external members access - invalid request",
+                "guidance": "Check that the organization ID is valid and the preference is properly formatted.",
+                "suggestion": "Verify the organization ID is correct and try again."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_organization_external_members_access",
+                "organization_id": id_org,
+                "message": f"Failed to update external members access - insufficient permissions",
+                "guidance": "You need admin permissions to update organization external members access.",
+                "suggestion": "Ensure you have admin permissions for this organization."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Organization not found: {error_message}",
+                "action": "update_organization_external_members_access",
+                "organization_id": id_org,
+                "message": f"Failed to update external members access - organization not found",
+                "guidance": "The organization ID may be invalid or the organization may not exist.",
+                "suggestion": "Verify the organization ID is correct and that the organization exists."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update external members access: {error_message}",
+                "action": "update_organization_external_members_access",
+                "organization_id": id_org,
+                "message": f"Failed to update external members access for organization {id_org}"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_ORG_MEMBER_DEACTIVATION",
+    description="Update org member deactivation status. Updates a member's deactivation status in an organization; 'true' deactivates (suspends access temporarily), 'false' reactivates.",
+)
+def TRELLO_UPDATE_ORG_MEMBER_DEACTIVATION(
+    id_member: Annotated[str, "The ID of the member to update deactivation status for."],
+    id_org: Annotated[str, "The ID of the organization the member belongs to."],
+    value: Annotated[str | None, "Whether to deactivate the member ('true' or 'false')."] = None
+):
+    """Update org member deactivation status. Updates a member's deactivation status in an organization; 'true' deactivates (suspends access temporarily), 'false' reactivates."""
+    err = _validate_required({"id_member": id_member, "id_org": id_org}, ["id_member", "id_org"])
+    if err:
+        return {
+            "successful": False,
+            "error": str(err),
+            "action": "update_organization_member_deactivation",
+            "member_id": id_member,
+            "organization_id": id_org,
+            "message": "Missing required parameters"
+        }
+
+    # If no value provided, return error
+    if not value or not value.strip():
+        return {
+            "successful": False,
+            "error": "No deactivation status provided",
+            "action": "update_organization_member_deactivation",
+            "member_id": id_member,
+            "organization_id": id_org,
+            "message": "Deactivation status value is required",
+            "guidance": "Provide a deactivation status for the member.",
+            "suggestion": "Enter 'true' to deactivate or 'false' to reactivate the member."
+        }
+
+    # Validate deactivation status
+    deactivation_status = value.strip().lower()
+    if deactivation_status not in ['true', 'false']:
+        return {
+            "successful": False,
+            "error": "Invalid deactivation status",
+            "action": "update_organization_member_deactivation",
+            "member_id": id_member,
+            "organization_id": id_org,
+            "message": f"Invalid deactivation status '{value}' - must be 'true' or 'false'",
+            "guidance": "Deactivation status must be 'true' or 'false'.",
+            "suggestion": "Use 'true' to deactivate or 'false' to reactivate the member."
+        }
+
+    try:
+        endpoint = f"/organizations/{id_org}/members/{id_member}"
+        data = {"deactivated": deactivation_status}
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_organization_member_deactivation",
+            "member_id": id_member,
+            "organization_id": id_org,
+            "new_deactivation_status": deactivation_status,
+            "message": f"Successfully updated member deactivation status to '{deactivation_status}' for member {id_member} in organization {id_org}"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("invalid" in error_message.lower() or "bad request" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid request: {error_message}",
+                "action": "update_organization_member_deactivation",
+                "member_id": id_member,
+                "organization_id": id_org,
+                "message": f"Failed to update member deactivation status - invalid request",
+                "guidance": "Check that the member ID and organization ID are valid.",
+                "suggestion": "Verify the member ID and organization ID are correct and try again."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_organization_member_deactivation",
+                "member_id": id_member,
+                "organization_id": id_org,
+                "message": f"Failed to update member deactivation status - insufficient permissions",
+                "guidance": "You need admin permissions to update member deactivation status.",
+                "suggestion": "Ensure you have admin permissions for this organization."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Member or organization not found: {error_message}",
+                "action": "update_organization_member_deactivation",
+                "member_id": id_member,
+                "organization_id": id_org,
+                "message": f"Failed to update member deactivation status - member or organization not found",
+                "guidance": "The member ID or organization ID may be invalid.",
+                "suggestion": "Verify the member ID and organization ID are correct and that both exist."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update member deactivation status: {error_message}",
+                "action": "update_organization_member_deactivation",
+                "member_id": id_member,
+                "organization_id": id_org,
+                "message": f"Failed to update member deactivation status for member {id_member} in organization {id_org}"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_ORG_MEMBERSHIP",
+    description="Update org membership. Updates a trello organization member's type to 'admin', 'normal', or 'observer', using the organization and membership ids.",
+)
+def TRELLO_UPDATE_ORG_MEMBERSHIP(
+    id_membership: Annotated[str, "The ID of the membership to update."],
+    id_org: Annotated[str, "The ID of the organization the membership belongs to."],
+    type: Annotated[str | None, "The new membership type ('admin', 'normal', or 'observer')."] = None,
+    member_fields: Annotated[str | None, "Comma-separated list of member fields to return."] = None
+):
+    """Update org membership. Updates a trello organization member's type to 'admin', 'normal', or 'observer', using the organization and membership ids."""
+    err = _validate_required({"id_membership": id_membership, "id_org": id_org}, ["id_membership", "id_org"])
+    if err:
+        return {
+            "successful": False,
+            "error": str(err),
+            "action": "update_organization_membership",
+            "membership_id": id_membership,
+            "organization_id": id_org,
+            "message": "Missing required parameters"
+        }
+
+    # If no type provided, return error
+    if not type or not type.strip():
+        return {
+            "successful": False,
+            "error": "No membership type provided",
+            "action": "update_organization_membership",
+            "membership_id": id_membership,
+            "organization_id": id_org,
+            "message": "Membership type is required",
+            "guidance": "Provide a membership type for the member.",
+            "suggestion": "Enter 'admin', 'normal', or 'observer' as the membership type."
+        }
+
+    # Validate membership type
+    membership_type = type.strip().lower()
+    if membership_type not in ['admin', 'normal', 'observer']:
+        return {
+            "successful": False,
+            "error": "Invalid membership type",
+            "action": "update_organization_membership",
+            "membership_id": id_membership,
+            "organization_id": id_org,
+            "message": f"Invalid membership type '{type}' - must be 'admin', 'normal', or 'observer'",
+            "guidance": "Membership type must be 'admin', 'normal', or 'observer'.",
+            "suggestion": "Use 'admin', 'normal', or 'observer' as the membership type."
+        }
+
+    try:
+        endpoint = f"/organizations/{id_org}/memberships/{id_membership}"
+        data = {"type": membership_type}
+        
+        # Add member_fields if provided
+        params = {}
+        if member_fields and member_fields.strip():
+            params["member_fields"] = member_fields.strip()
+        
+        result = trello_request("PUT", endpoint, data=data, params=params)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_organization_membership",
+            "membership_id": id_membership,
+            "organization_id": id_org,
+            "new_membership_type": membership_type,
+            "message": f"Successfully updated membership type to '{membership_type}' for membership {id_membership} in organization {id_org}"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("invalid" in error_message.lower() or "bad request" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid request: {error_message}",
+                "action": "update_organization_membership",
+                "membership_id": id_membership,
+                "organization_id": id_org,
+                "message": f"Failed to update membership - invalid request",
+                "guidance": "Check that the membership ID and organization ID are valid.",
+                "suggestion": "Verify the membership ID and organization ID are correct and try again."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_organization_membership",
+                "membership_id": id_membership,
+                "organization_id": id_org,
+                "message": f"Failed to update membership - insufficient permissions",
+                "guidance": "You need admin permissions to update membership type.",
+                "suggestion": "Ensure you have admin permissions for this organization."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Membership or organization not found: {error_message}",
+                "action": "update_organization_membership",
+                "membership_id": id_membership,
+                "organization_id": id_org,
+                "message": f"Failed to update membership - membership or organization not found",
+                "guidance": "The membership ID or organization ID may be invalid.",
+                "suggestion": "Verify the membership ID and organization ID are correct and that both exist."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update membership: {error_message}",
+                "action": "update_organization_membership",
+                "membership_id": id_membership,
+                "organization_id": id_org,
+                "message": f"Failed to update membership for membership {id_membership} in organization {id_org}"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_ORG_PRIVATE_BOARD_VISIBILITY",
+    description="Update organization private board visibility restriction. Updates the organization's preference controlling who is permitted to change the visibility of its private boards; requires admin privileges for the organization.",
+)
+def TRELLO_UPDATE_ORG_PRIVATE_BOARD_VISIBILITY(
+    id_org: Annotated[str, "The ID of the organization to update private board visibility restriction for."],
+    value: Annotated[str | None, "The private board visibility restriction ('admin' or 'none')."] = None
+):
+    """Update organization private board visibility restriction. Updates the organization's preference controlling who is permitted to change the visibility of its private boards; requires admin privileges for the organization."""
+    err = _validate_required({"id_org": id_org}, ["id_org"])
+    if err:
+        return {
+            "successful": False,
+            "error": str(err),
+            "action": "update_organization_private_board_visibility",
+            "organization_id": id_org,
+            "message": "Missing required parameter: id_org"
+        }
+
+    # If no value provided, return error
+    if not value or not value.strip():
+        return {
+            "successful": False,
+            "error": "No private board visibility restriction provided",
+            "action": "update_organization_private_board_visibility",
+            "organization_id": id_org,
+            "message": "Private board visibility restriction value is required",
+            "guidance": "Provide a private board visibility restriction for the organization.",
+            "suggestion": "Enter 'admin' to restrict to admins or 'none' for no restriction."
+        }
+
+    # Validate private board visibility restriction
+    visibility_restriction = value.strip().lower()
+    if visibility_restriction not in ['admin', 'none']:
+        return {
+            "successful": False,
+            "error": "Invalid private board visibility restriction",
+            "action": "update_organization_private_board_visibility",
+            "organization_id": id_org,
+            "message": f"Invalid private board visibility restriction '{value}' - must be 'admin' or 'none'",
+            "guidance": "Private board visibility restriction must be 'admin' or 'none'.",
+            "suggestion": "Use 'admin' to restrict to admins or 'none' for no restriction."
+        }
+
+    try:
+        endpoint = f"/organizations/{id_org}"
+        data = {"prefs/boardVisibilityRestrict/private": visibility_restriction}
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_organization_private_board_visibility",
+            "organization_id": id_org,
+            "new_private_board_visibility_restriction": visibility_restriction,
+            "message": f"Successfully updated private board visibility restriction to '{visibility_restriction}' for organization {id_org}"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("invalid" in error_message.lower() or "bad request" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid request: {error_message}",
+                "action": "update_organization_private_board_visibility",
+                "organization_id": id_org,
+                "message": f"Failed to update private board visibility restriction - invalid request",
+                "guidance": "Check that the organization ID is valid and the restriction is properly formatted.",
+                "suggestion": "Verify the organization ID is correct and try again."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_organization_private_board_visibility",
+                "organization_id": id_org,
+                "message": f"Failed to update private board visibility restriction - insufficient permissions",
+                "guidance": "You need admin permissions to update organization private board visibility restriction.",
+                "suggestion": "Ensure you have admin permissions for this organization."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Organization not found: {error_message}",
+                "action": "update_organization_private_board_visibility",
+                "organization_id": id_org,
+                "message": f"Failed to update private board visibility restriction - organization not found",
+                "guidance": "The organization ID may be invalid or the organization may not exist.",
+                "suggestion": "Verify the organization ID is correct and that the organization exists."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update private board visibility restriction: {error_message}",
+                "action": "update_organization_private_board_visibility",
+                "organization_id": id_org,
+                "message": f"Failed to update private board visibility restriction for organization {id_org}"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_ORG_PUBLIC_BOARD_VISIBILITY",
+    description="Update organization public board visibility. Updates the restriction on who can set board visibility to public for a specified trello organization.",
+)
+def TRELLO_UPDATE_ORG_PUBLIC_BOARD_VISIBILITY(
+    id_org: Annotated[str, "The ID of the organization to update public board visibility for."],
+    value: Annotated[str | None, "The public board visibility restriction ('admin' or 'none')."] = None
+):
+    """Update organization public board visibility. Updates the restriction on who can set board visibility to public for a specified trello organization."""
+    err = _validate_required({"id_org": id_org}, ["id_org"])
+    if err:
+        return {
+            "successful": False,
+            "error": str(err),
+            "action": "update_organization_public_board_visibility",
+            "organization_id": id_org,
+            "message": "Missing required parameter: id_org"
+        }
+
+    # If no value provided, return error
+    if not value or not value.strip():
+        return {
+            "successful": False,
+            "error": "No public board visibility restriction provided",
+            "action": "update_organization_public_board_visibility",
+            "organization_id": id_org,
+            "message": "Public board visibility restriction value is required",
+            "guidance": "Provide a public board visibility restriction for the organization.",
+            "suggestion": "Enter 'admin' to restrict to admins or 'none' for no restriction."
+        }
+
+    # Validate public board visibility restriction
+    visibility_restriction = value.strip().lower()
+    if visibility_restriction not in ['admin', 'none']:
+        return {
+            "successful": False,
+            "error": "Invalid public board visibility restriction",
+            "action": "update_organization_public_board_visibility",
+            "organization_id": id_org,
+            "message": f"Invalid public board visibility restriction '{value}' - must be 'admin' or 'none'",
+            "guidance": "Public board visibility restriction must be 'admin' or 'none'.",
+            "suggestion": "Use 'admin' to restrict to admins or 'none' for no restriction."
+        }
+
+    try:
+        endpoint = f"/organizations/{id_org}"
+        data = {"prefs/boardVisibilityRestrict/public": visibility_restriction}
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_organization_public_board_visibility",
+            "organization_id": id_org,
+            "new_public_board_visibility_restriction": visibility_restriction,
+            "message": f"Successfully updated public board visibility restriction to '{visibility_restriction}' for organization {id_org}"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("invalid" in error_message.lower() or "bad request" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid request: {error_message}",
+                "action": "update_organization_public_board_visibility",
+                "organization_id": id_org,
+                "message": f"Failed to update public board visibility restriction - invalid request",
+                "guidance": "Check that the organization ID is valid and the restriction is properly formatted.",
+                "suggestion": "Verify the organization ID is correct and try again."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_organization_public_board_visibility",
+                "organization_id": id_org,
+                "message": f"Failed to update public board visibility restriction - insufficient permissions",
+                "guidance": "You need admin permissions to update organization public board visibility restriction.",
+                "suggestion": "Ensure you have admin permissions for this organization."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Organization not found: {error_message}",
+                "action": "update_organization_public_board_visibility",
+                "organization_id": id_org,
+                "message": f"Failed to update public board visibility restriction - organization not found",
+                "guidance": "The organization ID may be invalid or the organization may not exist.",
+                "suggestion": "Verify the organization ID is correct and that the organization exists."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update public board visibility restriction: {error_message}",
+                "action": "update_organization_public_board_visibility",
+                "organization_id": id_org,
+                "message": f"Failed to update public board visibility restriction for organization {id_org}"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_SESSIONS_BY_ID_SESSION",
+    description="Update session by id. Updates a trello user session's viewed board id or status; call when user activity or board focus changes.",
+)
+def TRELLO_UPDATE_SESSIONS_BY_ID_SESSION(
+    id_session: Annotated[str, "The ID of the session to update."],
+    id_board: Annotated[str | None, "The ID of the board the user is viewing."] = None,
+    status: Annotated[str | None, "The status of the session."] = None
+):
+    """Update session by id. Updates a trello user session's viewed board id or status; call when user activity or board focus changes."""
+    err = _validate_required({"id_session": id_session}, ["id_session"])
+    if err:
+        return {
+            "successful": False,
+            "error": str(err),
+            "action": "update_session",
+            "session_id": id_session,
+            "message": "Missing required parameter: id_session"
+        }
+
+    # Check if at least one update parameter is provided
+    if not id_board and not status:
+        return {
+            "successful": False,
+            "error": "No update parameters provided",
+            "action": "update_session",
+            "session_id": id_session,
+            "message": "Must provide at least one update parameter (id_board or status)",
+            "guidance": "Provide at least one of: id_board or status parameters.",
+            "suggestion": "Specify which session properties you want to update."
+        }
+
+    try:
+        endpoint = f"/sessions/{id_session}"
+        data = {}
+        
+        if id_board and id_board.strip():
+            data["idBoard"] = id_board.strip()
+        if status and status.strip():
+            data["status"] = status.strip()
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        updated_properties = []
+        if id_board and id_board.strip():
+            updated_properties.append("id_board")
+        if status and status.strip():
+            updated_properties.append("status")
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_session",
+            "session_id": id_session,
+            "updated_properties": updated_properties,
+            "message": f"Successfully updated session {id_session} with properties: {', '.join(updated_properties)}"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("invalid" in error_message.lower() or "bad request" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid request: {error_message}",
+                "action": "update_session",
+                "session_id": id_session,
+                "message": f"Failed to update session - invalid request",
+                "guidance": "Check that the session ID and parameters are valid.",
+                "suggestion": "Verify the session ID is correct and try again."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_session",
+                "session_id": id_session,
+                "message": f"Failed to update session - insufficient permissions",
+                "guidance": "You need appropriate permissions to update this session.",
+                "suggestion": "Ensure you have the necessary permissions for this session."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Session not found: {error_message}",
+                "action": "update_session",
+                "session_id": id_session,
+                "message": f"Failed to update session - session not found",
+                "guidance": "The session ID may be invalid or the session may not exist.",
+                "suggestion": "Verify the session ID is correct and that the session exists."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update session: {error_message}",
+                "action": "update_session",
+                "session_id": id_session,
+                "message": f"Failed to update session {id_session}"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_SESSIONS_STATUS_BY_ID_SESSION",
+    description="Update session status by ID. Updates the status of an existing trello session.",
+)
+def TRELLO_UPDATE_SESSIONS_STATUS_BY_ID_SESSION(
+    id_session: Annotated[str, "The ID of the session to update the status for."],
+    value: Annotated[str | None, "The new status for the session."] = None
+):
+    """Update session status by ID. Updates the status of an existing trello session."""
+    err = _validate_required({"id_session": id_session}, ["id_session"])
+    if err:
+        return {
+            "successful": False,
+            "error": str(err),
+            "action": "update_session_status",
+            "session_id": id_session,
+            "message": "Missing required parameter: id_session"
+        }
+
+    # If no value provided, return error
+    if not value or not value.strip():
+        return {
+            "successful": False,
+            "error": "No status provided",
+            "action": "update_session_status",
+            "session_id": id_session,
+            "message": "Status value is required",
+            "guidance": "Provide a status for the session.",
+            "suggestion": "Enter a status value for the session."
+        }
+
+    try:
+        endpoint = f"/sessions/{id_session}"
+        data = {"status": value.strip()}
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_session_status",
+            "session_id": id_session,
+            "new_status": value.strip(),
+            "message": f"Successfully updated session status to '{value.strip()}' for session {id_session}"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("invalid" in error_message.lower() or "bad request" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid request: {error_message}",
+                "action": "update_session_status",
+                "session_id": id_session,
+                "message": f"Failed to update session status - invalid request",
+                "guidance": "Check that the session ID is valid and the status is properly formatted.",
+                "suggestion": "Verify the session ID is correct and try again."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_session_status",
+                "session_id": id_session,
+                "message": f"Failed to update session status - insufficient permissions",
+                "guidance": "You need appropriate permissions to update this session.",
+                "suggestion": "Ensure you have the necessary permissions for this session."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Session not found: {error_message}",
+                "action": "update_session_status",
+                "session_id": id_session,
+                "message": f"Failed to update session status - session not found",
+                "guidance": "The session ID may be invalid or the session may not exist.",
+                "suggestion": "Verify the session ID is correct and that the session exists."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update session status: {error_message}",
+                "action": "update_session_status",
+                "session_id": id_session,
+                "message": f"Failed to update session status for session {id_session}"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_TOKENS_WEBHOOKS_BY_TOKEN",
+    description="Update a token's webhook. Updates an existing webhook's description, callback url, or monitored trello model id, using the api token in the path to identify the webhook; any new `idmodel` must be accessible by the token.",
+)
+def TRELLO_UPDATE_TOKENS_WEBHOOKS_BY_TOKEN(
+    callbackURL: Annotated[str | None, "The new callback URL for the webhook."] = None,
+    description: Annotated[str | None, "The new description for the webhook."] = None,
+    id_model: Annotated[str | None, "The new model ID to monitor (board, card, etc.)."] = None
+):
+    """Update a token's webhook. Updates an existing webhook's description, callback url, or monitored trello model id, using the api token in the path to identify the webhook; any new `idmodel` must be accessible by the token."""
+    
+    # Check if at least one update parameter is provided
+    if not callbackURL and not description and not id_model:
+        return {
+            "successful": False,
+            "error": "No update parameters provided",
+            "action": "update_token_webhook",
+            "message": "Must provide at least one update parameter (callbackURL, description, or id_model)",
+            "guidance": "Provide at least one of: callbackURL, description, or id_model parameters.",
+            "suggestion": "Specify which webhook properties you want to update."
+        }
+
+    try:
+        endpoint = "/tokens/me/webhooks"
+        data = {}
+        
+        if callbackURL and callbackURL.strip():
+            data["callbackURL"] = callbackURL.strip()
+        if description and description.strip():
+            data["description"] = description.strip()
+        if id_model and id_model.strip():
+            data["idModel"] = id_model.strip()
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        updated_properties = []
+        if callbackURL and callbackURL.strip():
+            updated_properties.append("callbackURL")
+        if description and description.strip():
+            updated_properties.append("description")
+        if id_model and id_model.strip():
+            updated_properties.append("id_model")
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_token_webhook",
+            "updated_properties": updated_properties,
+            "message": f"Successfully updated token webhook with properties: {', '.join(updated_properties)}"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("invalid" in error_message.lower() or "bad request" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid request: {error_message}",
+                "action": "update_token_webhook",
+                "message": f"Failed to update token webhook - invalid request",
+                "guidance": "Check that the parameters are valid and the model ID is accessible by the token.",
+                "suggestion": "Verify the model ID is correct and accessible by your token."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_token_webhook",
+                "message": f"Failed to update token webhook - insufficient permissions",
+                "guidance": "You need appropriate permissions to update webhooks.",
+                "suggestion": "Ensure you have the necessary permissions for webhook management."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Webhook not found: {error_message}",
+                "action": "update_token_webhook",
+                "message": f"Failed to update token webhook - webhook not found",
+                "guidance": "The webhook may not exist or may not be accessible by your token.",
+                "suggestion": "Verify the webhook exists and is accessible by your token."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update token webhook: {error_message}",
+                "action": "update_token_webhook",
+                "message": f"Failed to update token webhook"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_WEBHOOKS",
+    description="Update webhooks. Updates an existing trello webhook's description, active status, callback url, or monitored model id; requires the webhook id (not in request body) to be specified, typically via url path.",
+)
+def TRELLO_UPDATE_WEBHOOKS(
+    active: Annotated[str | None, "Whether the webhook is active ('true' or 'false')."] = None,
+    callbackURL: Annotated[str | None, "The new callback URL for the webhook."] = None,
+    description: Annotated[str | None, "The new description for the webhook."] = None,
+    id_model: Annotated[str | None, "The new model ID to monitor (board, card, etc.)."] = None
+):
+    """Update webhooks. Updates an existing trello webhook's description, active status, callback url, or monitored model id; requires the webhook id (not in request body) to be specified, typically via url path."""
+    
+    # Check if at least one update parameter is provided
+    if not active and not callbackURL and not description and not id_model:
+        return {
+            "successful": False,
+            "error": "No update parameters provided",
+            "action": "update_webhook",
+            "message": "Must provide at least one update parameter (active, callbackURL, description, or id_model)",
+            "guidance": "Provide at least one of: active, callbackURL, description, or id_model parameters.",
+            "suggestion": "Specify which webhook properties you want to update."
+        }
+
+    # Validate active status if provided
+    if active and active.strip():
+        active_status = active.strip().lower()
+        if active_status not in ['true', 'false']:
+            return {
+                "successful": False,
+                "error": "Invalid active status",
+                "action": "update_webhook",
+                "message": f"Invalid active status '{active}' - must be 'true' or 'false'",
+                "guidance": "Active status must be 'true' or 'false'.",
+                "suggestion": "Use 'true' to activate or 'false' to deactivate the webhook."
+            }
+
+    try:
+        endpoint = "/webhooks"
+        data = {}
+        
+        if active and active.strip():
+            data["active"] = active.strip().lower()
+        if callbackURL and callbackURL.strip():
+            data["callbackURL"] = callbackURL.strip()
+        if description and description.strip():
+            data["description"] = description.strip()
+        if id_model and id_model.strip():
+            data["idModel"] = id_model.strip()
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        updated_properties = []
+        if active and active.strip():
+            updated_properties.append("active")
+        if callbackURL and callbackURL.strip():
+            updated_properties.append("callbackURL")
+        if description and description.strip():
+            updated_properties.append("description")
+        if id_model and id_model.strip():
+            updated_properties.append("id_model")
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_webhook",
+            "updated_properties": updated_properties,
+            "message": f"Successfully updated webhook with properties: {', '.join(updated_properties)}"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("invalid" in error_message.lower() or "bad request" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid request: {error_message}",
+                "action": "update_webhook",
+                "message": f"Failed to update webhook - invalid request",
+                "guidance": "Check that the parameters are valid and the model ID is accessible.",
+                "suggestion": "Verify the model ID is correct and accessible."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_webhook",
+                "message": f"Failed to update webhook - insufficient permissions",
+                "guidance": "You need appropriate permissions to update webhooks.",
+                "suggestion": "Ensure you have the necessary permissions for webhook management."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Webhook not found: {error_message}",
+                "action": "update_webhook",
+                "message": f"Failed to update webhook - webhook not found",
+                "guidance": "The webhook may not exist or may not be accessible.",
+                "suggestion": "Verify the webhook exists and is accessible."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update webhook: {error_message}",
+                "action": "update_webhook",
+                "message": f"Failed to update webhook"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_WEBHOOKS_ACTIVE_BY_ID_WEBHOOK",
+    description="Update webhook active status. Updates the active status ('true' or 'false') of an existing trello webhook specified by `idwebhook`, without affecting other properties.",
+)
+def TRELLO_UPDATE_WEBHOOKS_ACTIVE_BY_ID_WEBHOOK(
+    id_webhook: Annotated[str, "The ID of the webhook to update the active status for."],
+    value: Annotated[str | None, "The new active status ('true' or 'false')."] = None
+):
+    """Update webhook active status. Updates the active status ('true' or 'false') of an existing trello webhook specified by `idwebhook`, without affecting other properties."""
+    err = _validate_required({"id_webhook": id_webhook}, ["id_webhook"])
+    if err:
+        return {
+            "successful": False,
+            "error": str(err),
+            "action": "update_webhook_active_status",
+            "webhook_id": id_webhook,
+            "message": "Missing required parameter: id_webhook"
+        }
+
+    # If no value provided, return error
+    if not value or not value.strip():
+        return {
+            "successful": False,
+            "error": "No active status provided",
+            "action": "update_webhook_active_status",
+            "webhook_id": id_webhook,
+            "message": "Active status value is required",
+            "guidance": "Provide an active status for the webhook.",
+            "suggestion": "Enter 'true' to activate or 'false' to deactivate the webhook."
+        }
+
+    # Validate active status
+    active_status = value.strip().lower()
+    if active_status not in ['true', 'false']:
+        return {
+            "successful": False,
+            "error": "Invalid active status",
+            "action": "update_webhook_active_status",
+            "webhook_id": id_webhook,
+            "message": f"Invalid active status '{value}' - must be 'true' or 'false'",
+            "guidance": "Active status must be 'true' or 'false'.",
+            "suggestion": "Use 'true' to activate or 'false' to deactivate the webhook."
+        }
+
+    try:
+        endpoint = f"/webhooks/{id_webhook}"
+        data = {"active": active_status}
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_webhook_active_status",
+            "webhook_id": id_webhook,
+            "new_active_status": active_status,
+            "message": f"Successfully updated webhook active status to '{active_status}' for webhook {id_webhook}"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("invalid" in error_message.lower() or "bad request" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid request: {error_message}",
+                "action": "update_webhook_active_status",
+                "webhook_id": id_webhook,
+                "message": f"Failed to update webhook active status - invalid request",
+                "guidance": "Check that the webhook ID is valid and the status is properly formatted.",
+                "suggestion": "Verify the webhook ID is correct and try again."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_webhook_active_status",
+                "webhook_id": id_webhook,
+                "message": f"Failed to update webhook active status - insufficient permissions",
+                "guidance": "You need appropriate permissions to update webhooks.",
+                "suggestion": "Ensure you have the necessary permissions for webhook management."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Webhook not found: {error_message}",
+                "action": "update_webhook_active_status",
+                "webhook_id": id_webhook,
+                "message": f"Failed to update webhook active status - webhook not found",
+                "guidance": "The webhook ID may be invalid or the webhook may not exist.",
+                "suggestion": "Verify the webhook ID is correct and that the webhook exists."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update webhook active status: {error_message}",
+                "action": "update_webhook_active_status",
+                "webhook_id": id_webhook,
+                "message": f"Failed to update webhook active status for webhook {id_webhook}"
+            }
+
+
+@mcp.tool(
+    "TRELLO_ADD_SESSIONS",
+    description="Create new session. Creates or updates a trello user session, optionally linking it to a specific board for status updates and setting the user's activity status.",
+)
+def TRELLO_ADD_SESSIONS(
+    id_board: Annotated[str | None, "The ID of the board to link the session to."] = None,
+    status: Annotated[str | None, "The status of the session."] = None
+):
+    """Create new session. Creates or updates a trello user session, optionally linking it to a specific board for status updates and setting the user's activity status."""
+    
+    # Check if at least one parameter is provided
+    if not id_board and not status:
+        return {
+            "successful": False,
+            "error": "No session parameters provided",
+            "action": "create_session",
+            "message": "Must provide at least one parameter (id_board or status)",
+            "guidance": "Provide at least one of: id_board or status parameters.",
+            "suggestion": "Specify which session properties you want to set."
+        }
+
+    try:
+        endpoint = "/sessions"
+        data = {}
+        
+        if id_board and id_board.strip():
+            data["idBoard"] = id_board.strip()
+        if status and status.strip():
+            data["status"] = status.strip()
+        
+        result = trello_request("POST", endpoint, data=data)
+        
+        session_properties = []
+        if id_board and id_board.strip():
+            session_properties.append("id_board")
+        if status and status.strip():
+            session_properties.append("status")
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "create_session",
+            "session_properties": session_properties,
+            "message": f"Successfully created session with properties: {', '.join(session_properties)}"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("invalid" in error_message.lower() or "bad request" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid request: {error_message}",
+                "action": "create_session",
+                "message": f"Failed to create session - invalid request",
+                "guidance": "Check that the board ID is valid and the parameters are properly formatted.",
+                "suggestion": "Verify the board ID is correct and try again."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "create_session",
+                "message": f"Failed to create session - insufficient permissions",
+                "guidance": "You need appropriate permissions to create sessions.",
+                "suggestion": "Ensure you have the necessary permissions for session management."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Board not found: {error_message}",
+                "action": "create_session",
+                "message": f"Failed to create session - board not found",
+                "guidance": "The board ID may be invalid or the board may not exist.",
+                "suggestion": "Verify the board ID is correct and that the board exists."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to create session: {error_message}",
+                "action": "create_session",
+                "message": f"Failed to create session"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_WEBHOOKS_BY_ID_WEBHOOK",
+    description="Update webhook configuration. Updates an existing trello webhook's configuration, avoiding the need to delete and recreate it for modifications.",
+)
+def TRELLO_UPDATE_WEBHOOKS_BY_ID_WEBHOOK(
+    id_webhook: Annotated[str, "The ID of the webhook to update."],
+    active: Annotated[str | None, "Whether the webhook is active ('true' or 'false')."] = None,
+    callbackURL: Annotated[str | None, "The new callback URL for the webhook."] = None,
+    description: Annotated[str | None, "The new description for the webhook."] = None,
+    id_model: Annotated[str | None, "The new model ID to monitor (board, card, etc.)."] = None
+):
+    """Update webhook configuration. Updates an existing trello webhook's configuration, avoiding the need to delete and recreate it for modifications."""
+    err = _validate_required({"id_webhook": id_webhook}, ["id_webhook"])
+    if err:
+        return {
+            "successful": False,
+            "error": str(err),
+            "action": "update_webhook_configuration",
+            "webhook_id": id_webhook,
+            "message": "Missing required parameter: id_webhook"
+        }
+
+    # Check if at least one update parameter is provided
+    if not active and not callbackURL and not description and not id_model:
+        return {
+            "successful": False,
+            "error": "No update parameters provided",
+            "action": "update_webhook_configuration",
+            "webhook_id": id_webhook,
+            "message": "Must provide at least one update parameter (active, callbackURL, description, or id_model)",
+            "guidance": "Provide at least one of: active, callbackURL, description, or id_model parameters.",
+            "suggestion": "Specify which webhook properties you want to update."
+        }
+
+    # Validate active status if provided
+    if active and active.strip():
+        active_status = active.strip().lower()
+        if active_status not in ['true', 'false']:
+            return {
+                "successful": False,
+                "error": "Invalid active status",
+                "action": "update_webhook_configuration",
+                "webhook_id": id_webhook,
+                "message": f"Invalid active status '{active}' - must be 'true' or 'false'",
+                "guidance": "Active status must be 'true' or 'false'.",
+                "suggestion": "Use 'true' to activate or 'false' to deactivate the webhook."
+            }
+
+    try:
+        endpoint = f"/webhooks/{id_webhook}"
+        data = {}
+        
+        if active and active.strip():
+            data["active"] = active.strip().lower()
+        if callbackURL and callbackURL.strip():
+            data["callbackURL"] = callbackURL.strip()
+        if description is not None:  # Allow empty string to clear description
+            data["description"] = description.strip() if description.strip() else ""
+        if id_model and id_model.strip():
+            data["idModel"] = id_model.strip()
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        updated_properties = []
+        if active and active.strip():
+            updated_properties.append("active")
+        if callbackURL and callbackURL.strip():
+            updated_properties.append("callbackURL")
+        if description is not None:
+            updated_properties.append("description")
+        if id_model and id_model.strip():
+            updated_properties.append("id_model")
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_webhook_configuration",
+            "webhook_id": id_webhook,
+            "updated_properties": updated_properties,
+            "message": f"Successfully updated webhook configuration with properties: {', '.join(updated_properties)}"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("invalid" in error_message.lower() or "bad request" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid request: {error_message}",
+                "action": "update_webhook_configuration",
+                "webhook_id": id_webhook,
+                "message": f"Failed to update webhook configuration - invalid request",
+                "guidance": "Check that the webhook ID and parameters are valid.",
+                "suggestion": "Verify the webhook ID is correct and try again."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_webhook_configuration",
+                "webhook_id": id_webhook,
+                "message": f"Failed to update webhook configuration - insufficient permissions",
+                "guidance": "You need appropriate permissions to update webhooks.",
+                "suggestion": "Ensure you have the necessary permissions for webhook management."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Webhook not found: {error_message}",
+                "action": "update_webhook_configuration",
+                "webhook_id": id_webhook,
+                "message": f"Failed to update webhook configuration - webhook not found",
+                "guidance": "The webhook ID may be invalid or the webhook may not exist.",
+                "suggestion": "Verify the webhook ID is correct and that the webhook exists."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update webhook configuration: {error_message}",
+                "action": "update_webhook_configuration",
+                "webhook_id": id_webhook,
+                "message": f"Failed to update webhook configuration for webhook {id_webhook}"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_WEBHOOKS_CALLBACK_URLBY_ID_WEBHOOK",
+    description="Update webhook callback url. Updates the callback url for a specific trello webhook; other webhook attributes remain unchanged.",
+)
+def TRELLO_UPDATE_WEBHOOKS_CALLBACK_URLBY_ID_WEBHOOK(
+    id_webhook: Annotated[str, "The ID of the webhook to update the callback URL for."],
+    value: Annotated[str, "The new callback URL for the webhook."]
+):
+    """Update webhook callback url. Updates the callback url for a specific trello webhook; other webhook attributes remain unchanged."""
+    err = _validate_required({"id_webhook": id_webhook, "value": value}, ["id_webhook", "value"])
+    if err:
+        return {
+            "successful": False,
+            "error": str(err),
+            "action": "update_webhook_callback_url",
+            "webhook_id": id_webhook,
+            "message": "Missing required parameters"
+        }
+
+    # Validate callback URL
+    callback_url = value.strip()
+    if not callback_url:
+        return {
+            "successful": False,
+            "error": "Empty callback URL provided",
+            "action": "update_webhook_callback_url",
+            "webhook_id": id_webhook,
+            "message": "Callback URL cannot be empty",
+            "guidance": "Provide a valid callback URL for the webhook.",
+            "suggestion": "Enter a valid callback URL."
+        }
+
+    try:
+        endpoint = f"/webhooks/{id_webhook}"
+        data = {"callbackURL": callback_url}
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_webhook_callback_url",
+            "webhook_id": id_webhook,
+            "new_callback_url": callback_url,
+            "message": f"Successfully updated webhook callback URL to '{callback_url}' for webhook {id_webhook}"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("invalid" in error_message.lower() or "bad request" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid request: {error_message}",
+                "action": "update_webhook_callback_url",
+                "webhook_id": id_webhook,
+                "message": f"Failed to update webhook callback URL - invalid request",
+                "guidance": "Check that the webhook ID is valid and the callback URL is properly formatted.",
+                "suggestion": "Verify the webhook ID is correct and the callback URL is valid."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_webhook_callback_url",
+                "webhook_id": id_webhook,
+                "message": f"Failed to update webhook callback URL - insufficient permissions",
+                "guidance": "You need appropriate permissions to update webhooks.",
+                "suggestion": "Ensure you have the necessary permissions for webhook management."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Webhook not found: {error_message}",
+                "action": "update_webhook_callback_url",
+                "webhook_id": id_webhook,
+                "message": f"Failed to update webhook callback URL - webhook not found",
+                "guidance": "The webhook ID may be invalid or the webhook may not exist.",
+                "suggestion": "Verify the webhook ID is correct and that the webhook exists."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update webhook callback URL: {error_message}",
+                "action": "update_webhook_callback_url",
+                "webhook_id": id_webhook,
+                "message": f"Failed to update webhook callback URL for webhook {id_webhook}"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_WEBHOOKS_DESCRIPTION_BY_ID_WEBHOOK",
+    description="Update webhook description. Updates the description of an existing trello webhook; an empty string for the new description removes the current one.",
+)
+def TRELLO_UPDATE_WEBHOOKS_DESCRIPTION_BY_ID_WEBHOOK(
+    id_webhook: Annotated[str, "The ID of the webhook to update the description for."],
+    value: Annotated[str | None, "The new description for the webhook (empty string to remove)."] = None
+):
+    """Update webhook description. Updates the description of an existing trello webhook; an empty string for the new description removes the current one."""
+    err = _validate_required({"id_webhook": id_webhook}, ["id_webhook"])
+    if err:
+        return {
+            "successful": False,
+            "error": str(err),
+            "action": "update_webhook_description",
+            "webhook_id": id_webhook,
+            "message": "Missing required parameter: id_webhook"
+        }
+
+    # If no value provided, return error
+    if value is None:
+        return {
+            "successful": False,
+            "error": "No description provided",
+            "action": "update_webhook_description",
+            "webhook_id": id_webhook,
+            "message": "Description value is required",
+            "guidance": "Provide a description for the webhook (or empty string to remove).",
+            "suggestion": "Enter a description for the webhook or empty string to remove it."
+        }
+
+    try:
+        endpoint = f"/webhooks/{id_webhook}"
+        data = {"description": value.strip()}
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_webhook_description",
+            "webhook_id": id_webhook,
+            "new_description": value.strip(),
+            "message": f"Successfully updated webhook description to '{value.strip()}' for webhook {id_webhook}"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("invalid" in error_message.lower() or "bad request" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid request: {error_message}",
+                "action": "update_webhook_description",
+                "webhook_id": id_webhook,
+                "message": f"Failed to update webhook description - invalid request",
+                "guidance": "Check that the webhook ID is valid and the description is properly formatted.",
+                "suggestion": "Verify the webhook ID is correct and try again."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_webhook_description",
+                "webhook_id": id_webhook,
+                "message": f"Failed to update webhook description - insufficient permissions",
+                "guidance": "You need appropriate permissions to update webhooks.",
+                "suggestion": "Ensure you have the necessary permissions for webhook management."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Webhook not found: {error_message}",
+                "action": "update_webhook_description",
+                "webhook_id": id_webhook,
+                "message": f"Failed to update webhook description - webhook not found",
+                "guidance": "The webhook ID may be invalid or the webhook may not exist.",
+                "suggestion": "Verify the webhook ID is correct and that the webhook exists."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update webhook description: {error_message}",
+                "action": "update_webhook_description",
+                "webhook_id": id_webhook,
+                "message": f"Failed to update webhook description for webhook {id_webhook}"
+            }
+
+
+@mcp.tool(
+    "TRELLO_UPDATE_WEBHOOKS_ID_MODEL_BY_ID_WEBHOOK",
+    description="Update webhook idModel. Updates the `idmodel` (the monitored trello entity like a board, list, or card) for an active webhook `idwebhook` to the new model id `value`; other webhook properties are unaffected.",
+)
+def TRELLO_UPDATE_WEBHOOKS_ID_MODEL_BY_ID_WEBHOOK(
+    id_webhook: Annotated[str, "The ID of the webhook to update the model ID for."],
+    value: Annotated[str, "The new model ID to monitor (board, card, etc.)."]
+):
+    """Update webhook idModel. Updates the `idmodel` (the monitored trello entity like a board, list, or card) for an active webhook `idwebhook` to the new model id `value`; other webhook properties are unaffected."""
+    err = _validate_required({"id_webhook": id_webhook, "value": value}, ["id_webhook", "value"])
+    if err:
+        return {
+            "successful": False,
+            "error": str(err),
+            "action": "update_webhook_id_model",
+            "webhook_id": id_webhook,
+            "message": "Missing required parameters"
+        }
+
+    # Validate model ID
+    model_id = value.strip()
+    if not model_id:
+        return {
+            "successful": False,
+            "error": "Empty model ID provided",
+            "action": "update_webhook_id_model",
+            "webhook_id": id_webhook,
+            "message": "Model ID cannot be empty",
+            "guidance": "Provide a valid model ID for the webhook to monitor.",
+            "suggestion": "Enter a valid model ID (board, card, etc.)."
+        }
+
+    try:
+        endpoint = f"/webhooks/{id_webhook}"
+        data = {"idModel": model_id}
+        
+        result = trello_request("PUT", endpoint, data=data)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "update_webhook_id_model",
+            "webhook_id": id_webhook,
+            "new_model_id": model_id,
+            "message": f"Successfully updated webhook model ID to '{model_id}' for webhook {id_webhook}"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("invalid" in error_message.lower() or "bad request" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid request: {error_message}",
+                "action": "update_webhook_id_model",
+                "webhook_id": id_webhook,
+                "message": f"Failed to update webhook model ID - invalid request",
+                "guidance": "Check that the webhook ID and model ID are valid.",
+                "suggestion": "Verify the webhook ID and model ID are correct and accessible."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "update_webhook_id_model",
+                "webhook_id": id_webhook,
+                "message": f"Failed to update webhook model ID - insufficient permissions",
+                "guidance": "You need appropriate permissions to update webhooks.",
+                "suggestion": "Ensure you have the necessary permissions for webhook management."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Webhook or model not found: {error_message}",
+                "action": "update_webhook_id_model",
+                "webhook_id": id_webhook,
+                "message": f"Failed to update webhook model ID - webhook or model not found",
+                "guidance": "The webhook ID or model ID may be invalid.",
+                "suggestion": "Verify the webhook ID and model ID are correct and that both exist."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to update webhook model ID: {error_message}",
+                "action": "update_webhook_id_model",
+                "webhook_id": id_webhook,
+                "message": f"Failed to update webhook model ID for webhook {id_webhook}"
+            }
+
+
 # -------------------- MAIN --------------------
 
 if __name__ == "__main__":
