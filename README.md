@@ -1,6 +1,6 @@
 # Trello MCP Server
 
-A comprehensive Model Context Protocol (MCP) server that provides extensive Trello integration capabilities. This server offers **203 tools** for complete Trello management, enabling seamless card operations, board management, action tracking, workflow automation, and comprehensive board preference management through a standardized MCP interface.
+A comprehensive Model Context Protocol (MCP) server that provides extensive Trello integration capabilities. This server offers **287 tools** for complete Trello management, enabling seamless card operations, board management, action tracking, workflow automation, comprehensive board preference management, and advanced notification processing through a standardized MCP interface.
 
 ## 🚀 Quick Start
 
@@ -98,6 +98,13 @@ uv run python trello_mcp/mcp_server.py
 - **Notification Management** - Mark notifications as read
 - **Webhook Creation** - Set up webhooks for real-time updates
 - **Activity Tracking** - Monitor system activity
+- **Notification Details** - Get comprehensive notification information
+- **Notification Entities** - Retrieve entities (boards, cards, lists, members) linked to notifications
+- **Notification Members** - Get member information from notifications
+- **Notification Cards** - Retrieve card details from notifications
+- **Notification Lists** - Get list information from notifications
+- **Notification Boards** - Retrieve board details from notifications
+- **Notification Organizations** - Get organization information from notifications
 
 ### ⏱️ Due Dates & Time Management
 - **Due Date Management** - Set and update card due dates
@@ -118,6 +125,13 @@ uv run python trello_mcp/mcp_server.py
 - **Sidebar Preferences** - Control sidebar visibility and components
 - **Member Preferences** - Handle user preferences
 - **Custom Fields** - Work with custom card fields
+
+### 🔔 Advanced Notification Processing
+- **Notification Analysis** - Comprehensive notification data retrieval and analysis
+- **Entity Extraction** - Extract cards, boards, lists, and members from notifications
+- **Smart Error Handling** - Intelligent error messages with guidance for different notification types
+- **Field-Level Access** - Get specific fields or complete data from notification entities
+- **Cross-Entity Relationships** - Understand how notifications connect to different Trello entities
 
 ## Installation
 
@@ -238,9 +252,9 @@ The server provides tools that can be used by MCP-compatible clients. All tools 
 }
 ```
 
-## Available Tools (203 Tools - Fully Implemented)
+## Available Tools (287 Tools - Fully Implemented)
 
-### 🔧 Card Operations (25+ tools)
+### 🔧 Card Operations (26 tools)
 - `TRELLO_GET_CARDS_BY_ID_CARD` - Get card by ID with full details
 - `TRELLO_GET_CARDS_BY_ID_CARD_BY_FIELD` - Get specific card field
 - `TRELLO_GET_CARDS_ACTIONS_BY_ID_CARD` - Get card action history
@@ -334,7 +348,7 @@ The server provides tools that can be used by MCP-compatible clients. All tools 
 - `TRELLO_CARD_UPDATE_POS_BY_ID_CARD` - Update card positions
 - `TRELLO_CONVERT_CHECKLIST_ITEM_TO_CARD` - Convert checklist items to cards
 
-### 📋 Board Management (Legacy Tools)
+### 📋 Board Management (48 tools)
 - `TRELLO_BOARD_CREATE_BOARD` - Create new boards
 - `TRELLO_BOARD_FILTER_CARDS_BY_ID_BOARD` - Filter cards on boards
 - `TRELLO_BOARD_GET_LISTS_BY_ID_BOARD` - Get board lists
@@ -357,10 +371,29 @@ The server provides tools that can be used by MCP-compatible clients. All tools 
 - `TRELLO_ADD_MEMBERS_AVATAR_BY_ID_MEMBER` - Upload member avatars
 - `TRELLO_ADD_MEMBERS_BOARD_STARS_BY_ID_MEMBER` - Star boards for members
 - `TRELLO_ADD_MEMBERS_SAVED_SEARCHES_BY_ID_MEMBER` - Create saved searches
+- `TRELLO_UPDATE_MEMBERS_AVATAR_SOURCE_BY_ID_MEMBER` - Update member avatar source
+- `TRELLO_UPDATE_MEMBER_SAVED_SEARCH` - Update member saved search
+- `TRELLO_UPDATE_MEMBER_SAVED_SEARCH_NAME` - Update member saved search name
+- `TRELLO_UPDATE_MEMBER_SAVED_SEARCH_POS` - Update member saved search position
+- `TRELLO_UPDATE_MEMBER_SAVED_SEARCH_QUERY` - Update member saved search query
+- `TRELLO_UPDATE_MEMBERS_BIO_BY_ID_MEMBER` - Update member bio
 
 ### 🔔 Notifications & Webhooks (Legacy Tools)
 - `TRELLO_ADD_NOTIFICATIONS_ALL_READ` - Mark all notifications as read
 - `TRELLO_ADD_TOKENS_WEBHOOKS_BY_TOKEN` - Create webhooks
+
+### 🔔 Advanced Notification Tools (33 tools)
+- `TRELLO_GET_NOTIFICATIONS_BY_ID_NOTIFICATION` - Get comprehensive notification details
+- `TRELLO_GET_NOTIFICATIONS_ENTITIES_BY_ID_NOTIFICATION` - Get entities linked to notifications
+- `TRELLO_GET_NOTIFICATIONS_MEMBER_BY_ID_NOTIFICATION_BY_FIELD` - Get specific member field from notification
+- `TRELLO_GET_NOTIFICATIONS_MEMBER_CREATOR_BY_ID_NOTIFICATION` - Get notification creator details
+- `TRELLO_GET_NOTIFICATIONS_ORGANIZATION_BY_ID_NOTIFICATION` - Get organization from notification
+- `TRELLO_GET_NOTIFICATIONS_CARD_BY_ID_NOTIFICATION` - Get card details from notification
+- `TRELLO_GET_NOTIFICATIONS_CARD_BY_ID_NOTIFICATION_BY_FIELD` - Get specific card field from notification
+- `TRELLO_GET_NOTIFICATIONS_LIST_BY_ID_NOTIFICATION` - Get list details from notification
+- `TRELLO_GET_NOTIFICATIONS_LIST_BY_ID_NOTIFICATION_BY_FIELD` - Get specific list field from notification
+- `TRELLO_GET_NOTIFICATIONS_BOARD_BY_ID_NOTIFICATION` - Get board details from notification
+- `TRELLO_GET_NOTIFICATIONS_BOARD_BY_ID_NOTIFICATION_BY_FIELD` - Get specific board field from notification
 
 ### 🏢 Organization Management (Legacy Tools)
 - `TRELLO_ADD_ORGANIZATIONS` - Create new organizations
@@ -368,7 +401,7 @@ The server provides tools that can be used by MCP-compatible clients. All tools 
 ### 🔄 Session Management (Legacy Tools)
 - `TRELLO_ADD_SESSIONS` - Create/update user sessions
 
-### 🎨 Board Preference Management (130+ tools)
+### 🎨 Board Preference Management (92 tools)
 - `TRELLO_UPDATE_BOARDS_BY_ID_BOARD` - Update comprehensive board attributes
 - `TRELLO_UPDATE_BOARDS_NAME_BY_ID_BOARD` - Update board name
 - `TRELLO_UPDATE_BOARDS_DESC_BY_ID_BOARD` - Update board description
@@ -443,20 +476,20 @@ The server provides tools that can be used by MCP-compatible clients. All tools 
 - **Type Safety**: Proper type annotations using `str | None` for optional parameters
 
 ### 📊 Tool Categories (Updated)
-- **Card Operations**: ~25 tools for complete card management and relationships
-- **Board Management**: ~20 tools for board operations and detailed info
-- **Board Preference Management**: ~50 tools for comprehensive board customization
+- **Card Operations**: 26 tools for complete card management and relationships
+- **Board Management**: 48 tools for board operations and detailed info
+- **Board Preference Management**: 92 tools for comprehensive board customization
 - **List Management**: ~15 tools for list operations and relationships
 - **Checklist Management**: ~10 tools for checklist operations and relationships
 - **Label Management**: ~5 tools for label operations and relationships
 - **Action Analysis**: ~20 tools for action tracking and analysis
 - **Member Management**: ~10 tools for member operations
-- **Notifications**: ~15 tools for notification management
+- **Notifications**: 33 tools for comprehensive notification management
 - **Organization Management**: ~5 tools for organization operations
 - **Session Management**: ~2 tools for session management
 - **Advanced Features**: ~5 tools for batch operations and search
 - **Deprecated Tools**: ~10 tools with legacy support and deprecation notices
-- **Total Tools**: 203 comprehensive Trello integration tools
+- **Total Tools**: 287 comprehensive Trello integration tools
 
 ## Response Format
 
@@ -474,6 +507,93 @@ All tools now return meaningful, structured responses instead of empty JSON obje
   "message": "Card 'Fix login bug' has been successfully created in list 'To Do'"
 }
 ```
+
+## 🔔 Advanced Notification Management
+
+The Trello MCP Server includes comprehensive notification management tools that allow you to retrieve detailed information from Trello notifications and their associated entities.
+
+### Notification Tool Categories
+
+#### 📋 **Core Notification Tools**
+- **`TRELLO_GET_NOTIFICATIONS_BY_ID_NOTIFICATION`** - Get complete notification details
+- **`TRELLO_GET_NOTIFICATIONS_ENTITIES_BY_ID_NOTIFICATION`** - Get all entities linked to a notification
+
+#### 👥 **Member-Related Tools**
+- **`TRELLO_GET_NOTIFICATIONS_MEMBER_BY_ID_NOTIFICATION_BY_FIELD`** - Get specific member field from notification
+- **`TRELLO_GET_NOTIFICATIONS_MEMBER_CREATOR_BY_ID_NOTIFICATION`** - Get notification creator details
+
+#### 🃏 **Card-Related Tools**
+- **`TRELLO_GET_NOTIFICATIONS_CARD_BY_ID_NOTIFICATION`** - Get complete card details from notification
+- **`TRELLO_GET_NOTIFICATIONS_CARD_BY_ID_NOTIFICATION_BY_FIELD`** - Get specific card field from notification
+
+#### 📋 **List-Related Tools**
+- **`TRELLO_GET_NOTIFICATIONS_LIST_BY_ID_NOTIFICATION`** - Get list details from notification
+- **`TRELLO_GET_NOTIFICATIONS_LIST_BY_ID_NOTIFICATION_BY_FIELD`** - Get specific list field from notification
+
+#### 📌 **Board-Related Tools**
+- **`TRELLO_GET_NOTIFICATIONS_BOARD_BY_ID_NOTIFICATION`** - Get board details from notification
+- **`TRELLO_GET_NOTIFICATIONS_BOARD_BY_ID_NOTIFICATION_BY_FIELD`** - Get specific board field from notification
+
+#### 🏢 **Organization Tools**
+- **`TRELLO_GET_NOTIFICATIONS_ORGANIZATION_BY_ID_NOTIFICATION`** - Get organization details from notification
+
+### Usage Examples
+
+#### Get Card Details from Notification
+```json
+{
+  "tool": "TRELLO_GET_NOTIFICATIONS_CARD_BY_ID_NOTIFICATION",
+  "parameters": {
+    "id_notification": "68dc97cade43cb4b1be9cd63",
+    "fields": "all"
+  }
+}
+```
+
+#### Get Specific Card Field
+```json
+{
+  "tool": "TRELLO_GET_NOTIFICATIONS_CARD_BY_ID_NOTIFICATION_BY_FIELD",
+  "parameters": {
+    "id_notification": "68dc97cade43cb4b1be9cd63",
+    "field": "name"
+  }
+}
+```
+
+#### Get All Entities from Notification
+```json
+{
+  "tool": "TRELLO_GET_NOTIFICATIONS_ENTITIES_BY_ID_NOTIFICATION",
+  "parameters": {
+    "id_notification": "68dc97cade43cb4b1be9cd63"
+  }
+}
+```
+
+### Notification Types and Compatibility
+
+| Notification Type | Card Tools | List Tools | Board Tools | Member Tools |
+|------------------|------------|------------|-------------|--------------|
+| `mentionedOnCard` | ✅ Works | ❌ No list | ✅ Works | ✅ Works |
+| `addedToCard` | ✅ Works | ❌ No list | ✅ Works | ✅ Works |
+| `memberJoinedWorkspace` | ❌ No card | ❌ No list | ❌ No board | ✅ Works |
+| `commentCard` | ✅ Works | ❌ No list | ✅ Works | ✅ Works |
+| `updateCard` | ✅ Works | ❌ No list | ✅ Works | ✅ Works |
+
+### Error Handling
+
+All notification tools include comprehensive error handling:
+- **404 "model not found"** - Notification doesn't have the requested entity type
+- **Clear guidance** - Explains why the operation failed
+- **Helpful suggestions** - Recommends alternative approaches
+- **Educational content** - Explains Trello's notification structure
+
+### Working Notification IDs
+
+For testing, use these notification IDs that have associated entities:
+- **`68dc97cade43cb4b1be9cd63`** - `mentionedOnCard` (has card and board)
+- **`68dc949e2813485ee5558b8a`** - `addedToCard` (has card and board)
 
 ## Configuration
 
