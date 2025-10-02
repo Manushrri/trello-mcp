@@ -447,6 +447,124 @@ def TRELLO_ADD_BOARDS_MARK_AS_VIEWED_BY_ID_BOARD(
     }
 
 @mcp.tool(
+    "TRELLO_ADD_BOARDS_CHECKLISTS_BY_ID_BOARD",
+    description="Add checklist to board. Creates a new, initially empty checklist with a given name on an existing and accessible trello board by first creating a card and then adding the checklist to it.",
+)
+def TRELLO_ADD_BOARDS_CHECKLISTS_BY_ID_BOARD(
+    id_board: Annotated[str, "The ID of the board to add the checklist to."],
+    name: Annotated[Optional[str], "The name of the checklist to create. If not provided, will use 'Checklist'."] = None
+):
+    """Add checklist to board. Creates a new, initially empty checklist with a given name on an existing and accessible trello board by first creating a card and then adding the checklist to it."""
+    err = _validate_required({"id_board": id_board}, ["id_board"])
+    if err:
+        return err
+
+    # Set default name if not provided
+    checklist_name = name if name is not None else "Checklist"
+
+    try:
+        # First, get the first list on the board to create a card
+        lists_url = f"https://api.trello.com/1/boards/{id_board}/lists"
+        lists_params = {
+            "key": os.getenv("TRELLO_API_KEY"),
+            "token": os.getenv("TRELLO_API_TOKEN")
+        }
+        
+        lists_response = requests.get(lists_url, params=lists_params)
+        if lists_response.status_code != 200:
+            return {
+                "successful": False,
+                "error": f"Failed to get board lists: Trello API error {lists_response.status_code}: {lists_response.text}",
+                "action": "add_checklist_to_board",
+                "id_board": id_board,
+                "checklist_name": checklist_name,
+                "message": f"Failed to add checklist '{checklist_name}' to board {id_board}"
+            }
+        
+        lists = lists_response.json()
+        if not lists:
+            return {
+                "successful": False,
+                "error": "Board has no lists. Cannot create checklist without a card.",
+                "action": "add_checklist_to_board",
+                "id_board": id_board,
+                "checklist_name": checklist_name,
+                "message": f"Failed to add checklist '{checklist_name}' to board {id_board} - board has no lists"
+            }
+        
+        # Use the first list
+        first_list = lists[0]
+        list_id = first_list["id"]
+        
+        # Create a card in the first list
+        card_url = f"https://api.trello.com/1/cards"
+        card_data = {
+            "name": f"Card for {checklist_name}",
+            "idList": list_id,
+            "key": os.getenv("TRELLO_API_KEY"),
+            "token": os.getenv("TRELLO_API_TOKEN")
+        }
+        
+        card_response = requests.post(card_url, data=card_data)
+        if card_response.status_code != 200:
+            return {
+                "successful": False,
+                "error": f"Failed to create card: Trello API error {card_response.status_code}: {card_response.text}",
+                "action": "add_checklist_to_board",
+                "id_board": id_board,
+                "checklist_name": checklist_name,
+                "message": f"Failed to add checklist '{checklist_name}' to board {id_board}"
+            }
+        
+        card = card_response.json()
+        card_id = card["id"]
+        
+        # Now create the checklist on the card
+        checklist_url = f"https://api.trello.com/1/cards/{card_id}/checklists"
+        checklist_data = {
+            "name": checklist_name,
+            "key": os.getenv("TRELLO_API_KEY"),
+            "token": os.getenv("TRELLO_API_TOKEN")
+        }
+        
+        checklist_response = requests.post(checklist_url, data=checklist_data)
+        if checklist_response.status_code == 200:
+            result = checklist_response.json()
+            return {
+                "successful": True,
+                "data": {
+                    "checklist": result,
+                    "card": card,
+                    "list": first_list
+                },
+                "action": "add_checklist_to_board",
+                "id_board": id_board,
+                "checklist_name": checklist_name,
+                "card_id": card_id,
+                "list_id": list_id,
+                "message": f"Successfully added checklist '{checklist_name}' to board {id_board} (created on card {card_id})"
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to create checklist: Trello API error {checklist_response.status_code}: {checklist_response.text}",
+                "action": "add_checklist_to_board",
+                "id_board": id_board,
+                "checklist_name": checklist_name,
+                "card_id": card_id,
+                "message": f"Failed to add checklist '{checklist_name}' to board {id_board}"
+            }
+    except Exception as e:
+        return {
+            "successful": False,
+            "error": str(e),
+            "action": "add_checklist_to_board",
+            "id_board": id_board,
+            "checklist_name": checklist_name,
+            "message": f"Failed to add checklist '{checklist_name}' to board {id_board}"
+        }
+
+@mcp.tool(
     "TRELLO_ADD_BOARDS_POWER_UPS_BY_ID_BOARD",
     description="Get board power-ups. Retrieves the power-ups available and enabled on the trello board specified by idboard.",
 )
@@ -21851,10 +21969,10 @@ def TRELLO_UPDATE_NOTIFICATIONS_BY_ID_NOTIFICATION(
 
 
 @mcp.tool(
-    "TRELLO_UPDATE_NOTIFICATION_UNREAD_STATUS",
+    "TRELLO_UPDATE_NOTIFICATIONS_UNREAD_BY_ID_NOTIFICATION",
     description="Update notification unread status. Marks an existing and accessible trello notification as read or unread.",
 )
-def TRELLO_UPDATE_NOTIFICATION_UNREAD_STATUS(
+def TRELLO_UPDATE_NOTIFICATIONS_UNREAD_BY_ID_NOTIFICATION(
     id_notification: Annotated[str, "The ID of the notification to update."],
     value: Annotated[str, "The unread status value ('true' or 'false')."]
 ):
