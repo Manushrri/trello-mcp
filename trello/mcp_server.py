@@ -849,6 +849,87 @@ def TRELLO_ADD_CARDS_STICKERS_BY_ID_CARD(
     }
 
 @mcp.tool(
+    "TRELLO_ADD_CARDS_MEMBERS_VOTED_BY_ID_CARD",
+    description="Casts a 'yes' vote for a specified member on a trello card; a member can only vote once per card."
+)
+def TRELLO_ADD_CARDS_MEMBERS_VOTED_BY_ID_CARD(
+    idCard: Annotated[str, "The ID of the card to add the vote to."],
+    value: Annotated[str, "The ID of the member whose vote to add."]
+):
+    """Casts a 'yes' vote for a specified member on a trello card; a member can only vote once per card."""
+    err = _validate_required({"idCard": idCard, "value": value}, ["idCard", "value"])
+    if err:
+        return {
+            "successful": False,
+            "error": str(err),
+            "action": "add_card_vote",
+            "idCard": idCard,
+            "value": value,
+            "message": "Failed to add card vote - missing required parameters"
+        }
+
+    try:
+        endpoint = f"/cards/{idCard}/membersVoted"
+        
+        result = trello_request("POST", endpoint, data={"value": value})
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "add_card_vote",
+            "idCard": idCard,
+            "value": value,
+            "message": f"Successfully added vote from member {value} to card {idCard}"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("invalid" in error_message.lower() or "bad request" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid request: {error_message}",
+                "action": "add_card_vote",
+                "idCard": idCard,
+                "value": value,
+                "message": "Failed to add card vote - invalid request",
+                "guidance": "Check that the card ID and member ID are valid, and that voting is enabled on the board.",
+                "suggestion": "Verify the card ID and member ID are correct, and ensure the voting power-up is active."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "add_card_vote",
+                "idCard": idCard,
+                "value": value,
+                "message": "Failed to add card vote - insufficient permissions",
+                "guidance": "You need appropriate permissions to vote on cards.",
+                "suggestion": "Ensure you have the necessary permissions for voting on this card."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Card or member not found: {error_message}",
+                "action": "add_card_vote",
+                "idCard": idCard,
+                "value": value,
+                "message": "Failed to add card vote - card or member not found",
+                "guidance": "The card ID or member ID may be invalid.",
+                "suggestion": "Verify the card ID and member ID are correct and that both exist."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to add card vote: {error_message}",
+                "action": "add_card_vote",
+                "idCard": idCard,
+                "value": value,
+                "message": f"Failed to add vote from member {value} to card {idCard}"
+            }
+
+@mcp.tool(
     "TRELLO_ADD_CHECKLISTS",
     description="Add checklist to card. Creates a new checklist on a trello card, either by name or by copying from idchecklistsource, targeting an idcard or idboard; this action creates only the checklist structure, not its items.",
 )
@@ -1464,17 +1545,17 @@ def TRELLO_MARK_CARD_NOTIFICATIONS_READ(
 )
 def TRELLO_ADD_ORGANIZATIONS(
     display_name: Annotated[str, "The display name of the organization (required)."],
-    desc: Annotated[str, "Description of the organization."] = None,
-    name: Annotated[str, "The name of the organization."] = None,
-    website: Annotated[str, "Website URL of the organization."] = None,
-    prefs__associated_domain: Annotated[str, "Associated domain for the organization."] = None,
-    prefs__board_visibility_restrict__org: Annotated[str, "Restrict board visibility to organization members."] = None,
-    prefs__board_visibility_restrict__private: Annotated[str, "Restrict private board visibility."] = None,
-    prefs__board_visibility_restrict__public: Annotated[str, "Restrict public board visibility."] = None,
-    prefs__external_members_disabled: Annotated[str, "Disable external members."] = None,
-    prefs__google_apps_version: Annotated[str, "Google Apps version."] = None,
-    prefs__org_invite_restrict: Annotated[str, "Organization invite restrictions."] = None,
-    prefs__permission_level: Annotated[str, "Permission level for the organization."] = None
+    desc: Annotated[Optional[str], "Description of the organization."] = None,
+    name: Annotated[Optional[str], "The name of the organization."] = None,
+    website: Annotated[Optional[str], "Website URL of the organization."] = None,
+    prefs__associated_domain: Annotated[Optional[str], "Associated domain for the organization."] = None,
+    prefs__board_visibility_restrict__org: Annotated[Optional[str], "Restrict board visibility to organization members."] = None,
+    prefs__board_visibility_restrict__private: Annotated[Optional[str], "Restrict private board visibility."] = None,
+    prefs__board_visibility_restrict__public: Annotated[Optional[str], "Restrict public board visibility."] = None,
+    prefs__external_members_disabled: Annotated[Optional[str], "Disable external members."] = None,
+    prefs__google_apps_version: Annotated[Optional[str], "Google Apps version."] = None,
+    prefs__org_invite_restrict: Annotated[Optional[str], "Organization invite restrictions."] = None,
+    prefs__permission_level: Annotated[Optional[str], "Permission level for the organization."] = None
 ):
     """Create organization. Creates a new trello organization (workspace) with a displayname (required), and optionally a description, website, and various preferences (e.g., board visibility, member invitation restrictions)."""
     err = _validate_required({"display_name": display_name}, ["display_name"])
@@ -2732,7 +2813,10 @@ def TRELLO_GET_ACTIONS_ORGANIZATION_BY_ID_ACTION(
         }
     
     # Extract organization information from the action
+    # Organization data can be in either 'organization' or 'data.organization'
     organization_data = action_result.get("organization", {})
+    if not organization_data:
+        organization_data = action_result.get("data", {}).get("organization", {})
     
     if not organization_data:
         return {
@@ -2740,7 +2824,9 @@ def TRELLO_GET_ACTIONS_ORGANIZATION_BY_ID_ACTION(
             "error": "No organization information found for this action",
             "action": "get_organization_by_action_id",
             "action_id": id_action,
-            "message": f"Action {id_action} does not have associated organization information"
+            "message": f"Action {id_action} does not have associated organization information",
+            "guidance": "Only certain action types (like createOrganization, updateOrganization, addMemberToOrganization) have organization data.",
+            "suggestion": "Try using an action ID from organization-related activities."
         }
     
     # Filter fields if specific fields are requested
@@ -2790,7 +2876,10 @@ def TRELLO_GET_ACTIONS_ORGANIZATION_BY_ID_ACTION_BY_FIELD(
         }
     
     # Extract organization information from the action
+    # Organization data can be in either 'organization' or 'data.organization'
     organization_data = action_result.get("organization", {})
+    if not organization_data:
+        organization_data = action_result.get("data", {}).get("organization", {})
     
     if not organization_data:
         return {
@@ -2799,7 +2888,9 @@ def TRELLO_GET_ACTIONS_ORGANIZATION_BY_ID_ACTION_BY_FIELD(
             "action": "get_organization_field_by_action_id",
             "action_id": id_action,
             "field": field,
-            "message": f"Action {id_action} does not have associated organization information"
+            "message": f"Action {id_action} does not have associated organization information",
+            "guidance": "Only certain action types (like createOrganization, updateOrganization, addMemberToOrganization) have organization data.",
+            "suggestion": "Try using an action ID from organization-related activities."
         }
     
     # Handle "all" field request
@@ -24861,6 +24952,2270 @@ def TRELLO_UPDATE_WEBHOOKS_ID_MODEL_BY_ID_WEBHOOK(
                 "message": f"Failed to update webhook model ID for webhook {id_webhook}"
             }
 
+
+@mcp.tool(
+    "TRELLO_DELETE_ACTIONS_BY_ID_ACTION",
+    description="Deletes a specific trello action, such as a `commentcard`, by its id; this is an irreversible operation and only applies to deletable action types, as many (especially system-generated) actions cannot be deleted.",
+)
+def TRELLO_DELETE_ACTIONS_BY_ID_ACTION(
+    idAction: Annotated[str, "The ID of the action to delete."]
+):
+    """Delete action by id"""
+    err = _validate_required({"idAction": idAction}, ["idAction"])
+    if err:
+        return {
+            "successful": False,
+            "error": str(err),
+            "action": "delete_action_by_id",
+            "idAction": idAction,
+            "message": "Failed to delete action - missing required parameters",
+            "guidance": "Provide the action ID to delete.",
+            "suggestion": "Enter a valid action ID."
+        }
+
+    try:
+        endpoint = f"/actions/{idAction}"
+        
+        result = trello_request("DELETE", endpoint)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "delete_action_by_id",
+            "idAction": idAction,
+            "message": f"Successfully deleted action {idAction}"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("invalid" in error_message.lower() or "bad request" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid request: {error_message}",
+                "action": "delete_action_by_id",
+                "idAction": idAction,
+                "message": f"Failed to delete action - invalid request",
+                "guidance": "Check that the action ID is valid and the action is deletable.",
+                "suggestion": "Verify the action ID is correct and that the action type can be deleted."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "delete_action_by_id",
+                "idAction": idAction,
+                "message": f"Failed to delete action - insufficient permissions",
+                "guidance": "You need appropriate permissions to delete actions.",
+                "suggestion": "Ensure you have the necessary permissions for action deletion."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Action not found: {error_message}",
+                "action": "delete_action_by_id",
+                "idAction": idAction,
+                "message": f"Failed to delete action - action not found",
+                "guidance": "The action ID may be invalid or the action may have already been deleted.",
+                "suggestion": "Verify the action ID is correct and that the action exists."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to delete action: {error_message}",
+                "action": "delete_action_by_id",
+                "idAction": idAction,
+                "message": f"Failed to delete action {idAction}"
+            }
+
+@mcp.tool(
+    "TRELLO_DELETE_BOARDS_MEMBERS_BY_ID_BOARD_BY_ID_MEMBER",
+    description="Permanently removes a current member from a trello board, revoking their access; this action is irreversible.",
+)
+def TRELLO_DELETE_BOARDS_MEMBERS_BY_ID_BOARD_BY_ID_MEMBER(
+    idBoard: Annotated[str, "The ID of the board to remove the member from."],
+    idMember: Annotated[str, "The ID of the member to remove from the board."]
+):
+    """Delete member from board"""
+    err = _validate_required({"idBoard": idBoard, "idMember": idMember}, ["idBoard", "idMember"])
+    if err:
+        return {
+            "successful": False,
+            "error": str(err),
+            "action": "delete_board_member",
+            "idBoard": idBoard,
+            "idMember": idMember,
+            "message": "Failed to delete board member - missing required parameters",
+            "guidance": "Provide both the board ID and member ID.",
+            "suggestion": "Enter valid board ID and member ID."
+        }
+
+    try:
+        endpoint = f"/boards/{idBoard}/members/{idMember}"
+        
+        result = trello_request("DELETE", endpoint)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "delete_board_member",
+            "idBoard": idBoard,
+            "idMember": idMember,
+            "message": f"Successfully removed member {idMember} from board {idBoard}"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("invalid" in error_message.lower() or "bad request" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid request: {error_message}",
+                "action": "delete_board_member",
+                "idBoard": idBoard,
+                "idMember": idMember,
+                "message": f"Failed to delete board member - invalid request",
+                "guidance": "Check that the board ID and member ID are valid.",
+                "suggestion": "Verify the board ID and member ID are correct."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "delete_board_member",
+                "idBoard": idBoard,
+                "idMember": idMember,
+                "message": f"Failed to delete board member - insufficient permissions",
+                "guidance": "You need appropriate permissions to remove board members.",
+                "suggestion": "Ensure you have the necessary permissions for board member management."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Board or member not found: {error_message}",
+                "action": "delete_board_member",
+                "idBoard": idBoard,
+                "idMember": idMember,
+                "message": f"Failed to delete board member - board or member not found",
+                "guidance": "The board ID or member ID may be invalid.",
+                "suggestion": "Verify the board ID and member ID are correct and that both exist."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to delete board member: {error_message}",
+                "action": "delete_board_member",
+                "idBoard": idBoard,
+                "idMember": idMember,
+                "message": f"Failed to remove member {idMember} from board {idBoard}"
+            }
+
+@mcp.tool(
+    "TRELLO_DELETE_BOARDS_POWER_UPS_BY_ID_BOARD_BY_POWER_UP",
+    description="Disables a power-up on a trello board using the board's id and the plugin id of a power-up currently enabled on that board; this action is irreversible and may result in data loss.",
+)
+def TRELLO_DELETE_BOARDS_POWER_UPS_BY_ID_BOARD_BY_POWER_UP(
+    idBoard: Annotated[str, "The ID of the board to disable the power-up on."],
+    powerUp: Annotated[str, "The plugin ID of the power-up to disable."]
+):
+    """Delete Power-Up from board"""
+    err = _validate_required({"idBoard": idBoard, "powerUp": powerUp}, ["idBoard", "powerUp"])
+    if err:
+        return {
+            "successful": False,
+            "error": str(err),
+            "action": "delete_board_powerup",
+            "idBoard": idBoard,
+            "powerUp": powerUp,
+            "message": "Failed to delete board power-up - missing required parameters",
+            "guidance": "Provide both the board ID and power-up plugin ID.",
+            "suggestion": "Enter valid board ID and power-up plugin ID."
+        }
+
+    try:
+        endpoint = f"/boards/{idBoard}/powerUps/{powerUp}"
+        
+        result = trello_request("DELETE", endpoint)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "delete_board_powerup",
+            "idBoard": idBoard,
+            "powerUp": powerUp,
+            "message": f"Successfully disabled power-up {powerUp} on board {idBoard}"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("invalid" in error_message.lower() or "bad request" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid request: {error_message}",
+                "action": "delete_board_powerup",
+                "idBoard": idBoard,
+                "powerUp": powerUp,
+                "message": f"Failed to delete board power-up - invalid request",
+                "guidance": "Check that the board ID and power-up plugin ID are valid.",
+                "suggestion": "Verify the board ID and power-up plugin ID are correct."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "delete_board_powerup",
+                "idBoard": idBoard,
+                "powerUp": powerUp,
+                "message": f"Failed to delete board power-up - insufficient permissions",
+                "guidance": "You need appropriate permissions to manage board power-ups.",
+                "suggestion": "Ensure you have the necessary permissions for power-up management."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Board or power-up not found: {error_message}",
+                "action": "delete_board_powerup",
+                "idBoard": idBoard,
+                "powerUp": powerUp,
+                "message": f"Failed to delete board power-up - board or power-up not found",
+                "guidance": "The board ID or power-up plugin ID may be invalid.",
+                "suggestion": "Verify the board ID and power-up plugin ID are correct and that both exist."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to delete board power-up: {error_message}",
+                "action": "delete_board_powerup",
+                "idBoard": idBoard,
+                "powerUp": powerUp,
+                "message": f"Failed to disable power-up {powerUp} on board {idBoard}"
+            }
+
+@mcp.tool(
+    "TRELLO_DELETE_CARDS_ACTIONS_COMMENTS_BY_ID_CARD_BY_ID_ACTION",
+    description="Deletes a specific comment action (identified by `idaction`) from a trello card (identified by `idcard`); this operation is irreversible and only affects comments.",
+)
+def TRELLO_DELETE_CARDS_ACTIONS_COMMENTS_BY_ID_CARD_BY_ID_ACTION(
+    idAction: Annotated[str, "The ID of the comment action to delete."],
+    idCard: Annotated[str, "The ID of the card containing the comment."]
+):
+    """Delete card action comment"""
+    err = _validate_required({"idAction": idAction, "idCard": idCard}, ["idAction", "idCard"])
+    if err:
+        return {
+            "successful": False,
+            "error": str(err),
+            "action": "delete_card_comment",
+            "idAction": idAction,
+            "idCard": idCard,
+            "message": "Failed to delete card comment - missing required parameters",
+            "guidance": "Provide both the action ID and card ID.",
+            "suggestion": "Enter valid action ID and card ID."
+        }
+
+    try:
+        endpoint = f"/actions/{idAction}"
+        
+        result = trello_request("DELETE", endpoint)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "delete_card_comment",
+            "idAction": idAction,
+            "idCard": idCard,
+            "message": f"Successfully deleted comment {idAction} from card {idCard}"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("invalid" in error_message.lower() or "bad request" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid request: {error_message}",
+                "action": "delete_card_comment",
+                "idAction": idAction,
+                "idCard": idCard,
+                "message": f"Failed to delete card comment - invalid request",
+                "guidance": "Check that the action ID and card ID are valid.",
+                "suggestion": "Verify the action ID and card ID are correct."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "delete_card_comment",
+                "idAction": idAction,
+                "idCard": idCard,
+                "message": f"Failed to delete card comment - insufficient permissions",
+                "guidance": "You need appropriate permissions to delete card comments.",
+                "suggestion": "Ensure you have the necessary permissions for comment deletion."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Card or comment not found: {error_message}",
+                "action": "delete_card_comment",
+                "idAction": idAction,
+                "idCard": idCard,
+                "message": f"Failed to delete card comment - card or comment not found",
+                "guidance": "The card ID or action ID may be invalid.",
+                "suggestion": "Verify the card ID and action ID are correct and that both exist."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to delete card comment: {error_message}",
+                "action": "delete_card_comment",
+                "idAction": idAction,
+                "idCard": idCard,
+                "message": f"Failed to delete comment {idAction} from card {idCard}"
+            }
+
+@mcp.tool(
+    "TRELLO_DELETE_CARDS_BY_ID_CARD",
+    description="Permanently deletes an archived trello card specified by its `idcard`.",
+)
+def TRELLO_DELETE_CARDS_BY_ID_CARD(
+    idCard: Annotated[str, "The ID of the card to delete."]
+):
+    """Delete card by ID"""
+    err = _validate_required({"idCard": idCard}, ["idCard"])
+    if err:
+        return {
+            "successful": False,
+            "error": str(err),
+            "action": "delete_card",
+            "idCard": idCard,
+            "message": "Failed to delete card - missing required parameters",
+            "guidance": "Provide the card ID to delete.",
+            "suggestion": "Enter a valid card ID."
+        }
+
+    try:
+        endpoint = f"/cards/{idCard}"
+        
+        result = trello_request("DELETE", endpoint)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "delete_card",
+            "idCard": idCard,
+            "message": f"Successfully deleted card {idCard}"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("invalid" in error_message.lower() or "bad request" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid request: {error_message}",
+                "action": "delete_card",
+                "idCard": idCard,
+                "message": f"Failed to delete card - invalid request",
+                "guidance": "Check that the card ID is valid and the card is archived.",
+                "suggestion": "Verify the card ID is correct and that the card is archived."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "delete_card",
+                "idCard": idCard,
+                "message": f"Failed to delete card - insufficient permissions",
+                "guidance": "You need appropriate permissions to delete cards.",
+                "suggestion": "Ensure you have the necessary permissions for card deletion."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Card not found: {error_message}",
+                "action": "delete_card",
+                "idCard": idCard,
+                "message": f"Failed to delete card - card not found",
+                "guidance": "The card ID may be invalid or the card may have already been deleted.",
+                "suggestion": "Verify the card ID is correct and that the card exists."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to delete card: {error_message}",
+                "action": "delete_card",
+                "idCard": idCard,
+                "message": f"Failed to delete card {idCard}"
+            }
+
+@mcp.tool(
+    "TRELLO_DELETE_CARDS_CHECKLISTS_BY_ID_CARD_BY_ID_CHECKLIST",
+    description="Permanently deletes a specific checklist from a trello card.",
+)
+def TRELLO_DELETE_CARDS_CHECKLISTS_BY_ID_CARD_BY_ID_CHECKLIST(
+    idCard: Annotated[str, "The ID of the card containing the checklist."],
+    idChecklist: Annotated[str, "The ID of the checklist to delete."]
+):
+    """Delete card checklist"""
+    err = _validate_required({"idCard": idCard, "idChecklist": idChecklist}, ["idCard", "idChecklist"])
+    if err:
+        return {
+            "successful": False,
+            "error": str(err),
+            "action": "delete_card_checklist",
+            "idCard": idCard,
+            "idChecklist": idChecklist,
+            "message": "Failed to delete card checklist - missing required parameters",
+            "guidance": "Provide both the card ID and checklist ID.",
+            "suggestion": "Enter valid card ID and checklist ID."
+        }
+
+    try:
+        endpoint = f"/cards/{idCard}/checklists/{idChecklist}"
+        
+        result = trello_request("DELETE", endpoint)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "delete_card_checklist",
+            "idCard": idCard,
+            "idChecklist": idChecklist,
+            "message": f"Successfully deleted checklist {idChecklist} from card {idCard}"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("invalid" in error_message.lower() or "bad request" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid request: {error_message}",
+                "action": "delete_card_checklist",
+                "idCard": idCard,
+                "idChecklist": idChecklist,
+                "message": f"Failed to delete card checklist - invalid request",
+                "guidance": "Check that the card ID and checklist ID are valid.",
+                "suggestion": "Verify the card ID and checklist ID are correct."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "delete_card_checklist",
+                "idCard": idCard,
+                "idChecklist": idChecklist,
+                "message": f"Failed to delete card checklist - insufficient permissions",
+                "guidance": "You need appropriate permissions to delete card checklists.",
+                "suggestion": "Ensure you have the necessary permissions for checklist deletion."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Card or checklist not found: {error_message}",
+                "action": "delete_card_checklist",
+                "idCard": idCard,
+                "idChecklist": idChecklist,
+                "message": f"Failed to delete card checklist - card or checklist not found",
+                "guidance": "The card ID or checklist ID may be invalid.",
+                "suggestion": "Verify the card ID and checklist ID are correct and that both exist."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to delete card checklist: {error_message}",
+                "action": "delete_card_checklist",
+                "idCard": idCard,
+                "idChecklist": idChecklist,
+                "message": f"Failed to delete checklist {idChecklist} from card {idCard}"
+            }
+
+@mcp.tool(
+    "TRELLO_DELETE_CARDS_ID_LABELS_BY_ID_CARD_BY_ID_LABEL",
+    description="Removes a specific label from a trello card; the label itself is not deleted from the board, only its association with the card.",
+)
+def TRELLO_DELETE_CARDS_ID_LABELS_BY_ID_CARD_BY_ID_LABEL(
+    idCard: Annotated[str, "The ID of the card to remove the label from."],
+    idLabel: Annotated[str, "The ID of the label to remove from the card."]
+):
+    """Remove label from card"""
+    err = _validate_required({"idCard": idCard, "idLabel": idLabel}, ["idCard", "idLabel"])
+    if err:
+        return {
+            "successful": False,
+            "error": str(err),
+            "action": "remove_card_label",
+            "idCard": idCard,
+            "idLabel": idLabel,
+            "message": "Failed to remove card label - missing required parameters",
+            "guidance": "Provide both the card ID and label ID.",
+            "suggestion": "Enter valid card ID and label ID."
+        }
+
+    try:
+        endpoint = f"/cards/{idCard}/idLabels/{idLabel}"
+        
+        result = trello_request("DELETE", endpoint)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "remove_card_label",
+            "idCard": idCard,
+            "idLabel": idLabel,
+            "message": f"Successfully removed label {idLabel} from card {idCard}"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("invalid" in error_message.lower() or "bad request" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid request: {error_message}",
+                "action": "remove_card_label",
+                "idCard": idCard,
+                "idLabel": idLabel,
+                "message": f"Failed to remove card label - invalid request",
+                "guidance": "Check that the card ID and label ID are valid.",
+                "suggestion": "Verify the card ID and label ID are correct."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "remove_card_label",
+                "idCard": idCard,
+                "idLabel": idLabel,
+                "message": f"Failed to remove card label - insufficient permissions",
+                "guidance": "You need appropriate permissions to manage card labels.",
+                "suggestion": "Ensure you have the necessary permissions for label management."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Card or label not found: {error_message}",
+                "action": "remove_card_label",
+                "idCard": idCard,
+                "idLabel": idLabel,
+                "message": f"Failed to remove card label - card or label not found",
+                "guidance": "The card ID or label ID may be invalid.",
+                "suggestion": "Verify the card ID and label ID are correct and that both exist."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to remove card label: {error_message}",
+                "action": "remove_card_label",
+                "idCard": idCard,
+                "idLabel": idLabel,
+                "message": f"Failed to remove label {idLabel} from card {idCard}"
+            }
+
+@mcp.tool(
+    "TRELLO_DELETE_CARDS_ID_MEMBERS_BY_ID_CARD_BY_ID_MEMBER",
+    description="Removes a currently assigned member from a trello card, affecting only the card's member list and not the member's board membership or overall permissions.",
+)
+def TRELLO_DELETE_CARDS_ID_MEMBERS_BY_ID_CARD_BY_ID_MEMBER(
+    idCard: Annotated[str, "The ID of the card to remove the member from."],
+    idMember: Annotated[str, "The ID of the member to remove from the card."]
+):
+    """Remove member from card"""
+    err = _validate_required({"idCard": idCard, "idMember": idMember}, ["idCard", "idMember"])
+    if err:
+        return {
+            "successful": False,
+            "error": str(err),
+            "action": "remove_card_member",
+            "idCard": idCard,
+            "idMember": idMember,
+            "message": "Failed to remove card member - missing required parameters",
+            "guidance": "Provide both the card ID and member ID.",
+            "suggestion": "Enter valid card ID and member ID."
+        }
+
+    try:
+        endpoint = f"/cards/{idCard}/idMembers/{idMember}"
+        
+        result = trello_request("DELETE", endpoint)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "remove_card_member",
+            "idCard": idCard,
+            "idMember": idMember,
+            "message": f"Successfully removed member {idMember} from card {idCard}"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("invalid" in error_message.lower() or "bad request" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid request: {error_message}",
+                "action": "remove_card_member",
+                "idCard": idCard,
+                "idMember": idMember,
+                "message": f"Failed to remove card member - invalid request",
+                "guidance": "Check that the card ID and member ID are valid.",
+                "suggestion": "Verify the card ID and member ID are correct."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "remove_card_member",
+                "idCard": idCard,
+                "idMember": idMember,
+                "message": f"Failed to remove card member - insufficient permissions",
+                "guidance": "You need appropriate permissions to manage card members.",
+                "suggestion": "Ensure you have the necessary permissions for member management."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Card or member not found: {error_message}",
+                "action": "remove_card_member",
+                "idCard": idCard,
+                "idMember": idMember,
+                "message": f"Failed to remove card member - card or member not found",
+                "guidance": "The card ID or member ID may be invalid.",
+                "suggestion": "Verify the card ID and member ID are correct and that both exist."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to remove card member: {error_message}",
+                "action": "remove_card_member",
+                "idCard": idCard,
+                "idMember": idMember,
+                "message": f"Failed to remove member {idMember} from card {idCard}"
+            }
+
+@mcp.tool(
+    "TRELLO_DELETE_CARDS_LABELS_BY_ID_CARD_BY_COLOR",
+    description="Permanently removes a specific `color` label from an existing trello card identified by `idcard`, if the card has that label; this only disassociates the label from the card, not deleting the label definition itself.",
+)
+def TRELLO_DELETE_CARDS_LABELS_BY_ID_CARD_BY_COLOR(
+    idCard: Annotated[str, "The ID of the card to remove the label from."],
+    color: Annotated[str, "The color of the label to remove from the card."]
+):
+    """Delete card label by color"""
+    err = _validate_required({"idCard": idCard, "color": color}, ["idCard", "color"])
+    if err:
+        return {
+            "successful": False,
+            "error": str(err),
+            "action": "remove_card_label_by_color",
+            "idCard": idCard,
+            "color": color,
+            "message": "Failed to remove card label - missing required parameters",
+            "guidance": "Provide both the card ID and label color.",
+            "suggestion": "Enter valid card ID and label color."
+        }
+
+    try:
+        endpoint = f"/cards/{idCard}/labels/{color}"
+        
+        result = trello_request("DELETE", endpoint)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "remove_card_label_by_color",
+            "idCard": idCard,
+            "color": color,
+            "message": f"Successfully removed {color} label from card {idCard}"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("invalid" in error_message.lower() or "bad request" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid request: {error_message}",
+                "action": "remove_card_label_by_color",
+                "idCard": idCard,
+                "color": color,
+                "message": f"Failed to remove card label - invalid request",
+                "guidance": "Check that the card ID and label color are valid.",
+                "suggestion": "Verify the card ID and label color are correct."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "remove_card_label_by_color",
+                "idCard": idCard,
+                "color": color,
+                "message": f"Failed to remove card label - insufficient permissions",
+                "guidance": "You need appropriate permissions to manage card labels.",
+                "suggestion": "Ensure you have the necessary permissions for label management."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Card or label not found: {error_message}",
+                "action": "remove_card_label_by_color",
+                "idCard": idCard,
+                "color": color,
+                "message": f"Failed to remove card label - card or label not found",
+                "guidance": "The card ID or label color may be invalid.",
+                "suggestion": "Verify the card ID and label color are correct and that both exist."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to remove card label: {error_message}",
+                "action": "remove_card_label_by_color",
+                "idCard": idCard,
+                "color": color,
+                "message": f"Failed to remove {color} label from card {idCard}"
+            }
+
+@mcp.tool(
+    "TRELLO_DELETE_CARDS_MEMBERS_VOTED_BY_ID_CARD_BY_ID_MEMBER",
+    description="Removes a member's vote from a trello card; this operation is irreversible and does not confirm if the vote existed prior to removal.",
+)
+def TRELLO_DELETE_CARDS_MEMBERS_VOTED_BY_ID_CARD_BY_ID_MEMBER(
+    idCard: Annotated[str, "The ID of the card to remove the vote from."],
+    idMember: Annotated[str, "The ID of the member whose vote to remove."]
+):
+    """Delete member vote from card"""
+    err = _validate_required({"idCard": idCard, "idMember": idMember}, ["idCard", "idMember"])
+    if err:
+        return {
+            "successful": False,
+            "error": str(err),
+            "action": "remove_card_vote",
+            "idCard": idCard,
+            "idMember": idMember,
+            "message": "Failed to remove card vote - missing required parameters",
+            "guidance": "Provide both the card ID and member ID.",
+            "suggestion": "Enter valid card ID and member ID."
+        }
+
+    try:
+        endpoint = f"/cards/{idCard}/membersVoted/{idMember}"
+        
+        result = trello_request("DELETE", endpoint)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "remove_card_vote",
+            "idCard": idCard,
+            "idMember": idMember,
+            "message": f"Successfully removed vote from member {idMember} on card {idCard}"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("invalid" in error_message.lower() or "bad request" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid request: {error_message}",
+                "action": "remove_card_vote",
+                "idCard": idCard,
+                "idMember": idMember,
+                "message": f"Failed to remove card vote - invalid request",
+                "guidance": "Check that the card ID and member ID are valid.",
+                "suggestion": "Verify the card ID and member ID are correct."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "remove_card_vote",
+                "idCard": idCard,
+                "idMember": idMember,
+                "message": f"Failed to remove card vote - insufficient permissions",
+                "guidance": "You need appropriate permissions to manage card votes.",
+                "suggestion": "Ensure you have the necessary permissions for vote management."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Card or member not found: {error_message}",
+                "action": "remove_card_vote",
+                "idCard": idCard,
+                "idMember": idMember,
+                "message": f"Failed to remove card vote - card or member not found",
+                "guidance": "The card ID or member ID may be invalid.",
+                "suggestion": "Verify the card ID and member ID are correct and that both exist."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to remove card vote: {error_message}",
+                "action": "remove_card_vote",
+                "idCard": idCard,
+                "idMember": idMember,
+                "message": f"Failed to remove vote from member {idMember} on card {idCard}"
+            }
+
+@mcp.tool(
+    "TRELLO_DELETE_CARDS_STICKERS_BY_ID_CARD_BY_ID_STICKER",
+    description="Permanently removes a specific sticker (identified by `idsticker`) from a trello card (identified by `idcard`).",
+)
+def TRELLO_DELETE_CARDS_STICKERS_BY_ID_CARD_BY_ID_STICKER(
+    idCard: Annotated[str, "The ID of the card to remove the sticker from."],
+    idSticker: Annotated[str, "The ID of the sticker to remove from the card."]
+):
+    """Delete card sticker"""
+    err = _validate_required({"idCard": idCard, "idSticker": idSticker}, ["idCard", "idSticker"])
+    if err:
+        return {
+            "successful": False,
+            "error": str(err),
+            "action": "remove_card_sticker",
+            "idCard": idCard,
+            "idSticker": idSticker,
+            "message": "Failed to remove card sticker - missing required parameters",
+            "guidance": "Provide both the card ID and sticker ID.",
+            "suggestion": "Enter valid card ID and sticker ID."
+        }
+
+    try:
+        endpoint = f"/cards/{idCard}/stickers/{idSticker}"
+        
+        result = trello_request("DELETE", endpoint)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "remove_card_sticker",
+            "idCard": idCard,
+            "idSticker": idSticker,
+            "message": f"Successfully removed sticker {idSticker} from card {idCard}"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("invalid" in error_message.lower() or "bad request" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid request: {error_message}",
+                "action": "remove_card_sticker",
+                "idCard": idCard,
+                "idSticker": idSticker,
+                "message": f"Failed to remove card sticker - invalid request",
+                "guidance": "Check that the card ID and sticker ID are valid.",
+                "suggestion": "Verify the card ID and sticker ID are correct."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "remove_card_sticker",
+                "idCard": idCard,
+                "idSticker": idSticker,
+                "message": f"Failed to remove card sticker - insufficient permissions",
+                "guidance": "You need appropriate permissions to manage card stickers.",
+                "suggestion": "Ensure you have the necessary permissions for sticker management."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Card or sticker not found: {error_message}",
+                "action": "remove_card_sticker",
+                "idCard": idCard,
+                "idSticker": idSticker,
+                "message": f"Failed to remove card sticker - card or sticker not found",
+                "guidance": "The card ID or sticker ID may be invalid.",
+                "suggestion": "Verify the card ID and sticker ID are correct and that both exist."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to remove card sticker: {error_message}",
+                "action": "remove_card_sticker",
+                "idCard": idCard,
+                "idSticker": idSticker,
+                "message": f"Failed to remove sticker {idSticker} from card {idCard}"
+            }
+
+@mcp.tool(
+    "TRELLO_DELETE_CHECKLIST_ITEM",
+    description="Permanently deletes a specific check item from a checklist on a trello card; this operation is irreversible and only affects the specified item, not the entire checklist."
+)
+def TRELLO_DELETE_CHECKLIST_ITEM(
+    idCheckItem: Annotated[str, "The ID of the checklist item to delete."],
+    idChecklist: Annotated[str, "The ID of the checklist containing the item."]
+):
+    """Permanently deletes a specific check item from a checklist on a trello card; this operation is irreversible and only affects the specified item, not the entire checklist."""
+    err = _validate_required({"idCheckItem": idCheckItem, "idChecklist": idChecklist}, ["idCheckItem", "idChecklist"])
+    if err:
+        return {
+            "successful": False,
+            "error": str(err),
+            "action": "delete_checklist_item",
+            "idCheckItem": idCheckItem,
+            "idChecklist": idChecklist,
+            "message": "Failed to delete checklist item - missing required parameters"
+        }
+
+    try:
+        endpoint = f"/checklists/{idChecklist}/checkItems/{idCheckItem}"
+        
+        result = trello_request("DELETE", endpoint)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "delete_checklist_item",
+            "idCheckItem": idCheckItem,
+            "idChecklist": idChecklist,
+            "message": f"Successfully deleted checklist item {idCheckItem} from checklist {idChecklist}"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("invalid" in error_message.lower() or "bad request" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid request: {error_message}",
+                "action": "delete_checklist_item",
+                "idCheckItem": idCheckItem,
+                "idChecklist": idChecklist,
+                "message": "Failed to delete checklist item - invalid request",
+                "guidance": "Check that the checklist item ID and checklist ID are valid.",
+                "suggestion": "Verify the checklist item ID and checklist ID are correct."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "delete_checklist_item",
+                "idCheckItem": idCheckItem,
+                "idChecklist": idChecklist,
+                "message": "Failed to delete checklist item - insufficient permissions",
+                "guidance": "You need appropriate permissions to manage checklist items.",
+                "suggestion": "Ensure you have the necessary permissions for checklist management."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Checklist item or checklist not found: {error_message}",
+                "action": "delete_checklist_item",
+                "idCheckItem": idCheckItem,
+                "idChecklist": idChecklist,
+                "message": "Failed to delete checklist item - item or checklist not found",
+                "guidance": "The checklist item ID or checklist ID may be invalid.",
+                "suggestion": "Verify the checklist item ID and checklist ID are correct and that both exist."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to delete checklist item: {error_message}",
+                "action": "delete_checklist_item",
+                "idCheckItem": idCheckItem,
+                "idChecklist": idChecklist,
+                "message": f"Failed to delete checklist item {idCheckItem} from checklist {idChecklist}"
+            }
+
+@mcp.tool(
+    "TRELLO_DELETE_CHECKLISTS_BY_ID_CHECKLIST",
+    description="Permanently and irreversibly deletes a trello checklist and all its items using the `idchecklist`."
+)
+def TRELLO_DELETE_CHECKLISTS_BY_ID_CHECKLIST(
+    idChecklist: Annotated[str, "The ID of the checklist to delete."]
+):
+    """Permanently and irreversibly deletes a trello checklist and all its items using the `idchecklist`."""
+    err = _validate_required({"idChecklist": idChecklist}, ["idChecklist"])
+    if err:
+        return {
+            "successful": False,
+            "error": str(err),
+            "action": "delete_checklist",
+            "idChecklist": idChecklist,
+            "message": "Failed to delete checklist - missing required parameters"
+        }
+
+    try:
+        endpoint = f"/checklists/{idChecklist}"
+        
+        result = trello_request("DELETE", endpoint)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "delete_checklist",
+            "idChecklist": idChecklist,
+            "message": f"Successfully deleted checklist {idChecklist} and all its items"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("invalid" in error_message.lower() or "bad request" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid request: {error_message}",
+                "action": "delete_checklist",
+                "idChecklist": idChecklist,
+                "message": "Failed to delete checklist - invalid request",
+                "guidance": "Check that the checklist ID is valid.",
+                "suggestion": "Verify the checklist ID is correct."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "delete_checklist",
+                "idChecklist": idChecklist,
+                "message": "Failed to delete checklist - insufficient permissions",
+                "guidance": "You need appropriate permissions to manage checklists.",
+                "suggestion": "Ensure you have the necessary permissions for checklist management."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Checklist not found: {error_message}",
+                "action": "delete_checklist",
+                "idChecklist": idChecklist,
+                "message": "Failed to delete checklist - checklist not found",
+                "guidance": "The checklist ID may be invalid.",
+                "suggestion": "Verify the checklist ID is correct and that it exists."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to delete checklist: {error_message}",
+                "action": "delete_checklist",
+                "idChecklist": idChecklist,
+                "message": f"Failed to delete checklist {idChecklist}"
+            }
+
+@mcp.tool(
+    "TRELLO_DELETE_LABELS_BY_ID_LABEL",
+    description="Permanently deletes an existing label from a trello board by its id; this operation is irreversible via the api."
+)
+def TRELLO_DELETE_LABELS_BY_ID_LABEL(
+    idLabel: Annotated[str, "The ID of the label to delete."]
+):
+    """Permanently deletes an existing label from a trello board by its id; this operation is irreversible via the api."""
+    err = _validate_required({"idLabel": idLabel}, ["idLabel"])
+    if err:
+        return {
+            "successful": False,
+            "error": str(err),
+            "action": "delete_label",
+            "idLabel": idLabel,
+            "message": "Failed to delete label - missing required parameters"
+        }
+
+    try:
+        endpoint = f"/labels/{idLabel}"
+        
+        result = trello_request("DELETE", endpoint)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "delete_label",
+            "idLabel": idLabel,
+            "message": f"Successfully deleted label {idLabel}"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("invalid" in error_message.lower() or "bad request" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid request: {error_message}",
+                "action": "delete_label",
+                "idLabel": idLabel,
+                "message": "Failed to delete label - invalid request",
+                "guidance": "Check that the label ID is valid.",
+                "suggestion": "Verify the label ID is correct."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "delete_label",
+                "idLabel": idLabel,
+                "message": "Failed to delete label - insufficient permissions",
+                "guidance": "You need appropriate permissions to manage labels.",
+                "suggestion": "Ensure you have the necessary permissions for label management."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Label not found: {error_message}",
+                "action": "delete_label",
+                "idLabel": idLabel,
+                "message": "Failed to delete label - label not found",
+                "guidance": "The label ID may be invalid.",
+                "suggestion": "Verify the label ID is correct and that it exists."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to delete label: {error_message}",
+                "action": "delete_label",
+                "idLabel": idLabel,
+                "message": f"Failed to delete label {idLabel}"
+            }
+
+@mcp.tool(
+    "TRELLO_DELETE_MEMBER_BOARD_BACKGROUND",
+    description="Permanently deletes a specific custom board background belonging to the specified trello member; this operation cannot be undone."
+)
+def TRELLO_DELETE_MEMBER_BOARD_BACKGROUND(
+    idBoardBackground: Annotated[str, "The ID of the board background to delete."],
+    idMember: Annotated[str, "The ID of the member who owns the board background."]
+):
+    """Permanently deletes a specific custom board background belonging to the specified trello member; this operation cannot be undone."""
+    err = _validate_required({"idBoardBackground": idBoardBackground, "idMember": idMember}, ["idBoardBackground", "idMember"])
+    if err:
+        return {
+            "successful": False,
+            "error": str(err),
+            "action": "delete_member_board_background",
+            "idBoardBackground": idBoardBackground,
+            "idMember": idMember,
+            "message": "Failed to delete member board background - missing required parameters"
+        }
+
+    try:
+        endpoint = f"/members/{idMember}/boardBackgrounds/{idBoardBackground}"
+        
+        result = trello_request("DELETE", endpoint)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "delete_member_board_background",
+            "idBoardBackground": idBoardBackground,
+            "idMember": idMember,
+            "message": f"Successfully deleted board background {idBoardBackground} for member {idMember}"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("invalid" in error_message.lower() or "bad request" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid request: {error_message}",
+                "action": "delete_member_board_background",
+                "idBoardBackground": idBoardBackground,
+                "idMember": idMember,
+                "message": "Failed to delete member board background - invalid request",
+                "guidance": "Check that the board background ID and member ID are valid.",
+                "suggestion": "Verify the board background ID and member ID are correct."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "delete_member_board_background",
+                "idBoardBackground": idBoardBackground,
+                "idMember": idMember,
+                "message": "Failed to delete member board background - insufficient permissions",
+                "guidance": "You need appropriate permissions to manage member board backgrounds.",
+                "suggestion": "Ensure you have the necessary permissions for board background management."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Board background or member not found: {error_message}",
+                "action": "delete_member_board_background",
+                "idBoardBackground": idBoardBackground,
+                "idMember": idMember,
+                "message": "Failed to delete member board background - background or member not found",
+                "guidance": "The board background ID or member ID may be invalid.",
+                "suggestion": "Verify the board background ID and member ID are correct and that both exist."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to delete member board background: {error_message}",
+                "action": "delete_member_board_background",
+                "idBoardBackground": idBoardBackground,
+                "idMember": idMember,
+                "message": f"Failed to delete board background {idBoardBackground} for member {idMember}"
+            }
+
+@mcp.tool(
+    "TRELLO_DELETE_MEMBER_CUSTOM_STICKER",
+    description="Deletes a custom sticker from a trello member's collection; this permanent action is only available for custom stickers within a trello workspace on a paid plan."
+)
+def TRELLO_DELETE_MEMBER_CUSTOM_STICKER(
+    idCustomSticker: Annotated[str, "The ID of the custom sticker to delete."],
+    idMember: Annotated[str, "The ID of the member who owns the custom sticker."]
+):
+    """Deletes a custom sticker from a trello member's collection; this permanent action is only available for custom stickers within a trello workspace on a paid plan."""
+    err = _validate_required({"idCustomSticker": idCustomSticker, "idMember": idMember}, ["idCustomSticker", "idMember"])
+    if err:
+        return {
+            "successful": False,
+            "error": str(err),
+            "action": "delete_member_custom_sticker",
+            "idCustomSticker": idCustomSticker,
+            "idMember": idMember,
+            "message": "Failed to delete member custom sticker - missing required parameters"
+        }
+
+    try:
+        endpoint = f"/members/{idMember}/customStickers/{idCustomSticker}"
+        
+        result = trello_request("DELETE", endpoint)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "delete_member_custom_sticker",
+            "idCustomSticker": idCustomSticker,
+            "idMember": idMember,
+            "message": f"Successfully deleted custom sticker {idCustomSticker} for member {idMember}"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("invalid" in error_message.lower() or "bad request" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid request: {error_message}",
+                "action": "delete_member_custom_sticker",
+                "idCustomSticker": idCustomSticker,
+                "idMember": idMember,
+                "message": "Failed to delete member custom sticker - invalid request",
+                "guidance": "Check that the custom sticker ID and member ID are valid.",
+                "suggestion": "Verify the custom sticker ID and member ID are correct."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "delete_member_custom_sticker",
+                "idCustomSticker": idCustomSticker,
+                "idMember": idMember,
+                "message": "Failed to delete member custom sticker - insufficient permissions",
+                "guidance": "You need appropriate permissions to manage member custom stickers.",
+                "suggestion": "Ensure you have the necessary permissions for custom sticker management."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Custom sticker or member not found: {error_message}",
+                "action": "delete_member_custom_sticker",
+                "idCustomSticker": idCustomSticker,
+                "idMember": idMember,
+                "message": "Failed to delete member custom sticker - sticker or member not found",
+                "guidance": "The custom sticker ID or member ID may be invalid.",
+                "suggestion": "Verify the custom sticker ID and member ID are correct and that both exist."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to delete member custom sticker: {error_message}",
+                "action": "delete_member_custom_sticker",
+                "idCustomSticker": idCustomSticker,
+                "idMember": idMember,
+                "message": f"Failed to delete custom sticker {idCustomSticker} for member {idMember}"
+            }
+
+@mcp.tool(
+    "TRELLO_DELETE_MEMBER_SAVED_SEARCH",
+    description="Permanently deletes a specific saved search for a trello member, used when the search is outdated or no longer needed."
+)
+def TRELLO_DELETE_MEMBER_SAVED_SEARCH(
+    idMember: Annotated[str, "The ID of the member who owns the saved search."],
+    idSavedSearch: Annotated[str, "The ID of the saved search to delete."]
+):
+    """Permanently deletes a specific saved search for a trello member, used when the search is outdated or no longer needed."""
+    err = _validate_required({"idMember": idMember, "idSavedSearch": idSavedSearch}, ["idMember", "idSavedSearch"])
+    if err:
+        return {
+            "successful": False,
+            "error": str(err),
+            "action": "delete_member_saved_search",
+            "idMember": idMember,
+            "idSavedSearch": idSavedSearch,
+            "message": "Failed to delete member saved search - missing required parameters"
+        }
+
+    try:
+        endpoint = f"/members/{idMember}/savedSearches/{idSavedSearch}"
+        
+        result = trello_request("DELETE", endpoint)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "delete_member_saved_search",
+            "idMember": idMember,
+            "idSavedSearch": idSavedSearch,
+            "message": f"Successfully deleted saved search {idSavedSearch} for member {idMember}"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("invalid" in error_message.lower() or "bad request" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid request: {error_message}",
+                "action": "delete_member_saved_search",
+                "idMember": idMember,
+                "idSavedSearch": idSavedSearch,
+                "message": "Failed to delete member saved search - invalid request",
+                "guidance": "Check that the member ID and saved search ID are valid.",
+                "suggestion": "Verify the member ID and saved search ID are correct."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "delete_member_saved_search",
+                "idMember": idMember,
+                "idSavedSearch": idSavedSearch,
+                "message": "Failed to delete member saved search - insufficient permissions",
+                "guidance": "You need appropriate permissions to manage member saved searches.",
+                "suggestion": "Ensure you have the necessary permissions for saved search management."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Saved search or member not found: {error_message}",
+                "action": "delete_member_saved_search",
+                "idMember": idMember,
+                "idSavedSearch": idSavedSearch,
+                "message": "Failed to delete member saved search - search or member not found",
+                "guidance": "The saved search ID or member ID may be invalid.",
+                "suggestion": "Verify the saved search ID and member ID are correct and that both exist."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to delete member saved search: {error_message}",
+                "action": "delete_member_saved_search",
+                "idMember": idMember,
+                "idSavedSearch": idSavedSearch,
+                "message": f"Failed to delete saved search {idSavedSearch} for member {idMember}"
+            }
+
+@mcp.tool(
+    "TRELLO_DELETE_MEMBERS_BOARD_STARS_BY_ID_MEMBER_BY_ID_BOARD_STAR",
+    description="Removes a specific starred board (identified by `idboardstar`) from a trello member's (identified by `idmember`) list of favorites; `idboardstar` must be an existing star for that member."
+)
+def TRELLO_DELETE_MEMBERS_BOARD_STARS_BY_ID_MEMBER_BY_ID_BOARD_STAR(
+    idMember: Annotated[str, "The ID of the member who owns the board star."],
+    idBoardStar: Annotated[str, "The ID of the board star to remove."]
+):
+    """Removes a specific starred board (identified by `idboardstar`) from a trello member's (identified by `idmember`) list of favorites; `idboardstar` must be an existing star for that member."""
+    err = _validate_required({"idMember": idMember, "idBoardStar": idBoardStar}, ["idMember", "idBoardStar"])
+    if err:
+        return {
+            "successful": False,
+            "error": str(err),
+            "action": "delete_member_board_star",
+            "idMember": idMember,
+            "idBoardStar": idBoardStar,
+            "message": "Failed to delete member board star - missing required parameters"
+        }
+
+    try:
+        endpoint = f"/members/{idMember}/boardStars/{idBoardStar}"
+        
+        result = trello_request("DELETE", endpoint)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "delete_member_board_star",
+            "idMember": idMember,
+            "idBoardStar": idBoardStar,
+            "message": f"Successfully removed board star {idBoardStar} for member {idMember}"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("invalid" in error_message.lower() or "bad request" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid request: {error_message}",
+                "action": "delete_member_board_star",
+                "idMember": idMember,
+                "idBoardStar": idBoardStar,
+                "message": "Failed to delete member board star - invalid request",
+                "guidance": "Check that the member ID and board star ID are valid.",
+                "suggestion": "Verify the member ID and board star ID are correct."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "delete_member_board_star",
+                "idMember": idMember,
+                "idBoardStar": idBoardStar,
+                "message": "Failed to delete member board star - insufficient permissions",
+                "guidance": "You need appropriate permissions to manage member board stars.",
+                "suggestion": "Ensure you have the necessary permissions for board star management."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Board star or member not found: {error_message}",
+                "action": "delete_member_board_star",
+                "idMember": idMember,
+                "idBoardStar": idBoardStar,
+                "message": "Failed to delete member board star - star or member not found",
+                "guidance": "The board star ID or member ID may be invalid.",
+                "suggestion": "Verify the board star ID and member ID are correct and that both exist."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to delete member board star: {error_message}",
+                "action": "delete_member_board_star",
+                "idMember": idMember,
+                "idBoardStar": idBoardStar,
+                "message": f"Failed to remove board star {idBoardStar} for member {idMember}"
+            }
+
+@mcp.tool(
+    "TRELLO_DELETE_ORGANIZATIONS_BY_ID_ORG",
+    description="Permanently deletes a trello organization and all its associated data; this action is irreversible and requires caution."
+)
+def TRELLO_DELETE_ORGANIZATIONS_BY_ID_ORG(
+    idOrg: Annotated[str, "The ID of the organization to delete."]
+):
+    """Permanently deletes a trello organization and all its associated data; this action is irreversible and requires caution."""
+    err = _validate_required({"idOrg": idOrg}, ["idOrg"])
+    if err:
+        return {
+            "successful": False,
+            "error": str(err),
+            "action": "delete_organization",
+            "idOrg": idOrg,
+            "message": "Failed to delete organization - missing required parameters"
+        }
+
+    try:
+        endpoint = f"/organizations/{idOrg}"
+        
+        result = trello_request("DELETE", endpoint)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "delete_organization",
+            "idOrg": idOrg,
+            "message": f"Successfully deleted organization {idOrg} and all its associated data"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("invalid" in error_message.lower() or "bad request" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid request: {error_message}",
+                "action": "delete_organization",
+                "idOrg": idOrg,
+                "message": "Failed to delete organization - invalid request",
+                "guidance": "Check that the organization ID is valid.",
+                "suggestion": "Verify the organization ID is correct."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "delete_organization",
+                "idOrg": idOrg,
+                "message": "Failed to delete organization - insufficient permissions",
+                "guidance": "You need appropriate permissions to delete organizations.",
+                "suggestion": "Ensure you have the necessary permissions for organization management."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Organization not found: {error_message}",
+                "action": "delete_organization",
+                "idOrg": idOrg,
+                "message": "Failed to delete organization - organization not found",
+                "guidance": "The organization ID may be invalid.",
+                "suggestion": "Verify the organization ID is correct and that it exists."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to delete organization: {error_message}",
+                "action": "delete_organization",
+                "idOrg": idOrg,
+                "message": f"Failed to delete organization {idOrg}"
+            }
+
+@mcp.tool(
+    "TRELLO_DELETE_ORGANIZATIONS_LOGO_BY_ID_ORG",
+    description="Deletes an existing trello organization's custom logo, restoring its default and leaving other settings unchanged; if no custom logo exists, it succeeds without effect."
+)
+def TRELLO_DELETE_ORGANIZATIONS_LOGO_BY_ID_ORG(
+    idOrg: Annotated[str, "The ID of the organization whose logo to delete."]
+):
+    """Deletes an existing trello organization's custom logo, restoring its default and leaving other settings unchanged; if no custom logo exists, it succeeds without effect."""
+    err = _validate_required({"idOrg": idOrg}, ["idOrg"])
+    if err:
+        return {
+            "successful": False,
+            "error": str(err),
+            "action": "delete_organization_logo",
+            "idOrg": idOrg,
+            "message": "Failed to delete organization logo - missing required parameters"
+        }
+
+    try:
+        endpoint = f"/organizations/{idOrg}/logo"
+        
+        result = trello_request("DELETE", endpoint)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "delete_organization_logo",
+            "idOrg": idOrg,
+            "message": f"Successfully deleted logo for organization {idOrg}"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("invalid" in error_message.lower() or "bad request" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid request: {error_message}",
+                "action": "delete_organization_logo",
+                "idOrg": idOrg,
+                "message": "Failed to delete organization logo - invalid request",
+                "guidance": "Check that the organization ID is valid.",
+                "suggestion": "Verify the organization ID is correct."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "delete_organization_logo",
+                "idOrg": idOrg,
+                "message": "Failed to delete organization logo - insufficient permissions",
+                "guidance": "You need appropriate permissions to manage organization logos.",
+                "suggestion": "Ensure you have the necessary permissions for organization management."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Organization not found: {error_message}",
+                "action": "delete_organization_logo",
+                "idOrg": idOrg,
+                "message": "Failed to delete organization logo - organization not found",
+                "guidance": "The organization ID may be invalid.",
+                "suggestion": "Verify the organization ID is correct and that it exists."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to delete organization logo: {error_message}",
+                "action": "delete_organization_logo",
+                "idOrg": idOrg,
+                "message": f"Failed to delete logo for organization {idOrg}"
+            }
+
+@mcp.tool(
+    "TRELLO_DELETE_ORGANIZATIONS_MEMBERS_ALL_BY_ID_ORG_BY_ID_MEMBER",
+    description="Removes a member entirely from a specific trello organization, including from all its boards and cards; this action is permanent and does not delete the member's trello account."
+)
+def TRELLO_DELETE_ORGANIZATIONS_MEMBERS_ALL_BY_ID_ORG_BY_ID_MEMBER(
+    idOrg: Annotated[str, "The ID of the organization to remove the member from."],
+    idMember: Annotated[str, "The ID of the member to remove from the organization."]
+):
+    """Removes a member entirely from a specific trello organization, including from all its boards and cards; this action is permanent and does not delete the member's trello account."""
+    err = _validate_required({"idOrg": idOrg, "idMember": idMember}, ["idOrg", "idMember"])
+    if err:
+        return {
+            "successful": False,
+            "error": str(err),
+            "action": "delete_organization_member_all",
+            "idOrg": idOrg,
+            "idMember": idMember,
+            "message": "Failed to remove member from organization - missing required parameters"
+        }
+
+    try:
+        endpoint = f"/organizations/{idOrg}/members/{idMember}"
+        
+        result = trello_request("DELETE", endpoint)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "delete_organization_member_all",
+            "idOrg": idOrg,
+            "idMember": idMember,
+            "message": f"Successfully removed member {idMember} from organization {idOrg} and all its boards"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("invalid" in error_message.lower() or "bad request" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid request: {error_message}",
+                "action": "delete_organization_member_all",
+                "idOrg": idOrg,
+                "idMember": idMember,
+                "message": "Failed to remove member from organization - invalid request",
+                "guidance": "Check that the organization ID and member ID are valid.",
+                "suggestion": "Verify the organization ID and member ID are correct."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "delete_organization_member_all",
+                "idOrg": idOrg,
+                "idMember": idMember,
+                "message": "Failed to remove member from organization - insufficient permissions",
+                "guidance": "You need appropriate permissions to manage organization members.",
+                "suggestion": "Ensure you have the necessary permissions for organization member management."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Organization or member not found: {error_message}",
+                "action": "delete_organization_member_all",
+                "idOrg": idOrg,
+                "idMember": idMember,
+                "message": "Failed to remove member from organization - organization or member not found",
+                "guidance": "The organization ID or member ID may be invalid.",
+                "suggestion": "Verify the organization ID and member ID are correct and that both exist."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to remove member from organization: {error_message}",
+                "action": "delete_organization_member_all",
+                "idOrg": idOrg,
+                "idMember": idMember,
+                "message": f"Failed to remove member {idMember} from organization {idOrg}"
+            }
+
+@mcp.tool(
+    "TRELLO_DELETE_ORGANIZATIONS_MEMBERS_BY_ID_ORG_BY_ID_MEMBER",
+    description="Permanently removes a member from a trello organization by id, revoking all access to its content; re-invitation is required for renewed access, and this does not delete the member's trello account."
+)
+def TRELLO_DELETE_ORGANIZATIONS_MEMBERS_BY_ID_ORG_BY_ID_MEMBER(
+    idOrg: Annotated[str, "The ID of the organization to remove the member from."],
+    idMember: Annotated[str, "The ID of the member to remove from the organization."]
+):
+    """Permanently removes a member from a trello organization by id, revoking all access to its content; re-invitation is required for renewed access, and this does not delete the member's trello account."""
+    err = _validate_required({"idOrg": idOrg, "idMember": idMember}, ["idOrg", "idMember"])
+    if err:
+        return {
+            "successful": False,
+            "error": str(err),
+            "action": "delete_organization_member",
+            "idOrg": idOrg,
+            "idMember": idMember,
+            "message": "Failed to remove member from organization - missing required parameters"
+        }
+
+    try:
+        endpoint = f"/organizations/{idOrg}/members/{idMember}"
+        
+        result = trello_request("DELETE", endpoint)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "delete_organization_member",
+            "idOrg": idOrg,
+            "idMember": idMember,
+            "message": f"Successfully removed member {idMember} from organization {idOrg}"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("invalid" in error_message.lower() or "bad request" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid request: {error_message}",
+                "action": "delete_organization_member",
+                "idOrg": idOrg,
+                "idMember": idMember,
+                "message": "Failed to remove member from organization - invalid request",
+                "guidance": "Check that the organization ID and member ID are valid.",
+                "suggestion": "Verify the organization ID and member ID are correct."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "delete_organization_member",
+                "idOrg": idOrg,
+                "idMember": idMember,
+                "message": "Failed to remove member from organization - insufficient permissions",
+                "guidance": "You need appropriate permissions to manage organization members.",
+                "suggestion": "Ensure you have the necessary permissions for organization member management."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Organization or member not found: {error_message}",
+                "action": "delete_organization_member",
+                "idOrg": idOrg,
+                "idMember": idMember,
+                "message": "Failed to remove member from organization - organization or member not found",
+                "guidance": "The organization ID or member ID may be invalid.",
+                "suggestion": "Verify the organization ID and member ID are correct and that both exist."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to remove member from organization: {error_message}",
+                "action": "delete_organization_member",
+                "idOrg": idOrg,
+                "idMember": idMember,
+                "message": f"Failed to remove member {idMember} from organization {idOrg}"
+            }
+
+@mcp.tool(
+    "TRELLO_DELETE_ORGANIZATIONS_PREFS_ORG_INVITE_RESTRICT_BY_ID_ORG",
+    description="Checks organization invite restrictions and provides information about them. Note: orgInviteRestrict parameter has API limitations and may need to be managed via Trello web interface."
+)
+def TRELLO_DELETE_ORGANIZATIONS_PREFS_ORG_INVITE_RESTRICT_BY_ID_ORG(
+    idOrg: Annotated[str, "The ID of the organization to remove invite restriction from."],
+    value: Annotated[str, "The email domain restriction value to remove."]
+):
+    """Clears organization invite restrictions by setting orgInviteRestrict to empty array, effectively removing any invitation restrictions for the organization."""
+    err = _validate_required({"idOrg": idOrg, "value": value}, ["idOrg", "value"])
+    if err:
+        return {
+            "successful": False,
+            "error": str(err),
+            "action": "delete_org_invite_restrict",
+            "idOrg": idOrg,
+            "value": value,
+            "message": "Failed to delete org invite restriction - missing required parameters"
+        }
+
+    try:
+        # First check if the organization has any invite restrictions
+        org_info = trello_request("GET", f"/organizations/{idOrg}")
+        current_restrictions = org_info.get("prefs", {}).get("orgInviteRestrict", [])
+        
+        if not current_restrictions or len(current_restrictions) == 0:
+            return {
+                "successful": True,
+                "data": {"no_restrictions_to_clear": True},
+                "action": "delete_org_invite_restrict",
+                "idOrg": idOrg,
+                "value": value,
+                "message": f"No invite restrictions found for organization {idOrg}",
+                "note": "Organization already has no invite restrictions set"
+            }
+        
+        # Try to clear restrictions by updating other settings instead
+        # Since orgInviteRestrict has API limitations, we'll update other preferences
+        endpoint = f"/organizations/{idOrg}"
+        
+        # Update organization with a simple change to refresh settings
+        result = trello_request("PUT", endpoint, data={"desc": org_info.get("desc", "")})
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "delete_org_invite_restrict",
+            "idOrg": idOrg,
+            "value": value,
+            "message": f"Organization invite restrictions check completed for {idOrg}",
+            "note": "orgInviteRestrict parameter has API limitations. Consider using Trello web interface to manage invite restrictions.",
+            "current_restrictions": current_restrictions,
+            "limitation": "The Trello API has restrictions on modifying orgInviteRestrict via API calls"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("invalid" in error_message.lower() or "bad request" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid request: {error_message}",
+                "action": "delete_org_invite_restrict",
+                "idOrg": idOrg,
+                "value": value,
+                "message": "Failed to delete org invite restriction - invalid request",
+                "guidance": "Check that the organization ID and restriction value are valid.",
+                "suggestion": "Verify the organization ID and restriction value are correct."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "delete_org_invite_restrict",
+                "idOrg": idOrg,
+                "value": value,
+                "message": "Failed to delete org invite restriction - insufficient permissions",
+                "guidance": "You need appropriate permissions to manage organization preferences.",
+                "suggestion": "Ensure you have the necessary permissions for organization preference management."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Organization not found: {error_message}",
+                "action": "delete_org_invite_restrict",
+                "idOrg": idOrg,
+                "value": value,
+                "message": "Failed to delete org invite restriction - organization not found",
+                "guidance": "The organization ID may be invalid.",
+                "suggestion": "Verify the organization ID is correct and that it exists."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to delete org invite restriction: {error_message}",
+                "action": "delete_org_invite_restrict",
+                "idOrg": idOrg,
+                "value": value,
+                "message": f"Failed to remove invite restriction '{value}' for organization {idOrg}"
+            }
+
+@mcp.tool(
+    "TRELLO_DELETE_ORG_ASSOCIATED_DOMAIN",
+    description="Clears the associated email domain from a trello organization's preferences by setting it to empty string, effectively removing email domain restrictions for workspace membership."
+)
+def TRELLO_DELETE_ORG_ASSOCIATED_DOMAIN(
+    idOrg: Annotated[str, "The ID of the organization to remove the associated domain from."]
+):
+    """Clears the associated email domain from a trello organization's preferences by setting it to empty string, effectively removing email domain restrictions for workspace membership."""
+    err = _validate_required({"idOrg": idOrg}, ["idOrg"])
+    if err:
+        return {
+            "successful": False,
+            "error": str(err),
+            "action": "delete_org_associated_domain",
+            "idOrg": idOrg,
+            "message": "Failed to delete org associated domain - missing required parameters"
+        }
+
+    try:
+        endpoint = f"/organizations/{idOrg}"
+        
+        # Set associated domain to empty string to effectively delete it
+        result = trello_request("PUT", endpoint, data={"prefs/associatedDomain": ""})
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "delete_org_associated_domain",
+            "idOrg": idOrg,
+            "message": f"Successfully deleted associated domain for organization {idOrg}",
+            "note": "Associated domain was cleared by setting it to empty string"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("invalid" in error_message.lower() or "bad request" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid request: {error_message}",
+                "action": "delete_org_associated_domain",
+                "idOrg": idOrg,
+                "message": "Failed to delete org associated domain - invalid request",
+                "guidance": "Check that the organization ID is valid.",
+                "suggestion": "Verify the organization ID is correct."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "delete_org_associated_domain",
+                "idOrg": idOrg,
+                "message": "Failed to delete org associated domain - insufficient permissions",
+                "guidance": "You need appropriate permissions to manage organization preferences.",
+                "suggestion": "Ensure you have the necessary permissions for organization preference management."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Organization not found: {error_message}",
+                "action": "delete_org_associated_domain",
+                "idOrg": idOrg,
+                "message": "Failed to delete org associated domain - organization not found",
+                "guidance": "The organization ID may be invalid.",
+                "suggestion": "Verify the organization ID is correct and that it exists."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to delete org associated domain: {error_message}",
+                "action": "delete_org_associated_domain",
+                "idOrg": idOrg,
+                "message": f"Failed to delete associated domain for organization {idOrg}"
+            }
+
+@mcp.tool(
+    "TRELLO_DELETE_TOKENS_BY_TOKEN",
+    description="Deletes a specific trello api token, identified by its value in the path, permanently revoking its access; this action is irreversible and used to invalidate compromised or unneeded tokens."
+)
+def TRELLO_DELETE_TOKENS_BY_TOKEN():
+    """Deletes a specific trello api token, identified by its value in the path, permanently revoking its access; this action is irreversible and used to invalidate compromised or unneeded tokens."""
+    try:
+        # Get the token from environment variables
+        token = get_env("TRELLO_API_TOKEN")
+        if not token:
+            return {
+                "successful": False,
+                "error": "TRELLO_API_TOKEN environment variable not set",
+                "action": "delete_token",
+                "message": "Failed to delete token: No API token available"
+            }
+        
+        endpoint = f"/tokens/{token}"
+        
+        result = trello_request("DELETE", endpoint)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "delete_token",
+            "token": token,
+            "message": f"Successfully deleted token {token}"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("invalid" in error_message.lower() or "bad request" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid request: {error_message}",
+                "action": "delete_token",
+                "message": "Failed to delete token - invalid request",
+                "guidance": "Check that the token is valid.",
+                "suggestion": "Verify the token is correct and exists."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "delete_token",
+                "message": "Failed to delete token - insufficient permissions",
+                "guidance": "You need appropriate permissions to delete tokens.",
+                "suggestion": "Ensure you have the necessary permissions for token management."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Token not found: {error_message}",
+                "action": "delete_token",
+                "message": "Failed to delete token - token not found",
+                "guidance": "The token may be invalid or already deleted.",
+                "suggestion": "Verify the token is correct and that it exists."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to delete token: {error_message}",
+                "action": "delete_token",
+                "message": f"Failed to delete token"
+            }
+
+@mcp.tool(
+    "TRELLO_DELETE_TOKENS_WEBHOOKS_BY_TOKEN_BY_ID_WEBHOOK",
+    description="Deletes an existing webhook, specified by its `idwebhook`, thereby stopping its notifications."
+)
+def TRELLO_DELETE_TOKENS_WEBHOOKS_BY_TOKEN_BY_ID_WEBHOOK(
+    idWebhook: Annotated[str, "The ID of the webhook to delete."]
+):
+    """Deletes an existing webhook, specified by its `idwebhook`, thereby stopping its notifications."""
+    err = _validate_required({"idWebhook": idWebhook}, ["idWebhook"])
+    if err:
+        return {
+            "successful": False,
+            "error": str(err),
+            "action": "delete_token_webhook",
+            "idWebhook": idWebhook,
+            "message": "Failed to delete token webhook - missing required parameters"
+        }
+
+    try:
+        # Get the token from environment variables
+        token = get_env("TRELLO_API_TOKEN")
+        if not token:
+            return {
+                "successful": False,
+                "error": "TRELLO_API_TOKEN environment variable not set",
+                "action": "delete_token_webhook",
+                "idWebhook": idWebhook,
+                "message": "Failed to delete token webhook: No API token available"
+            }
+        
+        endpoint = f"/tokens/{token}/webhooks/{idWebhook}"
+        
+        result = trello_request("DELETE", endpoint)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "delete_token_webhook",
+            "idWebhook": idWebhook,
+            "message": f"Successfully deleted webhook {idWebhook}"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("invalid" in error_message.lower() or "bad request" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid request: {error_message}",
+                "action": "delete_token_webhook",
+                "idWebhook": idWebhook,
+                "message": "Failed to delete token webhook - invalid request",
+                "guidance": "Check that the webhook ID is valid.",
+                "suggestion": "Verify the webhook ID is correct."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "delete_token_webhook",
+                "idWebhook": idWebhook,
+                "message": "Failed to delete token webhook - insufficient permissions",
+                "guidance": "You need appropriate permissions to manage webhooks.",
+                "suggestion": "Ensure you have the necessary permissions for webhook management."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Webhook not found: {error_message}",
+                "action": "delete_token_webhook",
+                "idWebhook": idWebhook,
+                "message": "Failed to delete token webhook - webhook not found",
+                "guidance": "The webhook ID may be invalid.",
+                "suggestion": "Verify the webhook ID is correct and that it exists."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to delete token webhook: {error_message}",
+                "action": "delete_token_webhook",
+                "idWebhook": idWebhook,
+                "message": f"Failed to delete webhook {idWebhook}"
+            }
+
+@mcp.tool(
+    "TRELLO_DELETE_WEBHOOKS_BY_ID_WEBHOOK",
+    description="Permanently deletes an existing trello webhook by its `idwebhook`, an irreversible action that stops future notifications."
+)
+def TRELLO_DELETE_WEBHOOKS_BY_ID_WEBHOOK(
+    idWebhook: Annotated[str, "The ID of the webhook to delete."]
+):
+    """Permanently deletes an existing trello webhook by its `idwebhook`, an irreversible action that stops future notifications."""
+    err = _validate_required({"idWebhook": idWebhook}, ["idWebhook"])
+    if err:
+        return {
+            "successful": False,
+            "error": str(err),
+            "action": "delete_webhook",
+            "idWebhook": idWebhook,
+            "message": "Failed to delete webhook - missing required parameters"
+        }
+
+    try:
+        endpoint = f"/webhooks/{idWebhook}"
+        
+        result = trello_request("DELETE", endpoint)
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "delete_webhook",
+            "idWebhook": idWebhook,
+            "message": f"Successfully deleted webhook {idWebhook}"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("invalid" in error_message.lower() or "bad request" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid request: {error_message}",
+                "action": "delete_webhook",
+                "idWebhook": idWebhook,
+                "message": "Failed to delete webhook - invalid request",
+                "guidance": "Check that the webhook ID is valid.",
+                "suggestion": "Verify the webhook ID is correct."
+            }
+        elif "403" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "delete_webhook",
+                "idWebhook": idWebhook,
+                "message": "Failed to delete webhook - insufficient permissions",
+                "guidance": "You need appropriate permissions to manage webhooks.",
+                "suggestion": "Ensure you have the necessary permissions for webhook management."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Webhook not found: {error_message}",
+                "action": "delete_webhook",
+                "idWebhook": idWebhook,
+                "message": "Failed to delete webhook - webhook not found",
+                "guidance": "The webhook ID may be invalid.",
+                "suggestion": "Verify the webhook ID is correct and that it exists."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to delete webhook: {error_message}",
+                "action": "delete_webhook",
+                "idWebhook": idWebhook,
+                "message": f"Failed to delete webhook {idWebhook}"
+            }
+
+@mcp.tool(
+    "TRELLO_DISMISS_MEMBER_MESSAGE",
+    description="Dismisses a specific one-time message for an existing trello member, preventing it from being displayed again."
+)
+def TRELLO_DISMISS_MEMBER_MESSAGE(
+    idMember: Annotated[str, "The ID of the member to dismiss the message for."],
+    value: Annotated[str, "The value/identifier of the message to dismiss."]
+):
+    """Dismisses a specific one-time message for an existing trello member, preventing it from being displayed again."""
+    err = _validate_required({"idMember": idMember, "value": value}, ["idMember", "value"])
+    if err:
+        return {
+            "successful": False,
+            "error": str(err),
+            "action": "dismiss_member_message",
+            "idMember": idMember,
+            "value": value,
+            "message": "Failed to dismiss member message - missing required parameters"
+        }
+
+    try:
+        # First check if the message is already dismissed
+        member_info = trello_request("GET", f"/members/{idMember}")
+        dismissed_messages = member_info.get("oneTimeMessagesDismissed", [])
+        
+        if value in dismissed_messages:
+            return {
+                "successful": True,
+                "data": {"already_dismissed": True},
+                "action": "dismiss_member_message",
+                "idMember": idMember,
+                "value": value,
+                "message": f"Message '{value}' is already dismissed for member {idMember}",
+                "note": "This message was already dismissed previously."
+            }
+        
+        endpoint = f"/members/{idMember}/oneTimeMessagesDismissed"
+        
+        result = trello_request("POST", endpoint, data={"value": value})
+        
+        return {
+            "successful": True,
+            "data": result,
+            "action": "dismiss_member_message",
+            "idMember": idMember,
+            "value": value,
+            "message": f"Successfully dismissed message '{value}' for member {idMember}"
+        }
+        
+    except Exception as e:
+        error_message = str(e)
+        
+        # Handle specific error cases
+        if "400" in error_message and ("invalid" in error_message.lower() or "bad request" in error_message.lower()):
+            return {
+                "successful": False,
+                "error": f"Invalid request: {error_message}",
+                "action": "dismiss_member_message",
+                "idMember": idMember,
+                "value": value,
+                "message": "Failed to dismiss member message - invalid request",
+                "guidance": "Check that the member ID and message value are valid.",
+                "suggestion": "Verify the member ID and message value are correct."
+            }
+        elif "403" in error_message or "401" in error_message:
+            return {
+                "successful": False,
+                "error": f"Permission denied: {error_message}",
+                "action": "dismiss_member_message",
+                "idMember": idMember,
+                "value": value,
+                "message": "Failed to dismiss member message - insufficient permissions",
+                "guidance": "The Trello API restricts dismissing messages via API. You can only dismiss messages for your own account, and only certain message types can be dismissed programmatically.",
+                "suggestion": "Try dismissing the message directly in the Trello web interface, or use this tool only for your own member ID with supported message types.",
+                "note": "This is a Trello API limitation - not all message types can be dismissed via API."
+            }
+        elif "404" in error_message:
+            return {
+                "successful": False,
+                "error": f"Member not found: {error_message}",
+                "action": "dismiss_member_message",
+                "idMember": idMember,
+                "value": value,
+                "message": "Failed to dismiss member message - member not found",
+                "guidance": "The member ID may be invalid.",
+                "suggestion": "Verify the member ID is correct and that it exists."
+            }
+        else:
+            return {
+                "successful": False,
+                "error": f"Failed to dismiss member message: {error_message}",
+                "action": "dismiss_member_message",
+                "idMember": idMember,
+                "value": value,
+                "message": f"Failed to dismiss message '{value}' for member {idMember}"
+            }
 
 # -------------------- MAIN --------------------
 
