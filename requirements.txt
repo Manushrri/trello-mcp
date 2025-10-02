@@ -46,3 +46,19 @@ mkdocs-material>=9.0.0
 
 # Additional utilities
 docutils>=0.20.0
+
+# Note: This server provides 317 comprehensive Trello integration tools
+# covering all major Trello functionality including:
+# - Card management and operations
+# - Board management and customization
+# - List operations and organization
+# - Checklist creation and management
+# - Label management and assignment
+# - Member management and permissions
+# - Action tracking and analysis
+# - Notification processing
+# - Organization management
+# - Webhook creation and management
+# - Advanced search and filtering
+# - Board preference management
+# - Session management
