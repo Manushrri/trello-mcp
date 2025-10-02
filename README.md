@@ -1,6 +1,6 @@
 # Trello MCP Server
 
-A comprehensive Model Context Protocol (MCP) server that provides extensive Trello integration capabilities. This server offers **287 tools** for complete Trello management, enabling seamless card operations, board management, action tracking, workflow automation, comprehensive board preference management, and advanced notification processing through a standardized MCP interface.
+A comprehensive Model Context Protocol (MCP) server that provides extensive Trello integration capabilities. This server offers **317 tools** for complete Trello management, enabling seamless card operations, board management, action tracking, workflow automation, comprehensive board preference management, and advanced notification processing through a standardized MCP interface.
 
 ## 🚀 Quick Start
 
@@ -69,6 +69,7 @@ uv run python trello_mcp/mcp_server.py
 
 ### ✅ Checklist Management
 - **Create Checklists** - Add checklists to cards or boards
+- **Board Checklist Creation** - Create checklists on boards by first creating a card
 - **Checklist Items** - Add and manage checklist items
 - **Checklist Operations** - Copy, move, and organize checklists
 - **Item Conversion** - Convert checklist items to cards
@@ -252,7 +253,18 @@ The server provides tools that can be used by MCP-compatible clients. All tools 
 }
 ```
 
-## Available Tools (287 Tools - Fully Implemented)
+#### Create Checklist on Board
+```json
+{
+  "tool": "TRELLO_ADD_BOARDS_CHECKLISTS_BY_ID_BOARD",
+  "parameters": {
+    "id_board": "64a1b2c3d4e5f6789012345",
+    "name": "Project Tasks"
+  }
+}
+```
+
+## Available Tools (317 Tools - Fully Implemented)
 
 ### 🔧 Card Operations (26 tools)
 - `TRELLO_GET_CARDS_BY_ID_CARD` - Get card by ID with full details
@@ -362,6 +374,7 @@ The server provides tools that can be used by MCP-compatible clients. All tools 
 
 ### ✅ Checklist Management (Legacy Tools)
 - `TRELLO_ADD_CHECKLISTS` - Create checklists on cards or boards
+- `TRELLO_ADD_BOARDS_CHECKLISTS_BY_ID_BOARD` - Create checklists on boards (creates card first)
 - `TRELLO_ADD_CHECKLISTS_CHECK_ITEMS_BY_ID_CHECKLIST` - Add items to checklists
 
 ### 🏷️ Label Management (Legacy Tools)
@@ -453,7 +466,7 @@ The server provides tools that can be used by MCP-compatible clients. All tools 
 ## Recent Updates & Improvements
 
 ### 🚀 Current Implementation Status
-- **203 Tools Implemented**: Complete Trello integration with comprehensive coverage
+- **317 Tools Implemented**: Complete Trello integration with comprehensive coverage
 - **Comprehensive GET Operations**: 80+ tools for detailed data retrieval
 - **Board Preference Management**: 50+ tools for complete board customization
 - **Field-Level Access**: Get specific fields or all data with "all" parameter
@@ -474,6 +487,7 @@ The server provides tools that can be used by MCP-compatible clients. All tools 
 - **Flexible Tool Design**: Support for multiple parameter combinations
 - **Deprecated API Handling**: Graceful handling of non-functional endpoints
 - **Type Safety**: Proper type annotations using `str | None` for optional parameters
+- **Smart API Workarounds**: Tools like `TRELLO_ADD_BOARDS_CHECKLISTS_BY_ID_BOARD` handle Trello API limitations by creating cards first
 
 ### 📊 Tool Categories (Updated)
 - **Card Operations**: 26 tools for complete card management and relationships
@@ -489,7 +503,7 @@ The server provides tools that can be used by MCP-compatible clients. All tools 
 - **Session Management**: ~2 tools for session management
 - **Advanced Features**: ~5 tools for batch operations and search
 - **Deprecated Tools**: ~10 tools with legacy support and deprecation notices
-- **Total Tools**: 287 comprehensive Trello integration tools
+- **Total Tools**: 317 comprehensive Trello integration tools
 
 ## Response Format
 
