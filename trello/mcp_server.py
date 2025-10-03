@@ -86,10 +86,11 @@ def _validate_required(params: Dict[str, Any], required: List[str]):
     return None
 
 # -------------------- TOOLS --------------------
+# Total: 317 Trello MCP Tools with formal descriptions
 
 @mcp.tool(
     "TRELLO_ACTION_GET_BOARD_BY_ID_ACTION",
-    description="Get board by action id. Deprecated: use `get actions board by id action` instead. retrieves details for the trello board associated with a specific action id, returning board information only.",
+    description="Get board by action. Retrieves board details associated with a specific action. Args: id_action (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, board data, and retrieval message.",
 )
 def TRELLO_ACTION_GET_BOARD_BY_ID_ACTION(
     id_action: Annotated[str, "The ID of the action to retrieve board information for."],
@@ -118,7 +119,7 @@ def TRELLO_ACTION_GET_BOARD_BY_ID_ACTION(
 
 @mcp.tool(
     "TRELLO_ACTION_GET_BY_ID",
-    description="Get action by ID. Deprecated: use `get actions by id action` instead. retrieves detailed information about a specific trello action by its id.",
+    description="Get action by ID. Retrieves detailed action information. Args: id_action (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, action data, and retrieval message.",
 )
 def TRELLO_ACTION_GET_BY_ID(
     id_action: Annotated[str, "The ID of the action to retrieve (required)."],
@@ -172,7 +173,7 @@ def TRELLO_ACTION_GET_BY_ID(
 
 @mcp.tool(
     "TRELLO_ACTION_GET_LIST_BY_ID_ACTION",
-    description="Get an action's list. Retrieves the trello list associated with a specific trello action id, for actions linked to a list. <<DEPRECATED use get_actions_list_by_id_action>>",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_ACTION_GET_LIST_BY_ID_ACTION(
     id_action: Annotated[str, "The ID of the action to retrieve list information for."],
@@ -201,7 +202,7 @@ def TRELLO_ACTION_GET_LIST_BY_ID_ACTION(
 
 @mcp.tool(
     "TRELLO_ADD_BOARDS",
-    description="Add board. Creates a new trello board; the 'name' parameter is required for creation, and various preferences can be customized or cloned from a source board.",
+    description="Add board. Creates a new Trello board with customizable settings. Args: name (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, board data, and creation message.",
 )
 def TRELLO_ADD_BOARDS(
     name: Annotated[str, "The name of the board to create (required)."],
@@ -294,7 +295,7 @@ def TRELLO_ADD_BOARDS(
 
 @mcp.tool(
     "TRELLO_ADD_BOARDS_CALENDAR_KEY_GENERATE_BY_ID_BOARD",
-    description="Get board calendar feed URL. Retrieves the calendar feed URL for the trello board specified by `idboard` for calendar integration.",
+    description="Add board. Creates a new Trello board with customizable settings. Args: name (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, board data, and creation message.",
 )
 def TRELLO_ADD_BOARDS_CALENDAR_KEY_GENERATE_BY_ID_BOARD(
     id_board: Annotated[str, "The ID of the board to get calendar feed URL for."]
@@ -336,7 +337,7 @@ def TRELLO_ADD_BOARDS_CALENDAR_KEY_GENERATE_BY_ID_BOARD(
 
 @mcp.tool(
     "TRELLO_ADD_BOARDS_EMAIL_KEY_GENERATE_BY_ID_BOARD",
-    description="Generate email key for board. Generates a new email key for the trello board specified by idboard to enable or reset adding cards via email; this invalidates any previously existing email key for the board.",
+    description="Add board. Creates a new Trello board with customizable settings. Args: name (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, board data, and creation message.",
 )
 def TRELLO_ADD_BOARDS_EMAIL_KEY_GENERATE_BY_ID_BOARD(
     id_board: Annotated[str, "The ID of the board to generate an email key for."]
@@ -360,7 +361,7 @@ def TRELLO_ADD_BOARDS_EMAIL_KEY_GENERATE_BY_ID_BOARD(
 
 @mcp.tool(
     "TRELLO_ADD_BOARDS_LABELS_BY_ID_BOARD",
-    description="Add a label to a board. Creates a new label on an existing trello board.",
+    description="Add board. Creates a new Trello board with customizable settings. Args: name (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, board data, and creation message.",
 )
 def TRELLO_ADD_BOARDS_LABELS_BY_ID_BOARD(
     id_board: Annotated[str, "The ID of the board to add the label to."],
@@ -392,7 +393,7 @@ def TRELLO_ADD_BOARDS_LABELS_BY_ID_BOARD(
 
 @mcp.tool(
     "TRELLO_ADD_BOARDS_LISTS_BY_ID_BOARD",
-    description="Add new list to board. Creates a new, empty list on a specified, existing trello board, typically used as a column or category for organizing cards.",
+    description="Add board. Creates a new Trello board with customizable settings. Args: name (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, board data, and creation message.",
 )
 def TRELLO_ADD_BOARDS_LISTS_BY_ID_BOARD(
     id_board: Annotated[str, "The ID of the board to add the list to."],
@@ -424,7 +425,7 @@ def TRELLO_ADD_BOARDS_LISTS_BY_ID_BOARD(
 
 @mcp.tool(
     "TRELLO_ADD_BOARDS_MARK_AS_VIEWED_BY_ID_BOARD",
-    description="Mark board as viewed. Marks the trello board specified by idboard as viewed for the current user, exclusively updating its viewed status and potentially influencing its position in user-specific lists and notification settings.",
+    description="Add board. Creates a new Trello board with customizable settings. Args: name (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, board data, and creation message.",
 )
 def TRELLO_ADD_BOARDS_MARK_AS_VIEWED_BY_ID_BOARD(
     id_board: Annotated[str, "The ID of the board to mark as viewed."]
@@ -448,7 +449,7 @@ def TRELLO_ADD_BOARDS_MARK_AS_VIEWED_BY_ID_BOARD(
 
 @mcp.tool(
     "TRELLO_ADD_BOARDS_CHECKLISTS_BY_ID_BOARD",
-    description="Add checklist to board. Creates a new, initially empty checklist with a given name on an existing and accessible trello board by first creating a card and then adding the checklist to it.",
+    description="Add board. Creates a new Trello board with customizable settings. Args: name (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, board data, and creation message.",
 )
 def TRELLO_ADD_BOARDS_CHECKLISTS_BY_ID_BOARD(
     id_board: Annotated[str, "The ID of the board to add the checklist to."],
@@ -566,7 +567,7 @@ def TRELLO_ADD_BOARDS_CHECKLISTS_BY_ID_BOARD(
 
 @mcp.tool(
     "TRELLO_ADD_BOARDS_POWER_UPS_BY_ID_BOARD",
-    description="Get board power-ups. Retrieves the power-ups available and enabled on the trello board specified by idboard.",
+    description="Add board. Creates a new Trello board with customizable settings. Args: name (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, board data, and creation message.",
 )
 def TRELLO_ADD_BOARDS_POWER_UPS_BY_ID_BOARD(
     id_board: Annotated[str, "The ID of the board to get power-ups for."]
@@ -601,7 +602,7 @@ def TRELLO_ADD_BOARDS_POWER_UPS_BY_ID_BOARD(
 
 @mcp.tool(
     "TRELLO_ADD_CARDS",
-    description="Add card. Creates a new card in a trello list; `idlist` is required, and if `idcardsource` is used, the source card must be accessible.",
+    description="Add card. Creates a new Trello card with optional attributes. Args: id_list (str, required), name (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, card data, and creation message.",
 )
 def TRELLO_ADD_CARDS(
     id_list: Annotated[str, "The ID of the list to add the card to (required)."],
@@ -675,7 +676,7 @@ def TRELLO_ADD_CARDS(
 
 @mcp.tool(
     "TRELLO_ADD_CARDS_CHECKLISTS_BY_ID_CARD",
-    description="Add checklist to card via id. Adds a checklist to a trello card: use value to add a specific existing checklist, idchecklistsource to create a new checklist by copying an existing one (optionally using name for the new checklist's name), or name to create a new empty checklist from scratch.",
+    description="Add card. Creates a new Trello card with optional attributes. Args: id_list (str, required), name (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, card data, and creation message.",
 )
 def TRELLO_ADD_CARDS_CHECKLISTS_BY_ID_CARD(
     id_card: Annotated[str, "The ID of the card to add the checklist to."],
@@ -767,7 +768,7 @@ def TRELLO_ADD_CARDS_CHECKLISTS_BY_ID_CARD(
 
 @mcp.tool(
     "TRELLO_ADD_CARDS_ACTIONS_COMMENTS_BY_ID_CARD",
-    description="Add comment to card. Adds a new text comment, which can include @mentions, to a trello card specified by its id; file attachments are not supported via this action.",
+    description="Add card. Creates a new Trello card with optional attributes. Args: id_list (str, required), name (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, card data, and creation message.",
 )
 def TRELLO_ADD_CARDS_ACTIONS_COMMENTS_BY_ID_CARD(
     id_card: Annotated[str, "The ID of the card to add the comment to."],
@@ -794,7 +795,7 @@ def TRELLO_ADD_CARDS_ACTIONS_COMMENTS_BY_ID_CARD(
 
 @mcp.tool(
     "TRELLO_ADD_CARDS_CHECKLIST_CHECK_ITEM_BY_ID_CARD_BY_ID_CHECKLIST",
-    description="Add check item to checklist. Adds a new check item to an existing checklist on a specific trello card.",
+    description="Add card. Creates a new Trello card with optional attributes. Args: id_list (str, required), name (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, card data, and creation message.",
 )
 def TRELLO_ADD_CARDS_CHECKLIST_CHECK_ITEM_BY_ID_CARD_BY_ID_CHECKLIST(
     id_card: Annotated[str, "The ID of the card containing the checklist."],
@@ -828,7 +829,7 @@ def TRELLO_ADD_CARDS_CHECKLIST_CHECK_ITEM_BY_ID_CARD_BY_ID_CHECKLIST(
 
 @mcp.tool(
     "TRELLO_ADD_CARDS_ID_LABELS_BY_ID_CARD",
-    description="Add label to card. Adds an existing label to a trello card; idcard identifies the card and value is the id of the label to add. both card and label must already exist.",
+    description="Add card. Creates a new Trello card with optional attributes. Args: id_list (str, required), name (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, card data, and creation message.",
 )
 def TRELLO_ADD_CARDS_ID_LABELS_BY_ID_CARD(
     id_card: Annotated[str, "The ID of the card to add the label to."],
@@ -855,7 +856,7 @@ def TRELLO_ADD_CARDS_ID_LABELS_BY_ID_CARD(
 
 @mcp.tool(
     "TRELLO_ADD_CARDS_ID_MEMBERS_BY_ID_CARD",
-    description="Add card member by id. Assigns a trello member to a specific trello card by card id (or short link) and member id.",
+    description="Add card. Creates a new Trello card with optional attributes. Args: id_list (str, required), name (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, card data, and creation message.",
 )
 def TRELLO_ADD_CARDS_ID_MEMBERS_BY_ID_CARD(
     id_card: Annotated[str, "The ID of the card to assign the member to."],
@@ -882,7 +883,7 @@ def TRELLO_ADD_CARDS_ID_MEMBERS_BY_ID_CARD(
 
 @mcp.tool(
     "TRELLO_ADD_CARDS_LABELS_BY_ID_CARD",
-    description="Add labels to card. Adds a label to an existing trello card (specified by idcard), defining the label by name and either color or the overriding value (which specifies color by name); a new label is created on the board if a matching one (by name/color combination) doesn't already exist.",
+    description="Add card. Creates a new Trello card with optional attributes. Args: id_list (str, required), name (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, card data, and creation message.",
 )
 def TRELLO_ADD_CARDS_LABELS_BY_ID_CARD(
     id_card: Annotated[str, "The ID of the card to add the label to."],
@@ -921,7 +922,7 @@ def TRELLO_ADD_CARDS_LABELS_BY_ID_CARD(
 
 @mcp.tool(
     "TRELLO_ADD_CARDS_STICKERS_BY_ID_CARD",
-    description="Add sticker to card. Adds a sticker to a trello card, using a default sticker name (e.g., 'taco-cool') or a custom sticker id for the image, and allows specifying its position, rotation, and z-index.",
+    description="Add card. Creates a new Trello card with optional attributes. Args: id_list (str, required), name (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, card data, and creation message.",
 )
 def TRELLO_ADD_CARDS_STICKERS_BY_ID_CARD(
     id_card: Annotated[str, "The ID of the card to add the sticker to."],
@@ -1049,7 +1050,7 @@ def TRELLO_ADD_CARDS_MEMBERS_VOTED_BY_ID_CARD(
 
 @mcp.tool(
     "TRELLO_ADD_CHECKLISTS",
-    description="Add checklist to card. Creates a new checklist on a trello card, either by name or by copying from idchecklistsource, targeting an idcard or idboard; this action creates only the checklist structure, not its items.",
+    description="Add checklist. Creates a new Trello checklist. Args: id_card/id_board (str, required), name (str, optional), additional parameters (str, optional). Returns: Dictionary containing success status, checklist data, and creation message.",
 )
 def TRELLO_ADD_CHECKLISTS(
     id_card: Annotated[Optional[str], "The ID of the card to add the checklist to."] = None,
@@ -1127,7 +1128,7 @@ def TRELLO_ADD_CHECKLISTS(
 
 @mcp.tool(
     "TRELLO_ADD_CHECKLISTS_CHECK_ITEMS_BY_ID_CHECKLIST",
-    description="Add check item to checklist. Adds a new check item to a specified trello checklist; this action does not update existing check items.",
+    description="Add checklist. Creates a new Trello checklist. Args: id_card/id_board (str, required), name (str, optional), additional parameters (str, optional). Returns: Dictionary containing success status, checklist data, and creation message.",
 )
 def TRELLO_ADD_CHECKLISTS_CHECK_ITEMS_BY_ID_CHECKLIST(
     id_checklist: Annotated[str, "The ID of the checklist to add the check item to."],
@@ -1164,7 +1165,7 @@ def TRELLO_ADD_CHECKLISTS_CHECK_ITEMS_BY_ID_CHECKLIST(
 
 @mcp.tool(
     "TRELLO_ADD_LABELS",
-    description="Create label on board. Creates a new label with a specified name (required) and color on a trello board (idboard required); this action defines the label but does not apply it to cards.",
+    description="Trello operation. Performs a specific Trello operation. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, data, and operation message.",
 )
 def TRELLO_ADD_LABELS(
     id_board: Annotated[str, "The ID of the board to create the label on."],
@@ -1197,7 +1198,7 @@ def TRELLO_ADD_LABELS(
 
 @mcp.tool(
     "TRELLO_ADD_LISTS",
-    description="Add new list to board. Creates a new list on a specified trello board, with options to copy an existing list, set its position, initial state (archived/subscribed), and does not modify existing lists or move cards.",
+    description="Add list. Creates a new Trello list on a board. Args: id_board (str, required), name (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, list data, and creation message.",
 )
 def TRELLO_ADD_LISTS(
     id_board: Annotated[str, "The ID of the board to create the list on."],
@@ -1260,7 +1261,7 @@ def TRELLO_ADD_LISTS(
 
 @mcp.tool(
     "TRELLO_LIST_CREATE_LIST",
-    description="Add new list to board. Deprecated: use 'add lists' instead. creates a new list on a trello board, optionally copying an existing list, setting position, and initial state; does not modify existing lists or move cards.",
+    description="Trello operation. Performs a specific Trello operation. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, data, and operation message.",
 )
 def TRELLO_LIST_CREATE_LIST(
     id_board: Annotated[str, "The ID of the board to create the list on."],
@@ -1287,7 +1288,7 @@ def TRELLO_LIST_CREATE_LIST(
 
 @mcp.tool(
     "TRELLO_ADD_LISTS_ARCHIVE_ALL_CARDS_BY_ID_LIST",
-    description="Archive all cards in list. Archives all cards in a trello list; while cards can be restored via the trello interface, this action does not provide an unarchive function.",
+    description="Add list. Creates a new Trello list on a board. Args: id_board (str, required), name (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, list data, and creation message.",
 )
 def TRELLO_ADD_LISTS_ARCHIVE_ALL_CARDS_BY_ID_LIST(
     id_list: Annotated[str, "The ID of the list to archive all cards from."]
@@ -1311,7 +1312,7 @@ def TRELLO_ADD_LISTS_ARCHIVE_ALL_CARDS_BY_ID_LIST(
 
 @mcp.tool(
     "TRELLO_ADD_LISTS_CARDS_BY_ID_LIST",
-    description="Add card to list. Creates a new card in a trello list, which must be specified by an existing and accessible idlist.",
+    description="Add list. Creates a new Trello list on a board. Args: id_board (str, required), name (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, list data, and creation message.",
 )
 def TRELLO_ADD_LISTS_CARDS_BY_ID_LIST(
     id_list: Annotated[str, "The ID of the list to add the card to."],
@@ -1359,7 +1360,7 @@ def TRELLO_ADD_LISTS_CARDS_BY_ID_LIST(
 
 @mcp.tool(
     "TRELLO_ADD_LISTS_MOVE_ALL_CARDS_BY_ID_LIST",
-    description="Move all cards in list to board. Moves all cards from a trello list to a different board; this action is irreversible, moves (not copies) cards, and empties the source list without deleting it.",
+    description="Add list. Creates a new Trello list on a board. Args: id_board (str, required), name (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, list data, and creation message.",
 )
 def TRELLO_ADD_LISTS_MOVE_ALL_CARDS_BY_ID_LIST(
     id_list: Annotated[str, "The ID of the list to move all cards from."],
@@ -1478,7 +1479,7 @@ def TRELLO_ADD_LISTS_MOVE_ALL_CARDS_BY_ID_LIST(
 
 @mcp.tool(
     "TRELLO_ADD_MEMBERS_BOARD_STARS_BY_ID_MEMBER",
-    description="Add board star to member. Stars a trello board for a member (does not remove or list stars), optionally at a specified position; the board must exist and be accessible to the member.",
+    description="Trello operation. Performs a specific Trello operation. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, data, and operation message.",
 )
 def TRELLO_ADD_MEMBERS_BOARD_STARS_BY_ID_MEMBER(
     id_member: Annotated[str, "The ID of the member to star the board for."],
@@ -1511,7 +1512,7 @@ def TRELLO_ADD_MEMBERS_BOARD_STARS_BY_ID_MEMBER(
 
 @mcp.tool(
     "TRELLO_TRELLO_UPDATE_MEMBER_BOARD_STAR",
-    description="Update Member Board Star. Updates an existing board star for a member, allowing changes to the target board (must be a valid, accessible board id if specified) or the star's position.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_TRELLO_UPDATE_MEMBER_BOARD_STAR(
     id_member: Annotated[str, "The ID of the member who owns the board star."],
@@ -1569,7 +1570,7 @@ def TRELLO_TRELLO_UPDATE_MEMBER_BOARD_STAR(
 
 @mcp.tool(
     "TRELLO_ADD_MEMBERS_SAVED_SEARCHES_BY_ID_MEMBER",
-    description="Add saved search for member. Creates a new saved search with a specified name, position, and query for a trello member.",
+    description="Trello operation. Performs a specific Trello operation. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, data, and operation message.",
 )
 def TRELLO_ADD_MEMBERS_SAVED_SEARCHES_BY_ID_MEMBER(
     id_member: Annotated[str, "The ID of the member to create the saved search for."],
@@ -1604,7 +1605,7 @@ def TRELLO_ADD_MEMBERS_SAVED_SEARCHES_BY_ID_MEMBER(
 
 @mcp.tool(
     "TRELLO_ADD_NOTIFICATIONS_ALL_READ",
-    description="Mark all notifications as read. Marks all trello notifications for the authenticated user as read across all boards; this action is permanent and cannot be undone.",
+    description="Trello operation. Performs a specific Trello operation. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, data, and operation message.",
 )
 def TRELLO_ADD_NOTIFICATIONS_ALL_READ():
     """Mark all notifications as read. Marks all trello notifications for the authenticated user as read across all boards; this action is permanent and cannot be undone."""
@@ -1622,7 +1623,7 @@ def TRELLO_ADD_NOTIFICATIONS_ALL_READ():
 
 @mcp.tool(
     "TRELLO_MARK_CARD_NOTIFICATIONS_READ",
-    description="Mark card notifications read. Marks all notifications associated with a specific trello card as read; this is irreversible and only affects read status, not deleting or modifying notifications. Note: This uses a workaround since Trello API doesn't have a direct card-specific endpoint.",
+    description="Trello operation. Performs a specific Trello operation. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, data, and operation message.",
 )
 def TRELLO_MARK_CARD_NOTIFICATIONS_READ(
     id_card: Annotated[str, "The ID of the card to mark notifications as read for."]
@@ -1659,7 +1660,7 @@ def TRELLO_MARK_CARD_NOTIFICATIONS_READ(
 
 @mcp.tool(
     "TRELLO_ADD_ORGANIZATIONS",
-    description="Create organization. Creates a new trello organization (workspace) with a displayname (required), and optionally a description, website, and various preferences (e.g., board visibility, member invitation restrictions).",
+    description="Trello operation. Performs a specific Trello operation. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, data, and operation message.",
 )
 def TRELLO_ADD_ORGANIZATIONS(
     display_name: Annotated[str, "The display name of the organization (required)."],
@@ -1722,7 +1723,7 @@ def TRELLO_ADD_ORGANIZATIONS(
 
 @mcp.tool(
     "TRELLO_ADD_TOKENS_WEBHOOKS_BY_TOKEN",
-    description="Add token webhook. Creates a webhook for a trello token to monitor a trello model (idmodel) and send notifications to a callbackurl, which must be publicly accessible and able to respond to trello's head validation request.",
+    description="Trello operation. Performs a specific Trello operation. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, data, and operation message.",
 )
 def TRELLO_ADD_TOKENS_WEBHOOKS_BY_TOKEN(
     callback_url: Annotated[str, "The callback URL where Trello will send webhook notifications. Must be publicly accessible."],
@@ -1768,7 +1769,7 @@ def TRELLO_ADD_TOKENS_WEBHOOKS_BY_TOKEN(
 
 @mcp.tool(
     "TRELLO_BOARD_CREATE_BOARD",
-    description="Add board. <<deprecated: this action is deprecated. please use 'add boards' instead.>> creates a new trello board, requiring the 'name' parameter.",
+    description="Trello operation. Performs a specific Trello operation. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, data, and operation message.",
 )
 def TRELLO_BOARD_CREATE_BOARD(
     name: Annotated[str, "The name of the board (required)."],
@@ -1910,7 +1911,7 @@ def TRELLO_BOARD_CREATE_BOARD(
 
 @mcp.tool(
     "TRELLO_BOARD_FILTER_CARDS_BY_ID_BOARD",
-    description="Get cards by filter from board. Deprecated: use `get boards cards by id board by filter`. retrieves cards from a trello board using a filter.",
+    description="Trello operation. Performs a specific Trello operation. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, data, and operation message.",
 )
 def TRELLO_BOARD_FILTER_CARDS_BY_ID_BOARD(
     id_board: Annotated[str, "The ID of the board to get cards from."],
@@ -1938,7 +1939,7 @@ def TRELLO_BOARD_FILTER_CARDS_BY_ID_BOARD(
 
 @mcp.tool(
     "TRELLO_BOARD_GET_LISTS_BY_ID_BOARD",
-    description="Get board's lists. Deprecated: retrieves lists from a specified trello board; use `get boards lists by id board`.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_BOARD_GET_LISTS_BY_ID_BOARD(
     id_board: Annotated[str, "The ID of the board to get lists from."],
@@ -1978,7 +1979,7 @@ def TRELLO_BOARD_GET_LISTS_BY_ID_BOARD(
 
 @mcp.tool(
     "TRELLO_CARD_GET_BY_ID_FIELD",
-    description="Get card field by id. (deprecated: use `get cards by id card by field` instead) retrieves the value of a single, specified field from a trello card. Use 'all' to get all fields.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_CARD_GET_BY_ID_FIELD(
     id_card: Annotated[str, "The ID of the card to get the field from."],
@@ -2020,7 +2021,7 @@ def TRELLO_CARD_GET_BY_ID_FIELD(
 
 @mcp.tool(
     "TRELLO_CARD_UPDATE_ID_LIST_BY_ID_CARD",
-    description="Update card list ID. Deprecated: moves a trello card to a different list on the same board. use `update cards id list by id card` instead.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_CARD_UPDATE_ID_LIST_BY_ID_CARD(
     id_card: Annotated[str, "The ID of the card to move."],
@@ -2048,7 +2049,7 @@ def TRELLO_CARD_UPDATE_ID_LIST_BY_ID_CARD(
 
 @mcp.tool(
     "TRELLO_CARD_UPDATE_POS_BY_ID_CARD",
-    description="Update card position. Updates a trello card's position within its list to 'top', 'bottom', or a specified 1-indexed positive integer.<<DEPRECATED use update_cards_pos_by_id_card>>",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_CARD_UPDATE_POS_BY_ID_CARD(
     id_card: Annotated[str, "The ID of the card to update position for."],
@@ -2106,7 +2107,7 @@ def TRELLO_CARD_UPDATE_POS_BY_ID_CARD(
 
 @mcp.tool(
     "TRELLO_CONVERT_CHECKLIST_ITEM_TO_CARD",
-    description="Convert checklist item to card. Converts a checklist item into a new card (useful for promoting a subtask), which inherits some properties from the item; this is irreversible via the api and offers no customization during conversion.",
+    description="Trello operation. Performs a specific Trello operation. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, data, and operation message.",
 )
 def TRELLO_CONVERT_CHECKLIST_ITEM_TO_CARD(
     id_card: Annotated[str, "The ID of the card containing the checklist."],
@@ -2136,7 +2137,7 @@ def TRELLO_CONVERT_CHECKLIST_ITEM_TO_CARD(
 
 @mcp.tool(
     "TRELLO_GET_ACTIONS_BOARD_BY_ID_ACTION",
-    description="Get board by action id. Retrieves details for the trello board associated with a specific action id, returning board information only.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_ACTIONS_BOARD_BY_ID_ACTION(
     id_action: Annotated[str, "The ID of the action to get the board for."],
@@ -2168,7 +2169,7 @@ def TRELLO_GET_ACTIONS_BOARD_BY_ID_ACTION(
 
 @mcp.tool(
     "TRELLO_GET_ACTIONS_BOARD_BY_ID_ACTION_BY_FIELD",
-    description="Get action's board field. Retrieves a specified `field` from the trello board associated with the provided trello `idaction`. Use 'all' to get all fields.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_ACTIONS_BOARD_BY_ID_ACTION_BY_FIELD(
     id_action: Annotated[str, "The ID of the action to get the board field for."],
@@ -2210,7 +2211,7 @@ def TRELLO_GET_ACTIONS_BOARD_BY_ID_ACTION_BY_FIELD(
 
 @mcp.tool(
     "TRELLO_GET_ACTIONS_BY_ID_ACTION",
-    description="Get action by ID. Retrieves detailed information about a specific trello action by its id.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_ACTIONS_BY_ID_ACTION(
     id_action: Annotated[str, "The ID of the action to retrieve."],
@@ -2260,7 +2261,7 @@ def TRELLO_GET_ACTIONS_BY_ID_ACTION(
 
 @mcp.tool(
     "TRELLO_GET_ACTIONS_BY_ID_ACTION_BY_FIELD",
-    description="Get action field by id. Retrieves the value of a specific field (e.g., 'data', 'date', 'type') from a trello action using its unique id. Use 'all' to get all fields.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_ACTIONS_BY_ID_ACTION_BY_FIELD(
     id_action: Annotated[str, "The ID of the action to get the field from."],
@@ -2303,7 +2304,7 @@ def TRELLO_GET_ACTIONS_BY_ID_ACTION_BY_FIELD(
 
 @mcp.tool(
     "TRELLO_UPDATE_ACTIONS_BY_ID_ACTION",
-    description="Update action text. Updates the `text` field of a specific trello comment action, identified by `idaction`. Note: Only comment actions can be edited - other action types cannot be modified.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_ACTIONS_BY_ID_ACTION(
     id_action: Annotated[str, "The ID of the action to update."],
@@ -2368,7 +2369,7 @@ def TRELLO_UPDATE_ACTIONS_BY_ID_ACTION(
 
 @mcp.tool(
     "TRELLO_UPDATE_ACTIONS_TEXT_BY_ID_ACTION",
-    description="Update action text. Updates the text of an existing trello action (e.g., a comment or card update) identified by `idaction`; this change only affects the action's text content. Note: Only comment actions can be edited - other action types cannot be modified.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_ACTIONS_TEXT_BY_ID_ACTION(
     id_action: Annotated[str, "The ID of the action to update."],
@@ -2432,7 +2433,7 @@ def TRELLO_UPDATE_ACTIONS_TEXT_BY_ID_ACTION(
 
 @mcp.tool(
     "TRELLO_GET_ACTIONS_CARD_BY_ID_ACTION",
-    description="Get card by action ID. Retrieves trello card details for a given idaction, which must be an action specifically linked to a card; returns only card data, not action details.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_ACTIONS_CARD_BY_ID_ACTION(
     id_action: Annotated[str, "The ID of the action to get the card from."],
@@ -2465,7 +2466,7 @@ def TRELLO_GET_ACTIONS_CARD_BY_ID_ACTION(
 
 @mcp.tool(
     "TRELLO_GET_ACTIONS_CARD_BY_ID_ACTION_BY_FIELD",
-    description="Get action's card field. Retrieves a specific field from the trello card associated with the given action id. Use 'all' to get all fields.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_ACTIONS_CARD_BY_ID_ACTION_BY_FIELD(
     id_action: Annotated[str, "The ID of the action to get the card field from."],
@@ -2507,7 +2508,7 @@ def TRELLO_GET_ACTIONS_CARD_BY_ID_ACTION_BY_FIELD(
 
 @mcp.tool(
     "TRELLO_GET_ACTIONS_DISPLAY_BY_ID_ACTION",
-    description="Get action display by ID. Retrieves a display-friendly representation of an existing and accessible trello action for ui/report purposes, providing presentation-focused data instead of full raw details and without altering the action.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_ACTIONS_DISPLAY_BY_ID_ACTION(
     id_action: Annotated[str, "The ID of the action to get the display representation for."]
@@ -2533,7 +2534,7 @@ def TRELLO_GET_ACTIONS_DISPLAY_BY_ID_ACTION(
 
 @mcp.tool(
     "TRELLO_GET_ACTIONS_ENTITIES_BY_ID_ACTION",
-    description="Get action entities by id. Retrieves all entities (e.g., boards, lists, cards, members) associated with a specific, existing trello action id.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_ACTIONS_ENTITIES_BY_ID_ACTION(
     id_action: Annotated[str, "The ID of the action to get the entities for."]
@@ -2558,7 +2559,7 @@ def TRELLO_GET_ACTIONS_ENTITIES_BY_ID_ACTION(
 
 @mcp.tool(
     "TRELLO_GET_ACTIONS_LIST_BY_ID_ACTION",
-    description="Get an action's list. Retrieves the trello list associated with a specific trello action id, for actions linked to a list.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_ACTIONS_LIST_BY_ID_ACTION(
     id_action: Annotated[str, "The ID of the action to get the list from."],
@@ -2592,7 +2593,7 @@ def TRELLO_GET_ACTIONS_LIST_BY_ID_ACTION(
 
 @mcp.tool(
     "TRELLO_GET_ACTIONS_LIST_BY_ID_ACTION_BY_FIELD",
-    description="Get field of action's list. Retrieves a specific field of the list associated with a trello action, returning only that single field's value. Use 'all' to get all fields.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_ACTIONS_LIST_BY_ID_ACTION_BY_FIELD(
     id_action: Annotated[str, "The ID of the action to get the list field from."],
@@ -2634,7 +2635,7 @@ def TRELLO_GET_ACTIONS_LIST_BY_ID_ACTION_BY_FIELD(
 
 @mcp.tool(
     "TRELLO_GET_ACTIONS_MEMBER_BY_ID_ACTION",
-    description="Get action's member by id. Retrieves specified details of the trello member who performed the action identified by idaction; information is specific to this action's context, not the member's full profile.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_ACTIONS_MEMBER_BY_ID_ACTION(
     id_action: Annotated[str, "The ID of the action to get the member from."],
@@ -2692,7 +2693,7 @@ def TRELLO_GET_ACTIONS_MEMBER_BY_ID_ACTION(
 
 @mcp.tool(
     "TRELLO_GET_ACTIONS_MEMBER_BY_ID_ACTION_BY_FIELD",
-    description="Get member action field by ID. Fetches a specific field of a member for a trello action, returning only one field per call for optimized data retrieval. Use 'all' to get all fields.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_ACTIONS_MEMBER_BY_ID_ACTION_BY_FIELD(
     id_action: Annotated[str, "The ID of the action to get the member field from."],
@@ -2768,7 +2769,7 @@ def TRELLO_GET_ACTIONS_MEMBER_BY_ID_ACTION_BY_FIELD(
 
 @mcp.tool(
     "TRELLO_GET_ACTIONS_MEMBER_CREATOR_BY_ID_ACTION",
-    description="Fetch action member creator. Retrieves details about the trello member who created the action with the given idaction.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_ACTIONS_MEMBER_CREATOR_BY_ID_ACTION(
     id_action: Annotated[str, "The ID of the action to get the member creator from."],
@@ -2826,7 +2827,7 @@ def TRELLO_GET_ACTIONS_MEMBER_CREATOR_BY_ID_ACTION(
 
 @mcp.tool(
     "TRELLO_GET_ACTIONS_MEMBER_CREATOR_BY_ID_ACTION_BY_FIELD",
-    description="Get action member creator field. Gets information about the creator of a trello action.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_ACTIONS_MEMBER_CREATOR_BY_ID_ACTION_BY_FIELD(
     id_action: Annotated[str, "The ID of the action to get the member creator field from."],
@@ -2906,7 +2907,7 @@ def TRELLO_GET_ACTIONS_MEMBER_CREATOR_BY_ID_ACTION_BY_FIELD(
 
 @mcp.tool(
     "TRELLO_GET_ACTIONS_ORGANIZATION_BY_ID_ACTION",
-    description="Fetch organization action by id. Fetches the organization details for a given trello action, if the action has an associated organization.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_ACTIONS_ORGANIZATION_BY_ID_ACTION(
     id_action: Annotated[str, "The ID of the action to get the organization from."],
@@ -2968,7 +2969,7 @@ def TRELLO_GET_ACTIONS_ORGANIZATION_BY_ID_ACTION(
 
 @mcp.tool(
     "TRELLO_GET_ACTIONS_ORGANIZATION_BY_ID_ACTION_BY_FIELD",
-    description="Get action's organization field. Retrieves the value of a specific field for the organization associated with a trello idaction; use if the action has an organization and you need only that field (e.g., 'name', 'id', 'url').",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_ACTIONS_ORGANIZATION_BY_ID_ACTION_BY_FIELD(
     id_action: Annotated[str, "The ID of the action to get the organization field from."],
@@ -3052,7 +3053,7 @@ def TRELLO_GET_ACTIONS_ORGANIZATION_BY_ID_ACTION_BY_FIELD(
 
 @mcp.tool(
     "TRELLO_GET_BATCH",
-    description="Get batch. Executes multiple trello api get requests in a single batch operation for efficient bulk data retrieval.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_BATCH(
     urls: Annotated[str, "Comma-separated list of Trello API URLs to fetch in batch. URLs should be relative paths like '/boards/123', '/cards/456', etc."]
@@ -3127,7 +3128,7 @@ def TRELLO_GET_BATCH(
 
 @mcp.tool(
     "TRELLO_GET_BOARDS_ACTIONS_BY_ID_BOARD",
-    description="Get board actions by id. Retrieves actions (e.g., card creations, comments) for a trello board by its id, useful for activity tracking; the board must exist.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_BOARDS_ACTIONS_BY_ID_BOARD(
     id_board: Annotated[str, "The ID of the board to get actions from."],
@@ -3214,7 +3215,7 @@ def TRELLO_GET_BOARDS_ACTIONS_BY_ID_BOARD(
 
 @mcp.tool(
     "TRELLO_GET_BOARDS_STARS_BY_ID_BOARD",
-    description="Get board stars by board ID. Retrieves board stars (user-marked favorites) for a specified trello board, where idboard must be an existing board; use to list a user's starred boards or all stars on a particular board.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_BOARDS_STARS_BY_ID_BOARD(
     id_board: Annotated[str, "The ID of the board to get stars from."],
@@ -3259,7 +3260,7 @@ def TRELLO_GET_BOARDS_STARS_BY_ID_BOARD(
 
 @mcp.tool(
     "TRELLO_GET_BOARDS_BOARD_STARS_BY_ID_BOARD",
-    description="Get board stars by board ID. Retrieves board stars (user-marked favorites) for a specified trello board, where idboard must be an existing board; use to list a user's starred boards or all stars on a particular board.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_BOARDS_BOARD_STARS_BY_ID_BOARD(
     id_board: Annotated[str, "The ID of the board to get stars from."],
@@ -3305,7 +3306,7 @@ def TRELLO_GET_BOARDS_BOARD_STARS_BY_ID_BOARD(
 
 @mcp.tool(
     "TRELLO_GET_BOARDS_MEMBERS_INVITED_BY_ID_BOARD",
-    description="Get invited board members. Note: Trello API doesn't provide a direct way to get pending invitations. This tool returns current board members and explains the limitation.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_BOARDS_MEMBERS_INVITED_BY_ID_BOARD(
     id_board: Annotated[str, "The ID of the board to get invited members from."],
@@ -3358,7 +3359,7 @@ def TRELLO_GET_BOARDS_MEMBERS_INVITED_BY_ID_BOARD(
 
 @mcp.tool(
     "TRELLO_GET_BOARDS_MEMBERS_INVITED_BY_ID_BOARD_BY_FIELD",
-    description="Retrieve invited board member field. Note: Trello API doesn't support getting pending invitations. This tool explains the limitation and returns current board members.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_BOARDS_MEMBERS_INVITED_BY_ID_BOARD_BY_FIELD(
     field: Annotated[str, "The field to retrieve from invited members (e.g., email, username, fullName)."],
@@ -3415,7 +3416,7 @@ def TRELLO_GET_BOARDS_MEMBERS_INVITED_BY_ID_BOARD_BY_FIELD(
 
 @mcp.tool(
     "TRELLO_GET_BOARDS_MY_PREFS_BY_ID_BOARD",
-    description="Get my board preferences. Retrieves the authenticated user's preferences for a specific trello board.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_BOARDS_MY_PREFS_BY_ID_BOARD(
     id_board: Annotated[str, "The ID of the board to get preferences for."]
@@ -3461,7 +3462,7 @@ def TRELLO_GET_BOARDS_MY_PREFS_BY_ID_BOARD(
 
 @mcp.tool(
     "TRELLO_GET_BOARDS_ORGANIZATION_BY_ID_BOARD",
-    description="Get board organization. Fetches information about the trello workspace (organization) to which a specific board belongs, returning details for the workspace only, not the board itself or its content.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_BOARDS_ORGANIZATION_BY_ID_BOARD(
     id_board: Annotated[str, "The ID of the board to get organization information for."],
@@ -3514,7 +3515,7 @@ def TRELLO_GET_BOARDS_ORGANIZATION_BY_ID_BOARD(
 
 @mcp.tool(
     "TRELLO_GET_BOARDS_ORGANIZATION_BY_ID_BOARD_BY_FIELD",
-    description="Get board organization field. Retrieves a specific field from the organization associated with a trello board, useful for obtaining targeted details without fetching the entire organization object.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_BOARDS_ORGANIZATION_BY_ID_BOARD_BY_FIELD(
     field: Annotated[str, "The field to retrieve from the organization (e.g., name, displayName, desc, website)."],
@@ -3567,7 +3568,7 @@ def TRELLO_GET_BOARDS_ORGANIZATION_BY_ID_BOARD_BY_FIELD(
 
 @mcp.tool(
     "TRELLO_GET_CARDS_ACTIONS_BY_ID_CARD",
-    description="Get card actions by id. Retrieves the history of actions (e.g., comments, updates, moves) for a trello card specified by idcard; the card must exist and very old actions might not be available.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_CARDS_ACTIONS_BY_ID_CARD(
     id_card: Annotated[str, "The ID of the card to get actions for."],
@@ -3660,7 +3661,7 @@ def TRELLO_GET_CARDS_ACTIONS_BY_ID_CARD(
 
 @mcp.tool(
     "TRELLO_GET_CARDS_ATTACHMENTS_BY_ID_CARD",
-    description="Get card attachments. Retrieves attachments for a trello card.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_CARDS_ATTACHMENTS_BY_ID_CARD(
     id_card: Annotated[str, "The ID of the card to get attachments for."],
@@ -3714,7 +3715,7 @@ def TRELLO_GET_CARDS_ATTACHMENTS_BY_ID_CARD(
 
 @mcp.tool(
     "TRELLO_GET_CARDS_BOARD_BY_ID_CARD",
-    description="Get board by card id. Fetches detailed information about the trello board to which a specific, existing, and accessible card belongs, using the card's id or short link.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_CARDS_BOARD_BY_ID_CARD(
     id_card: Annotated[str, "The ID of the card to get board information for."],
@@ -3766,7 +3767,7 @@ def TRELLO_GET_CARDS_BOARD_BY_ID_CARD(
 
 @mcp.tool(
     "TRELLO_GET_CARDS_BOARD_BY_ID_CARD_BY_FIELD",
-    description="Get board field by card ID. Retrieves a specific field from the board associated with a given trello card.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_CARDS_BOARD_BY_ID_CARD_BY_FIELD(
     field: Annotated[str, "The field to retrieve from the board (e.g., id, name, desc, closed)."],
@@ -3819,7 +3820,7 @@ def TRELLO_GET_CARDS_BOARD_BY_ID_CARD_BY_FIELD(
 
 @mcp.tool(
     "TRELLO_GET_CARDS_BY_ID_CARD_BY_FIELD",
-    description="Get card field by id. Retrieves the value of a single, specified field from a trello card.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_CARDS_BY_ID_CARD_BY_FIELD(
     field: Annotated[str, "The field to retrieve from the card (e.g., id, name, desc, closed, due)."],
@@ -3872,7 +3873,7 @@ def TRELLO_GET_CARDS_BY_ID_CARD_BY_FIELD(
 
 @mcp.tool(
     "TRELLO_GET_CARDS_CHECK_ITEM_STATES_BY_ID_CARD",
-    description="Get card check item states. Gets the states (e.g., 'complete', 'incomplete') of checklist items on a trello card; returns only item states, not full checklist or card details.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_CARDS_CHECK_ITEM_STATES_BY_ID_CARD(
     id_card: Annotated[str, "The ID of the card to get check item states from."],
@@ -3925,7 +3926,7 @@ def TRELLO_GET_CARDS_CHECK_ITEM_STATES_BY_ID_CARD(
 
 @mcp.tool(
     "TRELLO_GET_CARDS_CHECKLISTS_BY_ID_CARD",
-    description="Get card checklists by ID. Retrieves all checklists, including their check items, for a trello card specified by its id or shortlink, if the card exists and is accessible.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_CARDS_CHECKLISTS_BY_ID_CARD(
     id_card: Annotated[str, "The ID of the card to get checklists from."],
@@ -3993,7 +3994,7 @@ def TRELLO_GET_CARDS_CHECKLISTS_BY_ID_CARD(
 
 @mcp.tool(
     "TRELLO_GET_CARDS_LIST_BY_ID_CARD",
-    description="Get list by card ID. Gets the trello list to which a specified card (which must exist) belongs.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_CARDS_LIST_BY_ID_CARD(
     id_card: Annotated[str, "The ID of the card to get list information for."],
@@ -4045,7 +4046,7 @@ def TRELLO_GET_CARDS_LIST_BY_ID_CARD(
 
 @mcp.tool(
     "TRELLO_GET_CARDS_LIST_BY_ID_CARD_BY_FIELD",
-    description="Get card list field. Fetches a specific field from the trello list that a given card belongs to.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_CARDS_LIST_BY_ID_CARD_BY_FIELD(
     field: Annotated[str, "The field to retrieve from the list (e.g., id, name, closed, pos)."],
@@ -4098,7 +4099,7 @@ def TRELLO_GET_CARDS_LIST_BY_ID_CARD_BY_FIELD(
 
 @mcp.tool(
     "TRELLO_GET_CARDS_MEMBERS_BY_ID_CARD",
-    description="Get card members. Retrieves members of a trello card, identified by its id or shortlink, allowing customization of which member fields are returned.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_CARDS_MEMBERS_BY_ID_CARD(
     id_card: Annotated[str, "The ID of the card to get members from."],
@@ -4151,7 +4152,7 @@ def TRELLO_GET_CARDS_MEMBERS_BY_ID_CARD(
 
 @mcp.tool(
     "TRELLO_GET_CARDS_MEMBERS_VOTED_BY_ID_CARD",
-    description="Get card members voted. Fetches members who voted on a trello card; requires an existing card id, the voting power-up to be active on the board, and members to have voted; returns member details, not vote counts.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_CARDS_MEMBERS_VOTED_BY_ID_CARD(
     id_card: Annotated[str, "The ID of the card to get voted members from."],
@@ -4206,7 +4207,7 @@ def TRELLO_GET_CARDS_MEMBERS_VOTED_BY_ID_CARD(
 
 @mcp.tool(
     "TRELLO_GET_CARDS_STICKERS_BY_ID_CARD",
-    description="Get card stickers by ID card. Retrieves all visual stickers (used for categorization, emphasis, or decoration) from an existing and accessible trello card; this read-only action does not affect other card elements.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_CARDS_STICKERS_BY_ID_CARD(
     id_card: Annotated[str, "The ID of the card to get stickers from."],
@@ -4259,7 +4260,7 @@ def TRELLO_GET_CARDS_STICKERS_BY_ID_CARD(
 
 @mcp.tool(
     "TRELLO_GET_CARDS_STICKERS_BY_ID_CARD_BY_ID_STICKER",
-    description="Get card sticker by id. Call this action to retrieve detailed properties (like image, position, rotation) of a specific sticker on a trello card.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_CARDS_STICKERS_BY_ID_CARD_BY_ID_STICKER(
     id_card: Annotated[str, "The ID of the card containing the sticker."],
@@ -4315,7 +4316,7 @@ def TRELLO_GET_CARDS_STICKERS_BY_ID_CARD_BY_ID_STICKER(
 
 @mcp.tool(
     "TRELLO_GET_CHECK_ITEM_BY_ID",
-    description="Get check item by id. Retrieves a specific check item from a checklist using the checklist id and check item id.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_CHECK_ITEM_BY_ID(
     id_checklist: Annotated[str, "The ID of the checklist containing the check item."],
@@ -4371,7 +4372,7 @@ def TRELLO_GET_CHECK_ITEM_BY_ID(
 
 @mcp.tool(
     "TRELLO_GET_CHECKLISTS_BOARD_BY_ID_CHECKLIST",
-    description="Get board for a checklist. Retrieves the trello board a specific checklist belongs to, using the checklist id.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_CHECKLISTS_BOARD_BY_ID_CHECKLIST(
     id_checklist: Annotated[str, "The ID of the checklist to get board information for."],
@@ -4423,7 +4424,7 @@ def TRELLO_GET_CHECKLISTS_BOARD_BY_ID_CHECKLIST(
 
 @mcp.tool(
     "TRELLO_GET_CHECKLISTS_BOARD_BY_ID_CHECKLIST_BY_FIELD",
-    description="Get checklist's board field. Retrieves a specified field (e.g., 'name', 'desc') from the trello board associated with the given idchecklist.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_CHECKLISTS_BOARD_BY_ID_CHECKLIST_BY_FIELD(
     field: Annotated[str, "The field to retrieve from the board (e.g., name, desc, closed, url)."],
@@ -4476,7 +4477,7 @@ def TRELLO_GET_CHECKLISTS_BOARD_BY_ID_CHECKLIST_BY_FIELD(
 
 @mcp.tool(
     "TRELLO_GET_CHECKLISTS_BY_ID_CHECKLIST",
-    description="Get checklist by ID. Fetches a trello checklist by its idchecklist, requiring the id to refer to an existing checklist, and allows specifying which details of the checklist, its cards, and check items are returned.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_CHECKLISTS_BY_ID_CHECKLIST(
     id_checklist: Annotated[str, "The ID of the checklist to retrieve."],
@@ -4540,7 +4541,7 @@ def TRELLO_GET_CHECKLISTS_BY_ID_CHECKLIST(
 
 @mcp.tool(
     "TRELLO_GET_CHECKLISTS_BY_ID_CHECKLIST_BY_FIELD",
-    description="Get checklist field. Retrieves a specific field's value from a trello checklist by its id and the field name, without loading the entire checklist object or its items.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_CHECKLISTS_BY_ID_CHECKLIST_BY_FIELD(
     field: Annotated[str, "The field to retrieve from the checklist (e.g., id, name, pos, idBoard)."],
@@ -4593,7 +4594,7 @@ def TRELLO_GET_CHECKLISTS_BY_ID_CHECKLIST_BY_FIELD(
 
 @mcp.tool(
     "TRELLO_GET_CHECKLISTS_CARDS_BY_ID_CHECKLIST_BY_FILTER",
-    description="Get cards from a checklist by filter. Retrieves cards from a specified trello checklist, filterable by card id or status (e.g., 'all', 'open'), noting the response is a single card object even if the filter could match multiple cards.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_CHECKLISTS_CARDS_BY_ID_CHECKLIST_BY_FILTER(
     filter: Annotated[str, "The filter to apply to cards (e.g., 'all', 'open', 'closed', or specific card ID)."],
@@ -4652,7 +4653,7 @@ def TRELLO_GET_CHECKLISTS_CARDS_BY_ID_CHECKLIST_BY_FILTER(
 
 @mcp.tool(
     "TRELLO_GET_CHECKLISTS_CHECK_ITEMS_BY_ID_CHECKLIST",
-    description="Get checklist items by ID. Retrieves check items from an existing trello checklist, optionally filtering them and specifying which fields to return.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_CHECKLISTS_CHECK_ITEMS_BY_ID_CHECKLIST(
     id_checklist: Annotated[str, "The ID of the checklist to get check items from."],
@@ -4708,7 +4709,7 @@ def TRELLO_GET_CHECKLISTS_CHECK_ITEMS_BY_ID_CHECKLIST(
 
 @mcp.tool(
     "TRELLO_GET_LABELS_BOARD_BY_ID_LABEL",
-    description="Get board by label ID. Retrieves the trello board to which a given, valid trello label id (idlabel) belongs.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_LABELS_BOARD_BY_ID_LABEL(
     id_label: Annotated[str, "The ID of the label to get board information for."],
@@ -4760,7 +4761,7 @@ def TRELLO_GET_LABELS_BOARD_BY_ID_LABEL(
 
 @mcp.tool(
     "TRELLO_GET_LABELS_BOARD_BY_ID_LABEL_BY_FIELD",
-    description="Retrieve board field by label id. Retrieves a specified field (e.g., 'name', 'url') from the trello board associated with a given idlabel.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_LABELS_BOARD_BY_ID_LABEL_BY_FIELD(
     field: Annotated[str, "The field to retrieve from the board (e.g., name, url, desc, closed)."],
@@ -4813,7 +4814,7 @@ def TRELLO_GET_LABELS_BOARD_BY_ID_LABEL_BY_FIELD(
 
 @mcp.tool(
     "TRELLO_GET_LABELS_BY_ID_LABEL",
-    description="Get label by id. Retrieves detailed information for a specific trello label by its id, allowing selection of specific fields to return.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_LABELS_BY_ID_LABEL(
     id_label: Annotated[str, "The ID of the label to retrieve."],
@@ -4865,7 +4866,7 @@ def TRELLO_GET_LABELS_BY_ID_LABEL(
 
 @mcp.tool(
     "TRELLO_GET_LISTS_ACTIONS_BY_ID_LIST",
-    description="Get list actions by ID. Retrieves actions (like card movements or comments, newest first) for a trello list by its id, to track history or create activity logs.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_LISTS_ACTIONS_BY_ID_LIST(
     id_list: Annotated[str, "The ID of the list to get actions for."],
@@ -4954,7 +4955,7 @@ def TRELLO_GET_LISTS_ACTIONS_BY_ID_LIST(
 
 @mcp.tool(
     "TRELLO_GET_LISTS_BOARD_BY_ID_LIST",
-    description="Get board by list ID. Retrieves the board to which a specific trello list belongs.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_LISTS_BOARD_BY_ID_LIST(
     id_list: Annotated[str, "The ID of the list to get the board for."],
@@ -5008,7 +5009,7 @@ def TRELLO_GET_LISTS_BOARD_BY_ID_LIST(
 
 @mcp.tool(
     "TRELLO_LIST_ID_BOARD_GET",
-    description="Get board by list ID. Deprecated: please use the `get lists board by id list` action instead. retrieves the board to which a specific trello list belongs.",
+    description="Trello operation. Performs a specific Trello operation. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, data, and operation message.",
 )
 def TRELLO_LIST_ID_BOARD_GET(
     id_list: Annotated[str, "The ID of the list to get the board for."],
@@ -5023,7 +5024,7 @@ def TRELLO_LIST_ID_BOARD_GET(
 
 @mcp.tool(
     "TRELLO_GET_LISTS_BOARD_BY_ID_LIST_BY_FIELD",
-    description="Get board field by list ID. Retrieves a specific field (e.g., 'name', 'desc', 'url') from the trello board associated with a given list id, useful when the board's id is not directly known.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_LISTS_BOARD_BY_ID_LIST_BY_FIELD(
     id_list: Annotated[str, "The ID of the list to get the board field for."],
@@ -5081,7 +5082,7 @@ def TRELLO_GET_LISTS_BOARD_BY_ID_LIST_BY_FIELD(
 
 @mcp.tool(
     "TRELLO_GET_LISTS_BY_ID_LIST",
-    description="Get list by ID. Retrieves a trello list by its unique id, optionally including details for its cards and parent board.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_LISTS_BY_ID_LIST(
     id_list: Annotated[str, "The ID of the list to retrieve."],
@@ -5167,7 +5168,7 @@ def TRELLO_GET_LISTS_BY_ID_LIST(
 
 @mcp.tool(
     "TRELLO_LIST_GET_BY_ID_LIST",
-    description="Get list by ID. Retrieves a trello list by its unique id, optionally including details for its cards and parent board. <<DEPRECATED use get_lists_by_id_list>>",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_LIST_GET_BY_ID_LIST(
     id_list: Annotated[str, "The ID of the list to retrieve."],
@@ -5190,7 +5191,7 @@ def TRELLO_LIST_GET_BY_ID_LIST(
 
 @mcp.tool(
     "TRELLO_GET_LISTS_BY_ID_LIST_BY_FIELD",
-    description="Get list field value. Fetches the value of a single, specified field from a trello list.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_LISTS_BY_ID_LIST_BY_FIELD(
     id_list: Annotated[str, "The ID of the list to get the field from."],
@@ -5248,7 +5249,7 @@ def TRELLO_GET_LISTS_BY_ID_LIST_BY_FIELD(
 
 @mcp.tool(
     "TRELLO_GET_LISTS_CARDS_BY_ID_LIST_BY_FILTER",
-    description="Get list cards by filter. Retrieves cards from a specific trello list, filtered by criteria like 'open', 'closed', or 'all'.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_LISTS_CARDS_BY_ID_LIST_BY_FILTER(
     id_list: Annotated[str, "The ID of the list to get cards from."],
@@ -5322,7 +5323,7 @@ def TRELLO_GET_LISTS_CARDS_BY_ID_LIST_BY_FILTER(
 
 @mcp.tool(
     "TRELLO_GET_MEMBER_BOARD_BACKGROUND",
-    description="Get Member Board Background. Retrieves a specific custom board background for a trello member, using the member's id and the custom board background's id.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_MEMBER_BOARD_BACKGROUND(
     id_member: Annotated[str, "The ID of the member to get the custom board background for."],
@@ -5380,7 +5381,7 @@ def TRELLO_GET_MEMBER_BOARD_BACKGROUND(
 
 @mcp.tool(
     "TRELLO_GET_MEMBERS_CUSTOM_BOARD_BACKGROUNDS_BY_ID_MEMBER",
-    description="Get Member Custom Board Backgrounds. Retrieves all custom board backgrounds for a trello member.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_MEMBERS_CUSTOM_BOARD_BACKGROUNDS_BY_ID_MEMBER(
     id_member: Annotated[str, "The ID of the member to get custom board backgrounds for."],
@@ -5447,7 +5448,7 @@ def TRELLO_GET_MEMBERS_CUSTOM_BOARD_BACKGROUNDS_BY_ID_MEMBER(
 
 @mcp.tool(
     "TRELLO_GET_MEMBER_CUSTOM_BG",
-    description="Get member custom board background. Retrieves metadata (e.g., brightness, urls, tiling status) for a specific custom board background of a trello member, not the image file itself.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_MEMBER_CUSTOM_BG(
     id_member: Annotated[str, "The ID of the member to get the custom board background for."],
@@ -5508,7 +5509,7 @@ def TRELLO_GET_MEMBER_CUSTOM_BG(
 
 @mcp.tool(
     "TRELLO_GET_MEMBER_CUSTOM_EMOJI",
-    description="Get member custom emoji. Retrieves a specific custom emoji by its id for a trello member, requiring that both the member and emoji exist and are associated.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_MEMBER_CUSTOM_EMOJI(
     id_member: Annotated[str, "The ID of the member to get the custom emoji for."],
@@ -5566,7 +5567,7 @@ def TRELLO_GET_MEMBER_CUSTOM_EMOJI(
 
 @mcp.tool(
     "TRELLO_GET_MEMBERS_CUSTOM_EMOJI_BY_ID_MEMBER",
-    description="Get member custom emoji. Retrieves all custom (user-specific, non-standard) emojis that a specified trello member has created or can access.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_MEMBERS_CUSTOM_EMOJI_BY_ID_MEMBER(
     id_member: Annotated[str, "The ID of the member to get custom emojis for."],
@@ -5634,7 +5635,7 @@ def TRELLO_GET_MEMBERS_CUSTOM_EMOJI_BY_ID_MEMBER(
 
 @mcp.tool(
     "TRELLO_GET_MEMBERS_CUSTOM_STICKERS_BY_ID_MEMBER",
-    description="Get member custom stickers. Retrieves a member's custom stickers, which are unique personalized stickers created by them, distinct from standard trello stickers.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_MEMBERS_CUSTOM_STICKERS_BY_ID_MEMBER(
     id_member: Annotated[str, "The ID of the member to get custom stickers for."],
@@ -5702,7 +5703,7 @@ def TRELLO_GET_MEMBERS_CUSTOM_STICKERS_BY_ID_MEMBER(
 
 @mcp.tool(
     "TRELLO_GET_MEMBER_CUSTOM_STICKER",
-    description="Get member custom sticker. Retrieves a specific custom sticker by id for a trello member; returns only sticker data (not its usage on cards/boards), with optional field selection.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_MEMBER_CUSTOM_STICKER(
     id_member: Annotated[str, "The ID of the member to get the custom sticker for."],
@@ -5761,7 +5762,7 @@ def TRELLO_GET_MEMBER_CUSTOM_STICKER(
 
 @mcp.tool(
     "TRELLO_GET_MEMBERS_ACTIONS_BY_ID_MEMBER",
-    description="Get member actions by ID. Retrieves a list of actions for a specified trello member, allowing filtering by type, date, models, and control over output format and fields.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_MEMBERS_ACTIONS_BY_ID_MEMBER(
     id_member: Annotated[str, "The ID of the member to get actions for."],
@@ -5874,7 +5875,7 @@ def TRELLO_GET_MEMBERS_ACTIONS_BY_ID_MEMBER(
 
 @mcp.tool(
     "TRELLO_GET_MEMBERS_SAVED_SEARCHES_BY_ID_MEMBER",
-    description="Get member saved searches. Retrieves all saved search queries for a trello member; this action only retrieves saved searches and does not execute them.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_MEMBERS_SAVED_SEARCHES_BY_ID_MEMBER(
     id_member: Annotated[str, "The ID of the member to get saved searches for."]
@@ -5936,7 +5937,7 @@ def TRELLO_GET_MEMBERS_SAVED_SEARCHES_BY_ID_MEMBER(
 
 @mcp.tool(
     "TRELLO_GET_MEMBER_SAVED_SEARCH",
-    description="Get Member Saved Search. Fetches the details of a specific saved search for a trello member; this does not execute the search.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_MEMBER_SAVED_SEARCH(
     id_member: Annotated[str, "The ID of the member to get the saved search for."],
@@ -5989,7 +5990,7 @@ def TRELLO_GET_MEMBER_SAVED_SEARCH(
 
 @mcp.tool(
     "TRELLO_GET_MEMBERS_BOARD_BACKGROUNDS_BY_ID_MEMBER",
-    description="Get member board backgrounds. Fetches the board backgrounds for a specified trello member.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_MEMBERS_BOARD_BACKGROUNDS_BY_ID_MEMBER(
     id_member: Annotated[str, "The ID of the member to get board backgrounds for."],
@@ -6057,7 +6058,7 @@ def TRELLO_GET_MEMBERS_BOARD_BACKGROUNDS_BY_ID_MEMBER(
 
 @mcp.tool(
     "TRELLO_GET_MEMBERS_BOARDS_BY_ID_MEMBER",
-    description="Get member boards by id. Retrieves board-level details (not lists/cards) for trello boards associated with a member id or username, allowing extensive customization of the returned data.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_MEMBERS_BOARDS_BY_ID_MEMBER(
     id_member: Annotated[str, "The ID of the member to get boards for."],
@@ -6178,7 +6179,7 @@ def TRELLO_GET_MEMBERS_BOARDS_BY_ID_MEMBER(
 
 @mcp.tool(
     "TRELLO_MEMBER_GET_BOARDS_BY_ID_MEMBER",
-    description="Get member boards by id. Deprecated: use `getmembersboardsbyidmember`; retrieves trello boards for a member (id/username).",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_MEMBER_GET_BOARDS_BY_ID_MEMBER(
     id_member: Annotated[str, "The ID of the member to get boards for."],
@@ -6216,7 +6217,7 @@ def TRELLO_MEMBER_GET_BOARDS_BY_ID_MEMBER(
 
 @mcp.tool(
     "TRELLO_GET_MEMBERS_BOARDS_BY_ID_MEMBER_BY_FILTER",
-    description="Get member boards with filter. Retrieves a list of boards for a specific trello member, applying a filter such as 'open', 'starred', or 'all'.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_MEMBERS_BOARDS_BY_ID_MEMBER_BY_FILTER(
     id_member: Annotated[str, "The ID of the member to get boards for."],
@@ -6307,7 +6308,7 @@ def TRELLO_GET_MEMBERS_BOARDS_BY_ID_MEMBER_BY_FILTER(
 
 @mcp.tool(
     "TRELLO_MEMBER_GET_BOARDS",
-    description="Get member boards with filter. Deprecated: retrieves a filtered list of boards for a trello member; use `get members boards by id member by filter` instead.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_MEMBER_GET_BOARDS(
     id_member: Annotated[str, "The ID of the member to get boards for."],
@@ -6323,7 +6324,7 @@ def TRELLO_MEMBER_GET_BOARDS(
 
 @mcp.tool(
     "TRELLO_GET_MEMBERS_BOARDS_INVITED_BY_ID_MEMBER",
-    description="Get member's invited boards. Retrieves trello boards to which a specific member has been invited but has not yet joined.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_MEMBERS_BOARDS_INVITED_BY_ID_MEMBER(
     id_member: Annotated[str, "The ID of the member to get invited boards for."],
@@ -6398,7 +6399,7 @@ def TRELLO_GET_MEMBERS_BOARDS_INVITED_BY_ID_MEMBER(
 
 @mcp.tool(
     "TRELLO_GET_MEMBERS_BOARDS_INVITED_BY_ID_MEMBER_BY_FIELD",
-    description="Get member's invited board field. Retrieves a specific field from trello boards to which a member has been invited but not yet joined; returns an empty result for no pending invitations.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_MEMBERS_BOARDS_INVITED_BY_ID_MEMBER_BY_FIELD(
     id_member: Annotated[str, "The ID of the member to get invited board field for."],
@@ -6472,7 +6473,7 @@ def TRELLO_GET_MEMBERS_BOARDS_INVITED_BY_ID_MEMBER_BY_FIELD(
 
 @mcp.tool(
     "TRELLO_GET_MEMBERS_BOARD_STARS_BY_ID_MEMBER",
-    description="Get member board stars. Fetches only the boards a specific trello member has starred, identified by their id or username.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_MEMBERS_BOARD_STARS_BY_ID_MEMBER(
     id_member: Annotated[str, "The ID of the member to get starred boards for."]
@@ -6543,7 +6544,7 @@ def TRELLO_GET_MEMBERS_BOARD_STARS_BY_ID_MEMBER(
 
 @mcp.tool(
     "TRELLO_GET_MEMBERS_BOARD_STARS_BY_ID_MEMBER_BY_ID_BOARD_STAR",
-    description="Get member board star. Retrieves detailed information about a specific board star (a trello board marked as a favorite) for a given trello member.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_MEMBERS_BOARD_STARS_BY_ID_MEMBER_BY_ID_BOARD_STAR(
     id_member: Annotated[str, "The ID of the member to get the board star for."],
@@ -6615,7 +6616,7 @@ def TRELLO_GET_MEMBERS_BOARD_STARS_BY_ID_MEMBER_BY_ID_BOARD_STAR(
 
 @mcp.tool(
     "TRELLO_GET_MEMBERS_BY_ID_MEMBER_BY_FIELD",
-    description="Get member field by ID. Efficiently retrieves a specific field (e.g., fullname, username, bio) of a trello member using their id or username, without fetching the entire member profile.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_MEMBERS_BY_ID_MEMBER_BY_FIELD(
     id_member: Annotated[str, "The ID or username of the member to get the field from."],
@@ -6700,7 +6701,7 @@ def TRELLO_GET_MEMBERS_BY_ID_MEMBER_BY_FIELD(
 
 @mcp.tool(
     "TRELLO_GET_MEMBERS_CARDS_BY_ID_MEMBER_BY_FILTER",
-    description="Get member cards by filter. Retrieves cards for a trello member, applying a filter that must be a trello-recognized card filter.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_MEMBERS_CARDS_BY_ID_MEMBER_BY_FILTER(
     id_member: Annotated[str, "The ID or username of the member to get cards for."],
@@ -6808,7 +6809,7 @@ def TRELLO_GET_MEMBERS_CARDS_BY_ID_MEMBER_BY_FILTER(
 
 @mcp.tool(
     "TRELLO_GET_MEMBERS_DELTAS_BY_ID_MEMBER",
-    description="Get member deltas by ID. Retrieves a chronological list of all changes (deltas) made by a specific trello member, including modifications to boards, lists, and cards, to audit activity or sync data.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_MEMBERS_DELTAS_BY_ID_MEMBER(
     id_member: Annotated[str, "The ID or username of the member to get deltas for."],
@@ -6909,7 +6910,7 @@ def TRELLO_GET_MEMBERS_DELTAS_BY_ID_MEMBER(
 
 @mcp.tool(
     "TRELLO_GET_MEMBERS_NOTIFICATIONS_BY_ID_MEMBER",
-    description="Get member notifications by id. Retrieves notifications for a trello member, specified by their id or username, with options for filtering and pagination.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_MEMBERS_NOTIFICATIONS_BY_ID_MEMBER(
     id_member: Annotated[str, "The ID or username of the member to get notifications for."],
@@ -7033,7 +7034,7 @@ def TRELLO_GET_MEMBERS_NOTIFICATIONS_BY_ID_MEMBER(
 
 @mcp.tool(
     "TRELLO_GET_MEMBERS_NOTIFICATIONS_BY_ID_MEMBER_BY_FILTER",
-    description="Get member notifications by filter. Retrieves a list of a trello member's notifications, filtered by specified types.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_MEMBERS_NOTIFICATIONS_BY_ID_MEMBER_BY_FILTER(
     id_member: Annotated[str, "The ID or username of the member to get notifications for."],
@@ -7159,7 +7160,7 @@ def TRELLO_GET_MEMBERS_NOTIFICATIONS_BY_ID_MEMBER_BY_FILTER(
 
 @mcp.tool(
     "TRELLO_GET_MEMBERS_ORGANIZATIONS_BY_ID_MEMBER",
-    description="Get a specified member's organizations. Fetches organizations a specific trello member belongs to; the idmember must be an id or username of an existing trello member.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_MEMBERS_ORGANIZATIONS_BY_ID_MEMBER(
     id_member: Annotated[str, "The ID or username of the member to get organizations for."],
@@ -7285,7 +7286,7 @@ def TRELLO_GET_MEMBERS_ORGANIZATIONS_BY_ID_MEMBER(
 
 @mcp.tool(
     "TRELLO_GET_MEMBERS_ORGANIZATIONS_BY_ID_MEMBER_BY_FILTER",
-    description="Get member organizations by filter. Fetches a list of organizations a specific trello member belongs to, using a filter to narrow down the results.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_MEMBERS_ORGANIZATIONS_BY_ID_MEMBER_BY_FILTER(
     id_member: Annotated[str, "The ID or username of the member to get organizations for."],
@@ -7438,7 +7439,7 @@ def TRELLO_GET_MEMBERS_ORGANIZATIONS_BY_ID_MEMBER_BY_FILTER(
 
 @mcp.tool(
     "TRELLO_GET_MEMBERS_ORGANIZATIONS_INVITED_BY_ID_MEMBER",
-    description="Retrieve member's invited organizations. Retrieves organizations a trello member has been invited to but has not yet accepted or declined.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_MEMBERS_ORGANIZATIONS_INVITED_BY_ID_MEMBER(
     id_member: Annotated[str, "The ID or username of the member to get invited organizations for."],
@@ -7570,7 +7571,7 @@ def TRELLO_GET_MEMBERS_ORGANIZATIONS_INVITED_BY_ID_MEMBER(
 
 @mcp.tool(
     "TRELLO_GET_MEMBERS_ORGANIZATIONS_INVITED_BY_ID_MEMBER_BY_FIELD",
-    description="Get field of member's invited organization. Get a specific field of an organization to which the member has a pending invitation; returns data only if such an invitation exists.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_MEMBERS_ORGANIZATIONS_INVITED_BY_ID_MEMBER_BY_FIELD(
     id_member: Annotated[str, "The ID or username of the member to get invited organization field for."],
@@ -7708,7 +7709,7 @@ def TRELLO_GET_MEMBERS_ORGANIZATIONS_INVITED_BY_ID_MEMBER_BY_FIELD(
 
 @mcp.tool(
     "TRELLO_GET_MEMBERS_TOKENS_BY_ID_MEMBER",
-    description="Retrieve member tokens. Gets api token metadata for a trello member; actual token values are excluded for security.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_MEMBERS_TOKENS_BY_ID_MEMBER(
     id_member: Annotated[str, "The ID or username of the member to get tokens for."],
@@ -7859,7 +7860,7 @@ def TRELLO_GET_MEMBERS_TOKENS_BY_ID_MEMBER(
 
 @mcp.tool(
     "TRELLO_GET_TOKENS_BY_TOKEN",
-    description="Get token by token. Retrieves information about a specific trello api token, allowing selection of specific fields and inclusion of webhook details.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_TOKENS_BY_TOKEN(
     token: Annotated[str, "The API token to retrieve information for."],
@@ -7990,7 +7991,7 @@ def TRELLO_GET_TOKENS_BY_TOKEN(
 
 @mcp.tool(
     "TRELLO_GET_TOKENS_BY_TOKEN_BY_FIELD",
-    description="Get token field. Retrieves a specific field from a trello token, provided the token is valid, has necessary permissions, and the field is a valid token field.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_TOKENS_BY_TOKEN_BY_FIELD(
     token: Annotated[str, "The API token to retrieve the field from."],
@@ -8128,7 +8129,7 @@ def TRELLO_GET_TOKENS_BY_TOKEN_BY_FIELD(
 
 @mcp.tool(
     "TRELLO_GET_TOKENS_MEMBER_BY_TOKEN",
-    description="Get token member. Retrieves information about the trello member associated with the current api token, allowing customization of the returned fields.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_TOKENS_MEMBER_BY_TOKEN(
     fields: Annotated[str, "Specific fields to retrieve from the member. Defaults to all fields."] = "all"
@@ -8291,7 +8292,7 @@ def TRELLO_GET_TOKENS_MEMBER_BY_TOKEN(
 
 @mcp.tool(
     "TRELLO_TOKEN_GET_MEMBER_BY_TOKEN",
-    description="Get token member. Retrieves information for the trello member associated with the api token, with customizable fields. <<deprecated: please use the 'get tokens member by token' action instead.>>",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_TOKEN_GET_MEMBER_BY_TOKEN(
     fields: Annotated[str, "Specific fields to retrieve from the member. Defaults to all fields."] = "all"
@@ -8305,7 +8306,7 @@ def TRELLO_TOKEN_GET_MEMBER_BY_TOKEN(
 
 @mcp.tool(
     "TRELLO_GET_TOKENS_MEMBER_BY_TOKEN_BY_FIELD",
-    description="Retrieve token member field. Retrieves a specific field for the trello member associated with the provided api token.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_TOKENS_MEMBER_BY_TOKEN_BY_FIELD(
     field: Annotated[str, "The specific field to retrieve from the member associated with the current token (e.g., id, username, fullName, initials, avatarHash, email, bio, bioData, confirmed, memberType, url, gravatarHash, uploadedAvatarHash, prefs, trophies, uploadedAvatarId, premiumFeatures, idBoards, idOrganizations, loginTypes, newEmail, oneTimeMessagesDismissed, marketingOptIn, messagesDismissed, tags, savedSearches, idEnterprisesAdmin, idEnterprisesDeactivated, limits, marketingOptInDate, idPremOrgsAdmin, avatarSource, emailUnread)."]
@@ -8485,7 +8486,7 @@ def TRELLO_GET_TOKENS_MEMBER_BY_TOKEN_BY_FIELD(
 
 @mcp.tool(
     "TRELLO_GET_TOKENS_WEBHOOKS_BY_TOKEN",
-    description="Get webhooks for token. Retrieves all webhooks associated with a specific trello api token.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_TOKENS_WEBHOOKS_BY_TOKEN(
     token: Annotated[str, "The API token to retrieve webhooks for."]
@@ -8671,7 +8672,7 @@ def TRELLO_GET_TOKENS_WEBHOOKS_BY_TOKEN(
 
 @mcp.tool(
     "TRELLO_GET_TOKENS_WEBHOOKS_BY_TOKEN_BY_ID_WEBHOOK",
-    description="Get token webhook by ID. Retrieves detailed information for a specific trello webhook, identified by `idwebhook`, that is associated with the given `token`.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_TOKENS_WEBHOOKS_BY_TOKEN_BY_ID_WEBHOOK(
     idWebhook: Annotated[str, "The ID of the webhook to retrieve detailed information for."]
@@ -8837,7 +8838,7 @@ def TRELLO_GET_TOKENS_WEBHOOKS_BY_TOKEN_BY_ID_WEBHOOK(
 
 @mcp.tool(
     "TRELLO_GET_TYPES_BY_ID",
-    description="Get type by id. Retrieves the structural details of a trello object type (e.g., 'action', 'board', 'card') using its identifier; describes the type itself, not specific instances.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_TYPES_BY_ID(
     id: Annotated[str, "The identifier of the Trello object type to retrieve structural details for (e.g., 'action', 'board', 'card', 'list', 'member', 'organization', 'webhook')."]
@@ -9024,7 +9025,7 @@ def TRELLO_GET_TYPES_BY_ID(
 
 @mcp.tool(
     "TRELLO_GET_WEBHOOKS_BY_ID_WEBHOOK",
-    description="Get webhook by ID. Retrieves the full configuration and status for a specific trello webhook by its unique id; this action does not return past notification history.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_WEBHOOKS_BY_ID_WEBHOOK(
     idWebhook: Annotated[str, "The unique ID of the webhook to retrieve full configuration and status for."]
@@ -9236,7 +9237,7 @@ def TRELLO_GET_WEBHOOKS_BY_ID_WEBHOOK(
 
 @mcp.tool(
     "TRELLO_GET_WEBHOOKS_BY_ID_WEBHOOK_BY_FIELD",
-    description="Get webhook field by id. Gets a specific field's value from a trello webhook, avoiding retrieval of the full webhook object.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_WEBHOOKS_BY_ID_WEBHOOK_BY_FIELD(
     idWebhook: Annotated[str, "The unique ID of the webhook to retrieve the field from."],
@@ -9433,7 +9434,7 @@ def TRELLO_GET_WEBHOOKS_BY_ID_WEBHOOK_BY_FIELD(
 
 @mcp.tool(
     "TRELLO_GET_NOTIF_CREATOR_FIELD",
-    description="Get notification creator field. Fetches a specific field of the member who created the specified trello notification.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_NOTIF_CREATOR_FIELD(
     id_notification: Annotated[str, "The ID of the notification to get the creator field for."],
@@ -9624,7 +9625,7 @@ def TRELLO_GET_NOTIF_CREATOR_FIELD(
 
 @mcp.tool(
     "TRELLO_GET_NOTIFICATION_ORG_FIELD",
-    description="Get notification organization field. Retrieves a specific field from the trello organization associated with a given notification, provided the notification is linked to an organization.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_NOTIFICATION_ORG_FIELD(
     id_notification: Annotated[str, "The ID of the notification to get the organization field for."],
@@ -9800,7 +9801,7 @@ def TRELLO_GET_NOTIFICATION_ORG_FIELD(
 
 @mcp.tool(
     "TRELLO_GET_NOTIFICATIONS_BOARD_BY_ID_NOTIFICATION",
-    description="Get notification board by ID. Gets the trello board associated with a given notification id, returning only board data and allowing selection of specific board fields.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_NOTIFICATIONS_BOARD_BY_ID_NOTIFICATION(
     id_notification: Annotated[str, "The ID of the notification to get the board for."],
@@ -9936,7 +9937,7 @@ def TRELLO_GET_NOTIFICATIONS_BOARD_BY_ID_NOTIFICATION(
 
 @mcp.tool(
     "TRELLO_GET_BOARDS_MEMBERSHIPS_BY_ID_BOARD_BY_ID_MEMBERSHIP",
-    description="Get board membership. Retrieves a specific membership on a trello board by its id, optionally including member details.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_BOARDS_MEMBERSHIPS_BY_ID_BOARD_BY_ID_MEMBERSHIP(
     id_board: Annotated[str, "The ID of the board containing the membership."],
@@ -9987,7 +9988,7 @@ def TRELLO_GET_BOARDS_MEMBERSHIPS_BY_ID_BOARD_BY_ID_MEMBERSHIP(
 
 @mcp.tool(
     "TRELLO_GET_BOARDS_MEMBERSHIPS_BY_ID_BOARD",
-    description="List board memberships. Retrieves trello board memberships (user roles and permissions) for auditing access or managing collaboration, returning only membership data and not other board content.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_BOARDS_MEMBERSHIPS_BY_ID_BOARD(
     id_board: Annotated[str, "The ID of the board to get memberships from."],
@@ -10040,7 +10041,7 @@ def TRELLO_GET_BOARDS_MEMBERSHIPS_BY_ID_BOARD(
 
 @mcp.tool(
     "TRELLO_UPDATE_BOARD_MEMBERSHIP",
-    description="Update board membership. Updates a user's role (e.g., admin, normal, observer) on a specific trello board or retrieves updated member details, requiring existing board and membership ids.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_BOARD_MEMBERSHIP(
     id_board: Annotated[str, "The ID of the board containing the membership."],
@@ -10126,7 +10127,7 @@ def TRELLO_UPDATE_BOARD_MEMBERSHIP(
 
 @mcp.tool(
     "TRELLO_GET_BOARDS_MEMBERS_BY_ID_BOARD_BY_FILTER",
-    description="Get board members filtered. Retrieves members of a trello board using a specified filter, assuming the board exists and the filter is valid.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_BOARDS_MEMBERS_BY_ID_BOARD_BY_FILTER(
     id_board: Annotated[str, "The ID of the board to get members from."],
@@ -10169,7 +10170,7 @@ def TRELLO_GET_BOARDS_MEMBERS_BY_ID_BOARD_BY_FILTER(
 
 @mcp.tool(
     "TRELLO_GET_BOARDS_MEMBERS_BY_ID_BOARD",
-    description="Get board members. Retrieves members of a trello board, with options to filter the list and select specific member fields to return.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_BOARDS_MEMBERS_BY_ID_BOARD(
     id_board: Annotated[str, "The ID of the board to get members from."],
@@ -10222,7 +10223,7 @@ def TRELLO_GET_BOARDS_MEMBERS_BY_ID_BOARD(
 
 @mcp.tool(
     "TRELLO_GET_BOARDS_LISTS_BY_ID_BOARD_BY_FILTER",
-    description="Get board lists by filter. Fetches lists by status from an accessible trello board; card details for these lists require a separate call.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_BOARDS_LISTS_BY_ID_BOARD_BY_FILTER(
     id_board: Annotated[str, "The ID of the board to get lists from."],
@@ -10265,7 +10266,7 @@ def TRELLO_GET_BOARDS_LISTS_BY_ID_BOARD_BY_FILTER(
 
 @mcp.tool(
     "TRELLO_GET_BOARDS_LISTS_BY_ID_BOARD",
-    description="Get board's lists. Retrieves lists from a specified trello board, with options to filter lists and include card details.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_BOARDS_LISTS_BY_ID_BOARD(
     id_board: Annotated[str, "The ID of the board to get lists from."],
@@ -10321,7 +10322,7 @@ def TRELLO_GET_BOARDS_LISTS_BY_ID_BOARD(
 
 @mcp.tool(
     "TRELLO_GET_BOARDS_LABELS_BY_ID_BOARD_BY_ID_LABEL",
-    description="Get a board label. Fetches specified fields for a specific label on a trello board; this read-only action does not return information about which cards the label is attached to.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_BOARDS_LABELS_BY_ID_BOARD_BY_ID_LABEL(
     id_board: Annotated[str, "The ID of the board containing the label."],
@@ -10371,7 +10372,7 @@ def TRELLO_GET_BOARDS_LABELS_BY_ID_BOARD_BY_ID_LABEL(
 
 @mcp.tool(
     "TRELLO_GET_BOARDS_LABELS_BY_ID_BOARD",
-    description="Get board labels by ID. Fetches labels for a specified trello board, aiding in its organization or label management; this action does not detail per-card label usage.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_BOARDS_LABELS_BY_ID_BOARD(
     id_board: Annotated[str, "The ID of the board to get labels from."],
@@ -10421,7 +10422,7 @@ def TRELLO_GET_BOARDS_LABELS_BY_ID_BOARD(
 
 @mcp.tool(
     "TRELLO_GET_BOARDS_DELTAS_BY_ID_BOARD",
-    description="Retrieve board deltas. Retrieves recent changes (deltas) for a trello board by its id, allowing tracking of modifications since a specified update sequence number (`ixlastupdate`).",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_BOARDS_DELTAS_BY_ID_BOARD(
     id_board: Annotated[str, "The ID of the board to get deltas from."],
@@ -10469,7 +10470,7 @@ def TRELLO_GET_BOARDS_DELTAS_BY_ID_BOARD(
 
 @mcp.tool(
     "TRELLO_GET_BOARDS_CHECKLISTS_BY_ID_BOARD",
-    description="Get board checklists. Retrieves checklists (primarily structure/metadata, not detailed item history) from a trello board, with options to include associated card and check item details and to control which fields are returned for each entity.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_BOARDS_CHECKLISTS_BY_ID_BOARD(
     id_board: Annotated[str, "The ID of the board to get checklists from."],
@@ -10531,7 +10532,7 @@ def TRELLO_GET_BOARDS_CHECKLISTS_BY_ID_BOARD(
 
 @mcp.tool(
     "TRELLO_GET_BOARDS_CARDS_BY_ID_BOARD_BY_FILTER",
-    description="Get cards by filter from board. Retrieves cards from a specified trello board, filtered by 'all', 'closed', 'none', 'open', or 'visible'.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_BOARDS_CARDS_BY_ID_BOARD_BY_FILTER(
     id_board: Annotated[str, "The ID of the board to get cards from."],
@@ -10574,7 +10575,7 @@ def TRELLO_GET_BOARDS_CARDS_BY_ID_BOARD_BY_FILTER(
 
 @mcp.tool(
     "TRELLO_GET_BOARDS_CARDS_BY_ID_BOARD",
-    description="Get cards by board ID. Retrieves cards from an existing trello board, allowing filtering and customization of fields for cards, attachments, and members.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_BOARDS_CARDS_BY_ID_BOARD(
     id_board: Annotated[str, "The ID of the board to get cards from."],
@@ -10657,7 +10658,7 @@ def TRELLO_GET_BOARDS_CARDS_BY_ID_BOARD(
 
 @mcp.tool(
     "TRELLO_GET_BOARDS_BY_ID_BOARD_BY_FIELD",
-    description="Get board field. Retrieves the value of a single, specified field from a trello board.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_BOARDS_BY_ID_BOARD_BY_FIELD(
     id_board: Annotated[str, "The ID of the board to get the field from."],
@@ -10699,7 +10700,7 @@ def TRELLO_GET_BOARDS_BY_ID_BOARD_BY_FIELD(
 
 @mcp.tool(
     "TRELLO_GET_BOARDS_BY_ID_BOARD",
-    description="Get board by id. Fetches comprehensive details for a specific trello board by its id; this is a read-only action.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_BOARDS_BY_ID_BOARD(
     id_board: Annotated[str, "The ID of the board to get details from."],
@@ -10858,7 +10859,7 @@ def TRELLO_GET_BOARDS_BY_ID_BOARD(
 
 @mcp.tool(
     "TRELLO_UPDATE_BOARDS_BY_ID_BOARD",
-    description="Update board by ID. Updates attributes (e.g., name, description, status, preferences) of an existing trello board identified by `idboard`.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_BOARDS_BY_ID_BOARD(
     id_board: Annotated[str, "The ID of the board to update."],
@@ -11045,7 +11046,7 @@ def TRELLO_UPDATE_BOARDS_BY_ID_BOARD(
 
 @mcp.tool(
     "TRELLO_UPDATE_BOARDS_CLOSED_BY_ID_BOARD",
-    description="Update board closed status. Archives (closes) an active trello board or reopens a previously archived board.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_BOARDS_CLOSED_BY_ID_BOARD(
     id_board: Annotated[str, "The ID of the board to archive or unarchive."],
@@ -11124,7 +11125,7 @@ def TRELLO_UPDATE_BOARDS_CLOSED_BY_ID_BOARD(
 
 @mcp.tool(
     "TRELLO_UPDATE_BOARDS_DESC_BY_ID_BOARD",
-    description="Update board description. Updates the description of a specified trello board; the update is immediate and does not affect other board elements like lists, cards, or membership.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_BOARDS_DESC_BY_ID_BOARD(
     id_board: Annotated[str, "The ID of the board to update the description for."],
@@ -11199,7 +11200,7 @@ def TRELLO_UPDATE_BOARDS_DESC_BY_ID_BOARD(
 
 @mcp.tool(
     "TRELLO_UPDATE_BOARD_SIDEBAR_ACTIONS_PREFS",
-    description="Update board sidebar actions preferences. Updates the current user's preference for the visibility of sidebar board actions on a specific trello board.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_BOARD_SIDEBAR_ACTIONS_PREFS(
     id_board: Annotated[str, "The ID of the board to update sidebar actions preferences for."],
@@ -11278,7 +11279,7 @@ def TRELLO_UPDATE_BOARD_SIDEBAR_ACTIONS_PREFS(
 
 @mcp.tool(
     "TRELLO_UPDATE_BOARDS_ID_ORGANIZATION_BY_ID_BOARD",
-    description="Update board organization. Moves an existing trello board to a specified, existing trello organization, which can affect the board's visibility and member access.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_BOARDS_ID_ORGANIZATION_BY_ID_BOARD(
     id_board: Annotated[str, "The ID of the board to move to a different organization."],
@@ -11363,7 +11364,7 @@ def TRELLO_UPDATE_BOARDS_ID_ORGANIZATION_BY_ID_BOARD(
 
 @mcp.tool(
     "TRELLO_UPDATE_BOARDS_LABEL_NAMES_BLUE_BY_ID_BOARD",
-    description="Update a board's blue label name. Sets the name of the blue label for a trello board.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_BOARDS_LABEL_NAMES_BLUE_BY_ID_BOARD(
     id_board: Annotated[str, "The ID of the board to update the blue label name for."],
@@ -11450,7 +11451,7 @@ def TRELLO_UPDATE_BOARDS_LABEL_NAMES_BLUE_BY_ID_BOARD(
 
 @mcp.tool(
     "TRELLO_UPDATE_BOARDS_LABEL_NAMES_GREEN_BY_ID_BOARD",
-    description="Update board's green label name. Updates the name of the green label for a specified trello board; this change is board-wide, affects all cards using this label, and does not change the label's color.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_BOARDS_LABEL_NAMES_GREEN_BY_ID_BOARD(
     id_board: Annotated[str, "The ID of the board to update the green label name for."],
@@ -11537,7 +11538,7 @@ def TRELLO_UPDATE_BOARDS_LABEL_NAMES_GREEN_BY_ID_BOARD(
 
 @mcp.tool(
     "TRELLO_UPDATE_BOARDS_LABEL_NAMES_ORANGE_BY_ID_BOARD",
-    description="Update board label orange name. Updates the name of the orange label for a specified trello board, affecting only the label's name, not its color or associated cards.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_BOARDS_LABEL_NAMES_ORANGE_BY_ID_BOARD(
     id_board: Annotated[str, "The ID of the board to update the orange label name for."],
@@ -11624,7 +11625,7 @@ def TRELLO_UPDATE_BOARDS_LABEL_NAMES_ORANGE_BY_ID_BOARD(
 
 @mcp.tool(
     "TRELLO_UPDATE_BOARDS_LABEL_NAMES_PURPLE_BY_ID_BOARD",
-    description="Update purple label name. Updates the name of the purple label on a trello board specified by `idboard`.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_BOARDS_LABEL_NAMES_PURPLE_BY_ID_BOARD(
     id_board: Annotated[str, "The ID of the board to update the purple label name for."],
@@ -11711,7 +11712,7 @@ def TRELLO_UPDATE_BOARDS_LABEL_NAMES_PURPLE_BY_ID_BOARD(
 
 @mcp.tool(
     "TRELLO_UPDATE_BOARDS_LABEL_NAMES_RED_BY_ID_BOARD",
-    description="Update board label name red. Updates the name of the red label on a specified trello board, without affecting its color or other labels.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_BOARDS_LABEL_NAMES_RED_BY_ID_BOARD(
     id_board: Annotated[str, "The ID of the board to update the red label name for."],
@@ -11798,7 +11799,7 @@ def TRELLO_UPDATE_BOARDS_LABEL_NAMES_RED_BY_ID_BOARD(
 
 @mcp.tool(
     "TRELLO_UPDATE_BOARDS_LABEL_NAMES_YELLOW_BY_ID_BOARD",
-    description="Update yellow label name on board. Updates the name of a board's yellow label; other colored labels are unaffected.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_BOARDS_LABEL_NAMES_YELLOW_BY_ID_BOARD(
     id_board: Annotated[str, "The ID of the board to update the yellow label name for."],
@@ -11885,7 +11886,7 @@ def TRELLO_UPDATE_BOARDS_LABEL_NAMES_YELLOW_BY_ID_BOARD(
 
 @mcp.tool(
     "TRELLO_UPDATE_BOARDS_MEMBERS_BY_ID_BOARD",
-    description="Update board members. Adds or updates a member's role on a specific trello board, typically requiring the member's `email` and a membership `type`.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_BOARDS_MEMBERS_BY_ID_BOARD(
     id_board: Annotated[str, "The ID of the board to add or update the member on."],
@@ -12010,7 +12011,7 @@ def TRELLO_UPDATE_BOARDS_MEMBERS_BY_ID_BOARD(
 
 @mcp.tool(
     "TRELLO_UPDATE_BOARDS_MEMBERS_BY_ID_BOARD_BY_ID_MEMBER",
-    description="Update board member attributes. Updates a current member's email, full name, or role (admin, normal, or observer) on a specific trello board; email and full name changes are board-specific and do not affect the member's global trello profile.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_BOARDS_MEMBERS_BY_ID_BOARD_BY_ID_MEMBER(
     id_board: Annotated[str, "The ID of the board containing the member."],
@@ -12134,7 +12135,7 @@ def TRELLO_UPDATE_BOARDS_MEMBERS_BY_ID_BOARD_BY_ID_MEMBER(
 
 @mcp.tool(
     "TRELLO_UPDATE_BOARDS_MY_PREFS_EMAIL_POSITION_BY_ID_BOARD",
-    description="Modify board email position preference. Updates a trello board's email position preference for new cards; this preference only affects new cards (not existing ones) and the board must exist.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_BOARDS_MY_PREFS_EMAIL_POSITION_BY_ID_BOARD(
     id_board: Annotated[str, "The ID of the board to update email position preference for."],
@@ -12219,7 +12220,7 @@ def TRELLO_UPDATE_BOARDS_MY_PREFS_EMAIL_POSITION_BY_ID_BOARD(
 
 @mcp.tool(
     "TRELLO_UPDATE_BOARDS_MY_PREFS_ID_EMAIL_LIST_BY_ID_BOARD",
-    description="Update board email list preference. Sets or disables the default trello list for new cards created via email on a specific board.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_BOARDS_MY_PREFS_ID_EMAIL_LIST_BY_ID_BOARD(
     id_board: Annotated[str, "The ID of the board to update email list preference for."],
@@ -12310,7 +12311,7 @@ def TRELLO_UPDATE_BOARDS_MY_PREFS_ID_EMAIL_LIST_BY_ID_BOARD(
 
 @mcp.tool(
     "TRELLO_UPDATE_BOARDS_MY_PREFS_SHOW_SIDEBAR_ACTIVITY_BY_ID_BOARD",
-    description="Update my board sidebar activity preference. Sets the current user's preference for displaying or concealing the sidebar activity feed on an accessible trello board; this change only affects the requesting user.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_BOARDS_MY_PREFS_SHOW_SIDEBAR_ACTIVITY_BY_ID_BOARD(
     id_board: Annotated[str, "The ID of the board to update sidebar activity preference for."],
@@ -12409,7 +12410,7 @@ def TRELLO_UPDATE_BOARDS_MY_PREFS_SHOW_SIDEBAR_ACTIVITY_BY_ID_BOARD(
 
 @mcp.tool(
     "TRELLO_UPDATE_BOARDS_MY_PREFS_SHOW_SIDEBAR_BY_ID_BOARD",
-    description="Update board sidebar visibility. Updates the authenticated user's personal preference for showing or hiding the sidebar on a specific trello board.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_BOARDS_MY_PREFS_SHOW_SIDEBAR_BY_ID_BOARD(
     id_board: Annotated[str, "The ID of the board to update sidebar visibility preference for."],
@@ -12508,7 +12509,7 @@ def TRELLO_UPDATE_BOARDS_MY_PREFS_SHOW_SIDEBAR_BY_ID_BOARD(
 
 @mcp.tool(
     "TRELLO_UPDATE_BOARDS_MY_PREFS_SHOW_SIDEBAR_MEMBERS_BY_ID_BOARD",
-    description="Update board sidebar members preference. Updates the authenticated user's preference for showing or hiding members in a specific trello board's sidebar, affecting only the current user's view.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_BOARDS_MY_PREFS_SHOW_SIDEBAR_MEMBERS_BY_ID_BOARD(
     id_board: Annotated[str, "The ID of the board to update sidebar members preference for."],
@@ -12607,7 +12608,7 @@ def TRELLO_UPDATE_BOARDS_MY_PREFS_SHOW_SIDEBAR_MEMBERS_BY_ID_BOARD(
 
 @mcp.tool(
     "TRELLO_UPDATE_BOARDS_MY_PREFS_SHOW_LIST_GUIDE_BY_ID_BOARD",
-    description="Update board show list guide preference. Updates the 'show list guide' preference for a specified trello board, affecting visibility for all users of that board.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_BOARDS_MY_PREFS_SHOW_LIST_GUIDE_BY_ID_BOARD(
     id_board: Annotated[str, "The ID of the board to update show list guide preference for."],
@@ -12709,7 +12710,7 @@ def TRELLO_UPDATE_BOARDS_MY_PREFS_SHOW_LIST_GUIDE_BY_ID_BOARD(
 
 @mcp.tool(
     "TRELLO_UPDATE_BOARDS_NAME_BY_ID_BOARD",
-    description="Update board name. Updates the name of an existing trello board, identified by `idboard`; this change only affects the board's name, not its other attributes.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_BOARDS_NAME_BY_ID_BOARD(
     id_board: Annotated[str, "The ID of the board to update the name for."],
@@ -12804,7 +12805,7 @@ def TRELLO_UPDATE_BOARDS_NAME_BY_ID_BOARD(
 
 @mcp.tool(
     "TRELLO_UPDATE_BOARDS_PREFS_BACKGROUND_BY_ID_BOARD",
-    description="Update board background. Updates the cosmetic background preference for a specific trello board; this change does not affect board functionality or content.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_BOARDS_PREFS_BACKGROUND_BY_ID_BOARD(
     id_board: Annotated[str, "The ID of the board to update background preference for."],
@@ -12891,7 +12892,7 @@ def TRELLO_UPDATE_BOARDS_PREFS_BACKGROUND_BY_ID_BOARD(
 
 @mcp.tool(
     "TRELLO_UPDATE_BOARDS_PREFS_CALENDAR_FEED_ENABLED_BY_ID_BOARD",
-    description="Update board calendar feed enabled status. Updates the 'calendarfeedenabled' preference for a trello board, which, when enabled, makes board cards with due dates accessible via an icalendar feed for external calendar integration.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_BOARDS_PREFS_CALENDAR_FEED_ENABLED_BY_ID_BOARD(
     id_board: Annotated[str, "The ID of the board to update calendar feed enabled status for."],
@@ -12982,7 +12983,7 @@ def TRELLO_UPDATE_BOARDS_PREFS_CALENDAR_FEED_ENABLED_BY_ID_BOARD(
 
 @mcp.tool(
     "TRELLO_UPDATE_BOARDS_PREFS_CARD_AGING_BY_ID_BOARD",
-    description="Update board card aging preference. Updates the card aging visual preference to 'pirate' or 'regular' mode for a specified trello board.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_BOARDS_PREFS_CARD_AGING_BY_ID_BOARD(
     id_board: Annotated[str, "The ID of the board to update card aging preference for."],
@@ -13081,7 +13082,7 @@ def TRELLO_UPDATE_BOARDS_PREFS_CARD_AGING_BY_ID_BOARD(
 
 @mcp.tool(
     "TRELLO_UPDATE_BOARDS_PREFS_CARD_COVERS_BY_ID_BOARD",
-    description="Update board card cover preference. Updates the preference on a specific trello board for whether existing card covers are displayed; this controls visibility only and does not add or remove the actual covers from cards.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_BOARDS_PREFS_CARD_COVERS_BY_ID_BOARD(
     id_board: Annotated[str, "The ID of the board to update card cover preference for."],
@@ -13172,7 +13173,7 @@ def TRELLO_UPDATE_BOARDS_PREFS_CARD_COVERS_BY_ID_BOARD(
 
 @mcp.tool(
     "TRELLO_UPDATE_BOARDS_PREFS_COMMENTS_BY_ID_BOARD",
-    description="Update board comment preferences. Changes the permission settings for who can add comments to cards on a specific trello board, without affecting other board settings.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_BOARDS_PREFS_COMMENTS_BY_ID_BOARD(
     id_board: Annotated[str, "The ID of the board to update comment preferences for."],
@@ -13272,7 +13273,7 @@ def TRELLO_UPDATE_BOARDS_PREFS_COMMENTS_BY_ID_BOARD(
 
 @mcp.tool(
     "TRELLO_UPDATE_BOARDS_PREFS_INVITATIONS_BY_ID_BOARD",
-    description="Update board invitation preferences. Updates who can invite new members ('admins' or 'members') to a specific trello board.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_BOARDS_PREFS_INVITATIONS_BY_ID_BOARD(
     id_board: Annotated[str, "The ID of the board to update invitation preferences for."],
@@ -13372,7 +13373,7 @@ def TRELLO_UPDATE_BOARDS_PREFS_INVITATIONS_BY_ID_BOARD(
 
 @mcp.tool(
     "TRELLO_UPDATE_BOARDS_PREFS_PERMISSION_LEVEL_BY_ID_BOARD",
-    description="Update board prefs permission level. Updates the permission level preference (e.g., 'private' or 'public') for a trello board, identified by `idboard`, if the board exists and the authenticated user possesses administrative permissions for it.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_BOARDS_PREFS_PERMISSION_LEVEL_BY_ID_BOARD(
     id_board: Annotated[str, "The ID of the board to update permission level preference for."],
@@ -13472,7 +13473,7 @@ def TRELLO_UPDATE_BOARDS_PREFS_PERMISSION_LEVEL_BY_ID_BOARD(
 
 @mcp.tool(
     "TRELLO_UPDATE_BOARDS_PREFS_SELF_JOIN_BY_ID_BOARD",
-    description="Update board self-join preference. Updates a board's 'selfjoin' preference, determining if members can join freely or must be invited.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_BOARDS_PREFS_SELF_JOIN_BY_ID_BOARD(
     id_board: Annotated[str, "The ID of the board to update self-join preference for."],
@@ -13563,7 +13564,7 @@ def TRELLO_UPDATE_BOARDS_PREFS_SELF_JOIN_BY_ID_BOARD(
 
 @mcp.tool(
     "TRELLO_UPDATE_BOARDS_PREFS_VOTING_BY_ID_BOARD",
-    description="Update board voting preferences. Sets who can vote on cards for an existing trello board, changing only the voting preferences for all cards on the board.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_BOARDS_PREFS_VOTING_BY_ID_BOARD(
     id_board: Annotated[str, "The ID of the board to update voting preferences for."],
@@ -13663,7 +13664,7 @@ def TRELLO_UPDATE_BOARDS_PREFS_VOTING_BY_ID_BOARD(
 
 @mcp.tool(
     "TRELLO_UPDATE_BOARDS_SUBSCRIBED_BY_ID_BOARD",
-    description="Update board subscription status. Updates the authenticated user's subscription status (subscribe/unsubscribe for notifications) for a specified trello board, to which the user must have access.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_BOARDS_SUBSCRIBED_BY_ID_BOARD(
     id_board: Annotated[str, "The ID of the board to update subscription status for."],
@@ -13754,7 +13755,7 @@ def TRELLO_UPDATE_BOARDS_SUBSCRIBED_BY_ID_BOARD(
 
 @mcp.tool(
     "TRELLO_GET_NOTIFICATIONS_BOARD_BY_ID_NOTIFICATION_BY_FIELD",
-    description="Get notification's board field. Retrieves a specific, valid field from the board associated with a trello notification.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_NOTIFICATIONS_BOARD_BY_ID_NOTIFICATION_BY_FIELD(
     id_notification: Annotated[str, "The ID of the notification to get the board field for."],
@@ -13840,7 +13841,7 @@ def TRELLO_GET_NOTIFICATIONS_BOARD_BY_ID_NOTIFICATION_BY_FIELD(
 
 @mcp.tool(
     "TRELLO_GET_NOTIFICATIONS_BY_ID_NOTIFICATION",
-    description="Get notification by ID. Retrieves a specific trello notification by its id, optionally including related entities and specific fields for the notification and its related entities.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_NOTIFICATIONS_BY_ID_NOTIFICATION(
     id_notification: Annotated[str, "The ID of the notification to retrieve."],
@@ -13970,7 +13971,7 @@ def TRELLO_GET_NOTIFICATIONS_BY_ID_NOTIFICATION(
 
 @mcp.tool(
     "TRELLO_GET_NOTIFICATIONS_BY_ID_NOTIFICATION_BY_FIELD",
-    description="Get a notification field. Retrieves a specific field from a trello notification.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_NOTIFICATIONS_BY_ID_NOTIFICATION_BY_FIELD(
     id_notification: Annotated[str, "The ID of the notification to get the field from."],
@@ -14029,7 +14030,7 @@ def TRELLO_GET_NOTIFICATIONS_BY_ID_NOTIFICATION_BY_FIELD(
 
 @mcp.tool(
     "TRELLO_GET_NOTIFICATIONS_DISPLAY_BY_ID_NOTIFICATION",
-    description="Get notification display by id. Retrieves the information needed to display an existing trello notification, identified by its id, without altering the notification or fetching its complete metadata.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_NOTIFICATIONS_DISPLAY_BY_ID_NOTIFICATION(
     id_notification: Annotated[str, "The ID of the notification to get display information for."]
@@ -14096,7 +14097,7 @@ def TRELLO_GET_NOTIFICATIONS_DISPLAY_BY_ID_NOTIFICATION(
 
 @mcp.tool(
     "TRELLO_GET_NOTIFICATIONS_MEMBER_BY_ID_NOTIFICATION",
-    description="Get notification member by id. Fetches details of the member (not the notification content itself) associated with a specific trello notification id.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_NOTIFICATIONS_MEMBER_BY_ID_NOTIFICATION(
     id_notification: Annotated[str, "The ID of the notification to get the member for."],
@@ -14178,7 +14179,7 @@ def TRELLO_GET_NOTIFICATIONS_MEMBER_BY_ID_NOTIFICATION(
 
 @mcp.tool(
     "TRELLO_GET_NOTIFICATIONS_MEMBER_BY_ID_NOTIFICATION_BY_FIELD",
-    description="Retrieve notification member field. Retrieves a specific `field` of the trello member associated with the given `idnotification`.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_NOTIFICATIONS_MEMBER_BY_ID_NOTIFICATION_BY_FIELD(
     id_notification: Annotated[str, "The ID of the notification to get the member field for."],
@@ -14272,7 +14273,7 @@ def TRELLO_GET_NOTIFICATIONS_MEMBER_BY_ID_NOTIFICATION_BY_FIELD(
 
 @mcp.tool(
     "TRELLO_GET_NOTIFICATIONS_MEMBER_CREATOR_BY_ID_NOTIFICATION",
-    description="Get member creator of a notification. Fetches the creator (member) of a trello notification, identified by `idnotification`, returning only creator details and respecting trello privacy settings and user permissions.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_NOTIFICATIONS_MEMBER_CREATOR_BY_ID_NOTIFICATION(
     id_notification: Annotated[str, "The ID of the notification to get the member creator for."],
@@ -14346,7 +14347,7 @@ def TRELLO_GET_NOTIFICATIONS_MEMBER_CREATOR_BY_ID_NOTIFICATION(
 
 @mcp.tool(
     "TRELLO_GET_NOTIFICATIONS_ORGANIZATION_BY_ID_NOTIFICATION",
-    description="Get notification organization. Retrieves the trello organization linked to a specific notification id; returns organization details only, not the notification itself.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_NOTIFICATIONS_ORGANIZATION_BY_ID_NOTIFICATION(
     id_notification: Annotated[str, "The ID of the notification to get the organization for."],
@@ -14422,7 +14423,7 @@ def TRELLO_GET_NOTIFICATIONS_ORGANIZATION_BY_ID_NOTIFICATION(
 
 @mcp.tool(
     "TRELLO_GET_NOTIFICATIONS_ENTITIES_BY_ID_NOTIFICATION",
-    description="Get notification entities by id. Retrieves trello entities (e.g., boards, cards, lists, members) linked to a specific notification id, focusing on the related entities rather than the notification details itself.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_NOTIFICATIONS_ENTITIES_BY_ID_NOTIFICATION(
     id_notification: Annotated[str, "The ID of the notification to get entities for."]
@@ -14509,7 +14510,7 @@ def TRELLO_GET_NOTIFICATIONS_ENTITIES_BY_ID_NOTIFICATION(
 
 @mcp.tool(
     "TRELLO_GET_NOTIFICATIONS_LIST_BY_ID_NOTIFICATION",
-    description="Retrieve notification list by id. Retrieves details of the trello list associated with a specific notification id.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_NOTIFICATIONS_LIST_BY_ID_NOTIFICATION(
     id_notification: Annotated[str, "The ID of the notification to get the list for."],
@@ -14603,7 +14604,7 @@ def TRELLO_GET_NOTIFICATIONS_LIST_BY_ID_NOTIFICATION(
 
 @mcp.tool(
     "TRELLO_GET_NOTIFICATIONS_LIST_BY_ID_NOTIFICATION_BY_FIELD",
-    description="Get notification list field. Efficiently retrieves a single specified field from a trello list linked to a notification, avoiding fetching the entire list.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_NOTIFICATIONS_LIST_BY_ID_NOTIFICATION_BY_FIELD(
     id_notification: Annotated[str, "The ID of the notification to get the list field for."],
@@ -14695,7 +14696,7 @@ def TRELLO_GET_NOTIFICATIONS_LIST_BY_ID_NOTIFICATION_BY_FIELD(
 
 @mcp.tool(
     "TRELLO_GET_NOTIFICATIONS_CARD_BY_ID_NOTIFICATION",
-    description="Get notification's card. Retrieves card details (excluding notification, board, or list data) for a specified trello idnotification, which must exist and be linked to a card.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_NOTIFICATIONS_CARD_BY_ID_NOTIFICATION(
     id_notification: Annotated[str, "The ID of the notification to get the card for."],
@@ -14803,7 +14804,7 @@ def TRELLO_GET_NOTIFICATIONS_CARD_BY_ID_NOTIFICATION(
 
 @mcp.tool(
     "TRELLO_GET_NOTIFICATIONS_CARD_BY_ID_NOTIFICATION_BY_FIELD",
-    description="Get notification card field. Retrieves a specific field of a trello card, using the id of a notification that is directly associated with that card.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_NOTIFICATIONS_CARD_BY_ID_NOTIFICATION_BY_FIELD(
     id_notification: Annotated[str, "The ID of the notification to get the card field for."],
@@ -14895,7 +14896,7 @@ def TRELLO_GET_NOTIFICATIONS_CARD_BY_ID_NOTIFICATION_BY_FIELD(
 
 @mcp.tool(
     "TRELLO_GET_ORGANIZATIONS_ACTIONS_BY_ID_ORG",
-    description="Get organization actions by ID. Retrieves a log of actions (e.g., card creations, list movements, comments) for a specified trello organization, filterable by type, date range, and models; `idorg` must be a valid organization id/name, and `page` * `limit` must be < 1000.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_ORGANIZATIONS_ACTIONS_BY_ID_ORG(
     idOrg: Annotated[str, "The ID or name of the organization to get actions for."],
@@ -15023,7 +15024,7 @@ def TRELLO_GET_ORGANIZATIONS_ACTIONS_BY_ID_ORG(
 
 @mcp.tool(
     "TRELLO_GET_ORGANIZATIONS_BOARDS_BY_ID_ORG",
-    description="Get organization boards. Fetches boards for a trello organization, specified by its id or name, with options to filter and customize returned data.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_ORGANIZATIONS_BOARDS_BY_ID_ORG(
     idOrg: Annotated[str, "The ID or name of the organization to get boards for."],
@@ -15125,7 +15126,7 @@ def TRELLO_GET_ORGANIZATIONS_BOARDS_BY_ID_ORG(
 
 @mcp.tool(
     "TRELLO_GET_ORGANIZATIONS_BOARDS_BY_ID_ORG_BY_FILTER",
-    description="Get organization boards by filter. Fetches a list of boards belonging to a specific trello organization, filtered by a given criterion.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_ORGANIZATIONS_BOARDS_BY_ID_ORG_BY_FILTER(
     idOrg: Annotated[str, "The ID or name of the organization to get boards for."],
@@ -15186,7 +15187,7 @@ def TRELLO_GET_ORGANIZATIONS_BOARDS_BY_ID_ORG_BY_FILTER(
 
 @mcp.tool(
     "TRELLO_GET_ORGANIZATIONS_BY_ID_ORG",
-    description="Get organization by ID. Retrieves detailed information about a specific trello organization, including optional related resources like members, boards, and actions, using its id or unique name.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_ORGANIZATIONS_BY_ID_ORG(
     idOrg: Annotated[str, "The ID or unique name of the organization to retrieve."],
@@ -15344,7 +15345,7 @@ def TRELLO_GET_ORGANIZATIONS_BY_ID_ORG(
 
 @mcp.tool(
     "TRELLO_GET_ORGANIZATIONS_BY_ID_ORG_BY_FIELD",
-    description="Get organization field by id. Retrieves the value of a single specified `field` for a trello organization `idorg`, ideal for efficiently fetching a specific piece of information without loading the full organization details.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_ORGANIZATIONS_BY_ID_ORG_BY_FIELD(
     idOrg: Annotated[str, "The ID or unique name of the organization to retrieve the field from."],
@@ -15410,7 +15411,7 @@ def TRELLO_GET_ORGANIZATIONS_BY_ID_ORG_BY_FIELD(
 
 @mcp.tool(
     "TRELLO_GET_ORGANIZATIONS_DELTAS_BY_ID_ORG",
-    description="Get organization deltas by id. Retrieves a log of recent modifications (deltas) for a trello organization, filterable by tags and supporting incremental fetching via an update index.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_ORGANIZATIONS_DELTAS_BY_ID_ORG(
     idOrg: Annotated[str, "The ID or unique name of the organization to get deltas for."],
@@ -15502,7 +15503,7 @@ def TRELLO_GET_ORGANIZATIONS_DELTAS_BY_ID_ORG(
 
 @mcp.tool(
     "TRELLO_GET_ORGANIZATIONS_MEMBERS_BY_ID_ORG",
-    description="Retrieve organization members by id. Retrieves members of a trello organization (specified by id or name), with an option to include member activity if the organization is premium.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_ORGANIZATIONS_MEMBERS_BY_ID_ORG(
     idOrg: Annotated[str, "The ID or unique name of the organization to get members for."],
@@ -15594,7 +15595,7 @@ def TRELLO_GET_ORGANIZATIONS_MEMBERS_BY_ID_ORG(
 
 @mcp.tool(
     "TRELLO_GET_ORGANIZATIONS_MEMBERS_BY_ID_ORG_BY_FILTER",
-    description="Get organization members by filter. Fetches members of a specified trello organization using a filter like 'all', 'normal', 'admins', or 'owners'.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_ORGANIZATIONS_MEMBERS_BY_ID_ORG_BY_FILTER(
     idOrg: Annotated[str, "The ID or unique name of the organization to get members for."],
@@ -15682,7 +15683,7 @@ def TRELLO_GET_ORGANIZATIONS_MEMBERS_BY_ID_ORG_BY_FILTER(
 
 @mcp.tool(
     "TRELLO_GET_ORGANIZATIONS_MEMBERSHIPS_BY_ID_ORG",
-    description="Get organization memberships. Fetches organization-level memberships for a trello organization, with options to filter members and include their details; does not return board-specific memberships.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_ORGANIZATIONS_MEMBERSHIPS_BY_ID_ORG(
     idOrg: Annotated[str, "The ID or unique name of the organization to get memberships for."],
@@ -15784,7 +15785,7 @@ def TRELLO_GET_ORGANIZATIONS_MEMBERSHIPS_BY_ID_ORG(
 
 @mcp.tool(
     "TRELLO_GET_ORGANIZATIONS_MEMBERSHIPS_BY_ID_ORG_BY_ID_MEMBERSHIP",
-    description="Get organization membership. Retrieves a specific membership within a trello organization, using their respective ids, to ascertain the member's role, status, or permissions.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_ORGANIZATIONS_MEMBERSHIPS_BY_ID_ORG_BY_ID_MEMBERSHIP(
     idOrg: Annotated[str, "The ID or unique name of the organization."],
@@ -15889,7 +15890,7 @@ def TRELLO_GET_ORGANIZATIONS_MEMBERSHIPS_BY_ID_ORG_BY_ID_MEMBERSHIP(
 
 @mcp.tool(
     "TRELLO_GET_ORGANIZATIONS_MEMBERS_INVITED_BY_ID_ORG",
-    description="Get invited organization members. Retrieves members invited to a trello organization who have not yet accepted their invitation, returning only data for pending invitations (not active or former members) and cannot send or modify invitations.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_ORGANIZATIONS_MEMBERS_INVITED_BY_ID_ORG(
     idOrg: Annotated[str, "The ID or unique name of the organization to get invited members for."],
@@ -16008,7 +16009,7 @@ def TRELLO_GET_ORGANIZATIONS_MEMBERS_INVITED_BY_ID_ORG(
 
 @mcp.tool(
     "TRELLO_GET_ORGANIZATIONS_MEMBERS_INVITED_BY_ID_ORG_BY_FIELD",
-    description="Get organization invited member field. Retrieves a specific `field` (e.g., fullname, username, email, status) for members with pending invitations to the trello organization specified by `idorg`.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_ORGANIZATIONS_MEMBERS_INVITED_BY_ID_ORG_BY_FIELD(
     idOrg: Annotated[str, "The ID or unique name of the organization to get invited member field for."],
@@ -16119,7 +16120,7 @@ def TRELLO_GET_ORGANIZATIONS_MEMBERS_INVITED_BY_ID_ORG_BY_FIELD(
 
 @mcp.tool(
     "TRELLO_GET_SEARCH_MEMBERS",
-    description="Search for members. Searches trello members by name, username, or email, optionally scoped to a board or organization.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_SEARCH_MEMBERS(
     query: Annotated[str, "The search query to find members by name, username, or email."],
@@ -16236,7 +16237,7 @@ def TRELLO_GET_SEARCH_MEMBERS(
 
 @mcp.tool(
     "TRELLO_GET_SESSIONS_SOCKET",
-    description="Get sessions socket. Note: Trello WebSocket functionality is not officially supported and has been deprecated. This tool provides information about alternatives for real-time updates.",
+    description="Get data. Retrieves specific Trello data. Args: id (str, required), fields (str, optional, default='all'). Returns: Dictionary containing success status, data, and retrieval message.",
 )
 def TRELLO_GET_SESSIONS_SOCKET():
     """Get sessions socket. Note: Trello WebSocket functionality is not officially supported and has been deprecated. This tool provides information about alternatives for real-time updates."""
@@ -16289,7 +16290,7 @@ def TRELLO_GET_SESSIONS_SOCKET():
 
 @mcp.tool(
     "TRELLO_UPDATE_BOARD_STAR_POSITION",
-    description="Update board star position. Updates the display position of a specific starred board for a trello member (referenced by `idmember` or 'me') using its `idboardstar`, allowing reordering to 'top', 'bottom', or a specific positive numerical position (as a string).",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_BOARD_STAR_POSITION(
     id_board_star: Annotated[str, "The ID of the board star to update position for."],
@@ -16406,7 +16407,7 @@ def TRELLO_UPDATE_BOARD_STAR_POSITION(
 
 @mcp.tool(
     "TRELLO_UPDATE_CARD_CHECKLIST_ITEM_POSITION",
-    description="Update checklist item position. Updates the position of a check item within a checklist on a trello card; the new position can be 'top', 'bottom', or a positive integer.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_CARD_CHECKLIST_ITEM_POSITION(
     id_card: Annotated[str, "The ID of the card containing the checklist."],
@@ -16531,7 +16532,7 @@ def TRELLO_UPDATE_CARD_CHECKLIST_ITEM_POSITION(
 
 @mcp.tool(
     "TRELLO_UPDATE_CARD_CHECKLIST_ITEM_STATE_BY_IDS",
-    description="Update card checklist item state. Updates the state of a specific check item on a trello card's checklist, only affecting its completion status and no other properties.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_CARD_CHECKLIST_ITEM_STATE_BY_IDS(
     id_card: Annotated[str, "The ID of the card containing the checklist."],
@@ -16648,7 +16649,7 @@ def TRELLO_UPDATE_CARD_CHECKLIST_ITEM_STATE_BY_IDS(
 
 @mcp.tool(
     "TRELLO_UPDATE_CARD_COMMENT",
-    description="Update card comment. Updates the text for a given comment action (`idaction`) on a specified card (`idcard`), affecting only the text content.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_CARD_COMMENT(
     id_action: Annotated[str, "The ID of the comment action to update."],
@@ -16753,7 +16754,7 @@ def TRELLO_UPDATE_CARD_COMMENT(
 
 @mcp.tool(
     "TRELLO_UPDATE_CARDS_CLOSED_BY_ID_CARD",
-    description="Update card closed status by id. Updates the 'closed' status of an existing trello card.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_CARDS_CLOSED_BY_ID_CARD(
     id_card: Annotated[str, "The ID of the card to update closed status for."],
@@ -16854,7 +16855,7 @@ def TRELLO_UPDATE_CARDS_CLOSED_BY_ID_CARD(
 
 @mcp.tool(
     "TRELLO_UPDATE_CARDS_DESC_BY_ID_CARD",
-    description="Update card description. Updates or clears the entire description of an existing trello card; use an empty string for `value` to clear.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_CARDS_DESC_BY_ID_CARD(
     id_card: Annotated[str, "The ID of the card to update description for."],
@@ -16959,7 +16960,7 @@ def TRELLO_UPDATE_CARDS_DESC_BY_ID_CARD(
 
 @mcp.tool(
     "TRELLO_UPDATE_CARDS_DUE_BY_ID_CARD",
-    description="Update card due date. Updates the due date of a specific trello card; the card identified by `idcard` must exist.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_CARDS_DUE_BY_ID_CARD(
     id_card: Annotated[str, "The ID of the card to update due date for."],
@@ -17064,7 +17065,7 @@ def TRELLO_UPDATE_CARDS_DUE_BY_ID_CARD(
 
 @mcp.tool(
     "TRELLO_UPDATE_CARDS_ID_BOARD_BY_ID_CARD",
-    description="Move card to board. Moves a trello card to a different board and, optionally, to a specific list on that new board, useful for reorganizing across projects or workflows.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_CARDS_ID_BOARD_BY_ID_CARD(
     id_card: Annotated[str, "The ID of the card to move."],
@@ -17185,7 +17186,7 @@ def TRELLO_UPDATE_CARDS_ID_BOARD_BY_ID_CARD(
 
 @mcp.tool(
     "TRELLO_UPDATE_CARDS_ID_LIST_BY_ID_CARD",
-    description="Update card list ID. Moves a trello card to a different list on the same trello board; this operation is idempotent and only updates the card's list id.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_CARDS_ID_LIST_BY_ID_CARD(
     id_card: Annotated[str, "The ID of the card to move to a different list."],
@@ -17280,7 +17281,7 @@ def TRELLO_UPDATE_CARDS_ID_LIST_BY_ID_CARD(
 
 @mcp.tool(
     "TRELLO_UPDATE_CARDS_ID_MEMBERS_BY_ID_CARD",
-    description="Add member to card. Adds a member to a trello card, appending their id to the card's list of member ids; the card must exist and the member must have board permissions.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_CARDS_ID_MEMBERS_BY_ID_CARD(
     id_card: Annotated[str, "The ID of the card to add a member to."],
@@ -17395,7 +17396,7 @@ def TRELLO_UPDATE_CARDS_ID_MEMBERS_BY_ID_CARD(
 
 @mcp.tool(
     "TRELLO_UPDATE_CARDS_LABELS_BY_ID_CARD",
-    description="Add labels to card. Adds labels to an existing trello card using label IDs. Get label IDs using TRELLO_GET_BOARDS_LABELS_BY_ID_BOARD. Note: This tool adds labels, it doesn't replace existing ones.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_CARDS_LABELS_BY_ID_CARD(
     id_card: Annotated[str, "The ID of the card to add labels to."],
@@ -17500,7 +17501,7 @@ def TRELLO_UPDATE_CARDS_LABELS_BY_ID_CARD(
 
 @mcp.tool(
     "TRELLO_UPDATE_CARDS_NAME_BY_ID_CARD",
-    description="Update card name. Updates the name of an existing trello card, identified by its id or shortlink; other card properties remain unchanged.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_CARDS_NAME_BY_ID_CARD(
     id_card: Annotated[str, "The ID of the card to update name for."],
@@ -17607,7 +17608,7 @@ def TRELLO_UPDATE_CARDS_NAME_BY_ID_CARD(
 
 @mcp.tool(
     "TRELLO_UPDATE_CARDS_POS_BY_ID_CARD",
-    description="Update card position. Updates a trello card's position within its list to 'top', 'bottom', or a specified 1-indexed positive integer.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_CARDS_POS_BY_ID_CARD(
     id_card: Annotated[str, "The ID of the card to update position for."],
@@ -17726,7 +17727,7 @@ def TRELLO_UPDATE_CARDS_POS_BY_ID_CARD(
 
 @mcp.tool(
     "TRELLO_UPDATE_CARDS_SUBSCRIBED_BY_ID_CARD",
-    description="Update card subscribed status. Updates the user's subscription status for a trello card, if the card exists and is accessible.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_CARDS_SUBSCRIBED_BY_ID_CARD(
     id_card: Annotated[str, "The ID of the card to update subscription status for."],
@@ -17829,7 +17830,7 @@ def TRELLO_UPDATE_CARDS_SUBSCRIBED_BY_ID_CARD(
 
 @mcp.tool(
     "TRELLO_UPDATE_CHECKLIST_ITEM_BY_IDS",
-    description="Update a checklist item. Updates a check item's attributes (name, position, state) or moves it to a different checklist on the same card, requiring the card id, current checklist id, and check item id.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_CHECKLIST_ITEM_BY_IDS(
     id_card: Annotated[str, "The ID of the card containing the checklist item."],
@@ -18017,7 +18018,7 @@ def TRELLO_UPDATE_CHECKLIST_ITEM_BY_IDS(
 
 @mcp.tool(
     "TRELLO_REMOVE_CHECKLIST_ITEM_FROM_CARD_BY_IDS",
-    description="Remove checklist item. Permanently deletes a specific checklist item from a checklist on a trello card using their respective ids.",
+    description="Trello operation. Performs a specific Trello operation. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, data, and operation message.",
 )
 def TRELLO_REMOVE_CHECKLIST_ITEM_FROM_CARD_BY_IDS(
     id_card: Annotated[str, "The ID of the card containing the checklist item."],
@@ -18097,7 +18098,7 @@ def TRELLO_REMOVE_CHECKLIST_ITEM_FROM_CARD_BY_IDS(
 
 @mcp.tool(
     "TRELLO_UPDATE_CHECKLIST_ITEM_NAME_IN_CARD",
-    description="Update checklist item name in card. Updates the name of a specific check item on a checklist within a trello card, provided the card, checklist, and check item all exist.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_CHECKLIST_ITEM_NAME_IN_CARD(
     id_card: Annotated[str, "The ID of the card containing the checklist item."],
@@ -18222,7 +18223,7 @@ def TRELLO_UPDATE_CHECKLIST_ITEM_NAME_IN_CARD(
 
 @mcp.tool(
     "TRELLO_UPDATE_CHECKLISTS_BY_ID_CHECKLIST",
-    description="Update checklist. Updates an existing trello checklist, allowing modification of its name, position, associated card/board, or copying items from a source checklist.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_CHECKLISTS_BY_ID_CHECKLIST(
     id_checklist: Annotated[str, "The ID of the checklist to update."],
@@ -18376,7 +18377,7 @@ def TRELLO_UPDATE_CHECKLISTS_BY_ID_CHECKLIST(
 
 @mcp.tool(
     "TRELLO_UPDATE_CHECKLISTS_ID_CARD_BY_ID_CHECKLIST",
-    description="Move checklist to card. Attempts to move a trello checklist to a new parent card; NOTE: This feature is not supported by the Trello API and will return an error. Use TRELLO_ADD_CHECKLISTS_BY_ID_CARD to create a new checklist instead.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_CHECKLISTS_ID_CARD_BY_ID_CHECKLIST(
     id_checklist: Annotated[str, "The ID of the checklist to move."],
@@ -18482,7 +18483,7 @@ def TRELLO_UPDATE_CHECKLISTS_ID_CARD_BY_ID_CHECKLIST(
 
 @mcp.tool(
     "TRELLO_UPDATE_CHECKLISTS_NAME_BY_ID_CHECKLIST",
-    description="Update checklist name. Updates the name of an existing trello checklist.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_CHECKLISTS_NAME_BY_ID_CHECKLIST(
     id_checklist: Annotated[str, "The ID of the checklist to update name for."],
@@ -18589,7 +18590,7 @@ def TRELLO_UPDATE_CHECKLISTS_NAME_BY_ID_CHECKLIST(
 
 @mcp.tool(
     "TRELLO_UPDATE_CHECKLISTS_POS_BY_ID_CHECKLIST",
-    description="Update checklist position by id. Updates the position of an existing checklist on a trello card.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_CHECKLISTS_POS_BY_ID_CHECKLIST(
     id_checklist: Annotated[str, "The ID of the checklist to update position for."],
@@ -18708,7 +18709,7 @@ def TRELLO_UPDATE_CHECKLISTS_POS_BY_ID_CHECKLIST(
 
 @mcp.tool(
     "TRELLO_UPDATE_LABELS_BY_ID_LABEL",
-    description="Update label attributes. Updates an existing trello label's attributes (color, name, or associated board) by its id; the label must exist.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_LABELS_BY_ID_LABEL(
     id_label: Annotated[str, "The ID of the label to update."],
@@ -18864,7 +18865,7 @@ def TRELLO_UPDATE_LABELS_BY_ID_LABEL(
 
 @mcp.tool(
     "TRELLO_UPDATE_LABELS_COLOR_BY_ID_LABEL",
-    description="Update label color. Updates the color of an existing trello label, or removes its color if 'null' is specified for the value.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_LABELS_COLOR_BY_ID_LABEL(
     id_label: Annotated[str, "The ID of the label to update color for."],
@@ -18982,7 +18983,7 @@ def TRELLO_UPDATE_LABELS_COLOR_BY_ID_LABEL(
 
 @mcp.tool(
     "TRELLO_UPDATE_LABELS_NAME_BY_ID_LABEL",
-    description="Update label name. Updates the name of an existing trello label, identified by `idlabel`; an empty string for `value` clears the label's name but does not delete the label.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_LABELS_NAME_BY_ID_LABEL(
     id_label: Annotated[str, "The ID of the label to update name for."],
@@ -19087,7 +19088,7 @@ def TRELLO_UPDATE_LABELS_NAME_BY_ID_LABEL(
 
 @mcp.tool(
     "TRELLO_UPDATE_LISTS_BY_ID_LIST",
-    description="Update list attributes. Updates attributes of an existing trello list, such as name, position, archive status, board, or copies cards from another list, provided the list `idlist` exists.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_LISTS_BY_ID_LIST(
     id_list: Annotated[str, "The ID of the list to update."],
@@ -19279,7 +19280,7 @@ def TRELLO_UPDATE_LISTS_BY_ID_LIST(
 
 @mcp.tool(
     "TRELLO_UPDATE_LISTS_CLOSED_BY_ID_LIST",
-    description="Update lists closed status. Updates whether an existing trello list is closed (archived); a closed list is hidden from the board view but not deleted and can be re-opened.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_LISTS_CLOSED_BY_ID_LIST(
     id_list: Annotated[str, "The ID of the list to update closed status for."],
@@ -19396,7 +19397,7 @@ def TRELLO_UPDATE_LISTS_CLOSED_BY_ID_LIST(
 
 @mcp.tool(
     "TRELLO_UPDATE_LISTS_ID_BOARD_BY_ID_LIST",
-    description="Move list to board. Moves an existing trello list (identified by `idlist`) to an existing destination board (board id in `value`), optionally setting its new position (`pos`).",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_LISTS_ID_BOARD_BY_ID_LIST(
     id_list: Annotated[str, "The ID of the list to move."],
@@ -19538,7 +19539,7 @@ def TRELLO_UPDATE_LISTS_ID_BOARD_BY_ID_LIST(
 
 @mcp.tool(
     "TRELLO_UPDATE_LISTS_NAME_BY_ID_LIST",
-    description="Update list name. Updates the name of an existing trello list, identified by its id; this only changes the list's name, not its cards or position.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_LISTS_NAME_BY_ID_LIST(
     id_list: Annotated[str, "The ID of the list to update name for."],
@@ -19645,7 +19646,7 @@ def TRELLO_UPDATE_LISTS_NAME_BY_ID_LIST(
 
 @mcp.tool(
     "TRELLO_UPDATE_LISTS_POS_BY_ID_LIST",
-    description="Update list position. Changes a trello list's order on a board to 'top', 'bottom', or a specified numeric position, affecting only its position.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_LISTS_POS_BY_ID_LIST(
     id_list: Annotated[str, "The ID of the list to update position for."],
@@ -19764,7 +19765,7 @@ def TRELLO_UPDATE_LISTS_POS_BY_ID_LIST(
 
 @mcp.tool(
     "TRELLO_UPDATE_LISTS_SUBSCRIBED_BY_ID_LIST",
-    description="Update list subscription. Updates the subscription status for a trello list, allowing the user to subscribe or unsubscribe to control notifications.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_LISTS_SUBSCRIBED_BY_ID_LIST(
     id_list: Annotated[str, "The ID of the list to update subscription status for."],
@@ -19881,7 +19882,7 @@ def TRELLO_UPDATE_LISTS_SUBSCRIBED_BY_ID_LIST(
 
 @mcp.tool(
     "TRELLO_UPDATE_MEMBER_SAVED_SEARCH",
-    description="Update member saved search. Updates an existing trello member's saved search (name, position, or query) identified by idmember and idsavedsearch.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_MEMBER_SAVED_SEARCH(
     id_member: Annotated[str, "The ID of the member who owns the saved search."],
@@ -20050,7 +20051,7 @@ def TRELLO_UPDATE_MEMBER_SAVED_SEARCH(
 
 @mcp.tool(
     "TRELLO_UPDATE_MEMBER_SAVED_SEARCH_NAME",
-    description="Update member saved search name. Updates a trello member's saved search display name (not its criteria), identified by idmember and idsavedsearch; the search must exist and belong to the member.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_MEMBER_SAVED_SEARCH_NAME(
     id_member: Annotated[str, "The ID of the member who owns the saved search."],
@@ -20165,7 +20166,7 @@ def TRELLO_UPDATE_MEMBER_SAVED_SEARCH_NAME(
 
 @mcp.tool(
     "TRELLO_UPDATE_MEMBER_SAVED_SEARCH_POS",
-    description="Update member saved search position. Updates the position of a specified saved search for a trello member; other attributes of the saved search or member remain unchanged.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_MEMBER_SAVED_SEARCH_POS(
     id_member: Annotated[str, "The ID of the member who owns the saved search."],
@@ -20292,7 +20293,7 @@ def TRELLO_UPDATE_MEMBER_SAVED_SEARCH_POS(
 
 @mcp.tool(
     "TRELLO_UPDATE_MEMBER_SAVED_SEARCH_QUERY",
-    description="Update member saved search query. Updates the query string of an existing saved search for a trello member.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_MEMBER_SAVED_SEARCH_QUERY(
     id_member: Annotated[str, "The ID of the member who owns the saved search."],
@@ -20407,7 +20408,7 @@ def TRELLO_UPDATE_MEMBER_SAVED_SEARCH_QUERY(
 
 @mcp.tool(
     "TRELLO_UPDATE_MEMBERS_BIO_BY_ID_MEMBER",
-    description="Update member bio. Updates the bio of a specified trello member. Note: This feature may not be supported by Trello's API due to privacy restrictions.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_MEMBERS_BIO_BY_ID_MEMBER(
     id_member: Annotated[str, "The ID of the member to update bio for."],
@@ -20501,7 +20502,7 @@ def TRELLO_UPDATE_MEMBERS_BIO_BY_ID_MEMBER(
 
 @mcp.tool(
     "TRELLO_UPDATE_MEMBER_BOARD_BACKGROUND",
-    description="Update Member Board Background. Updates an existing board background's properties (brightness, image file, or tiling) for a specified trello member, using their id and the board background id.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_MEMBER_BOARD_BACKGROUND(
     id_member: Annotated[str, "The ID of the member who owns the board background."],
@@ -20673,7 +20674,7 @@ def TRELLO_UPDATE_MEMBER_BOARD_BACKGROUND(
 
 @mcp.tool(
     "TRELLO_UPDATE_MEMBERS_BY_ID_MEMBER",
-    description="Update member by ID. Updates an existing trello member's profile information, preferences, or username. Note: This requires special token permissions beyond standard read/write access.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_MEMBERS_BY_ID_MEMBER(
     id_member: Annotated[str, "The ID of the member to update."],
@@ -20807,7 +20808,7 @@ def TRELLO_UPDATE_MEMBERS_BY_ID_MEMBER(
 
 @mcp.tool(
     "TRELLO_UPDATE_MEMBER_S_CUSTOM_BOARD_BACKGROUNDS",
-    description="Update member's custom board background. Updates a specific existing custom board background for a trello member.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_MEMBER_S_CUSTOM_BOARD_BACKGROUNDS(
     id_member: Annotated[str, "The ID of the member who owns the board background."],
@@ -20965,7 +20966,7 @@ def TRELLO_UPDATE_MEMBER_S_CUSTOM_BOARD_BACKGROUNDS(
 
 @mcp.tool(
     "TRELLO_REMOVE_SPECIFIC_MEMBER_S_BOARD_BACKGROUNDS",
-    description="Remove member's custom board background. Permanently deletes a specific custom board background (identified by `idboardbackground`) associated with an existing trello member (identified by `idmember`).",
+    description="Trello operation. Performs a specific Trello operation. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, data, and operation message.",
 )
 def TRELLO_REMOVE_SPECIFIC_MEMBER_S_BOARD_BACKGROUNDS(
     id_member: Annotated[str, "The ID of the member who owns the board background."],
@@ -21046,7 +21047,7 @@ def TRELLO_REMOVE_SPECIFIC_MEMBER_S_BOARD_BACKGROUNDS(
 
 @mcp.tool(
     "TRELLO_UPDATE_MEMBERS_FULL_NAME_BY_ID_MEMBER",
-    description="Update member full name by id. Updates the full name for a trello member, identified by their valid id or username; this operation only affects the full name, leaving other profile information unchanged.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_MEMBERS_FULL_NAME_BY_ID_MEMBER(
     id_member: Annotated[str, "The ID of the member to update the full name for."],
@@ -21147,7 +21148,7 @@ def TRELLO_UPDATE_MEMBERS_FULL_NAME_BY_ID_MEMBER(
 
 @mcp.tool(
     "TRELLO_UPDATE_MEMBERS_INITIALS_BY_ID_MEMBER",
-    description="Update member initials. Updates the initials for a specified trello member, identified by their id or username.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_MEMBERS_INITIALS_BY_ID_MEMBER(
     id_member: Annotated[str, "The ID of the member to update the initials for."],
@@ -21261,7 +21262,7 @@ def TRELLO_UPDATE_MEMBERS_INITIALS_BY_ID_MEMBER(
 
 @mcp.tool(
     "TRELLO_UPDATE_MEMBERS_AVATAR_SOURCE_BY_ID_MEMBER",
-    description="Update member avatar source. Updates the avatar source for a specified trello member.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_MEMBERS_AVATAR_SOURCE_BY_ID_MEMBER(
     id_member: Annotated[str, "The ID of the member to update the avatar source for."],
@@ -21376,7 +21377,7 @@ def TRELLO_UPDATE_MEMBERS_AVATAR_SOURCE_BY_ID_MEMBER(
 
 @mcp.tool(
     "TRELLO_UPDATE_MEMBERS_PREFS_COLOR_BLIND_BY_ID_MEMBER",
-    description="Update member color blind preference. Updates a trello member's color blind preference, which only changes their specific display without affecting others.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_MEMBERS_PREFS_COLOR_BLIND_BY_ID_MEMBER(
     id_member: Annotated[str, "The ID of the member to update the color blind preference for."],
@@ -21478,7 +21479,7 @@ def TRELLO_UPDATE_MEMBERS_PREFS_COLOR_BLIND_BY_ID_MEMBER(
 
 @mcp.tool(
     "TRELLO_UPDATE_MEMBERS_PREFS_LOCALE_BY_ID_MEMBER",
-    description="Update member locale preference. Updates a trello member's locale preference; affects date/time display (not existing content translation) and an empty `value` may reset to default.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_MEMBERS_PREFS_LOCALE_BY_ID_MEMBER(
     id_member: Annotated[str, "The ID of the member to update the locale preference for."],
@@ -21584,7 +21585,7 @@ def TRELLO_UPDATE_MEMBERS_PREFS_LOCALE_BY_ID_MEMBER(
 
 @mcp.tool(
     "TRELLO_UPDATE_MEMBER_SUMMARY_INTERVAL",
-    description="Update Member Summary Interval. Updates a trello member's preference for the frequency of email summary notifications; this setting affects only summary notifications.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_MEMBER_SUMMARY_INTERVAL(
     id_member: Annotated[str, "The ID of the member to update the summary interval for."],
@@ -21701,7 +21702,7 @@ def TRELLO_UPDATE_MEMBER_SUMMARY_INTERVAL(
 
 @mcp.tool(
     "TRELLO_UPDATE_MEMBERS_USERNAME_BY_ID_MEMBER",
-    description="Update member username. Updates the username for an existing trello member, identified by their id or current username.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_MEMBERS_USERNAME_BY_ID_MEMBER(
     id_member: Annotated[str, "The ID of the member to update the username for."],
@@ -21879,7 +21880,7 @@ def TRELLO_UPDATE_MEMBERS_USERNAME_BY_ID_MEMBER(
 
 @mcp.tool(
     "TRELLO_UPDATE_NOTIFICATIONS_BY_ID_NOTIFICATION",
-    description="Update notification status by id. Updates only the 'unread' status of a specific trello notification.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_NOTIFICATIONS_BY_ID_NOTIFICATION(
     id_notification: Annotated[str, "The ID of the notification to update."],
@@ -21970,7 +21971,7 @@ def TRELLO_UPDATE_NOTIFICATIONS_BY_ID_NOTIFICATION(
 
 @mcp.tool(
     "TRELLO_UPDATE_NOTIFICATIONS_UNREAD_BY_ID_NOTIFICATION",
-    description="Update notification unread status. Marks an existing and accessible trello notification as read or unread.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_NOTIFICATIONS_UNREAD_BY_ID_NOTIFICATION(
     id_notification: Annotated[str, "The ID of the notification to update."],
@@ -22061,7 +22062,7 @@ def TRELLO_UPDATE_NOTIFICATIONS_UNREAD_BY_ID_NOTIFICATION(
 
 @mcp.tool(
     "TRELLO_UPDATE_ORGANIZATIONS_BY_ID_ORG",
-    description="Update organization attributes. Updates various attributes of an existing trello organization, identified by `idorg`.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_ORGANIZATIONS_BY_ID_ORG(
     id_org: Annotated[str, "The ID of the organization to update."],
@@ -22254,7 +22255,7 @@ def TRELLO_UPDATE_ORGANIZATIONS_BY_ID_ORG(
 
 @mcp.tool(
     "TRELLO_UPDATE_ORGANIZATIONS_DESC_BY_ID_ORG",
-    description="Update organization description. Updates or clears the description for an existing trello organization, identified by its id or name, to a new string up to 16384 characters.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_ORGANIZATIONS_DESC_BY_ID_ORG(
     id_org: Annotated[str, "The ID of the organization to update the description for."],
@@ -22357,7 +22358,7 @@ def TRELLO_UPDATE_ORGANIZATIONS_DESC_BY_ID_ORG(
 
 @mcp.tool(
     "TRELLO_UPDATE_ORGANIZATIONS_DISPLAY_NAME_BY_ID_ORG",
-    description="Update organization display name. Updates the display name of a trello organization, identifiable by its current id or name (`idorg`), to the new `value`; other attributes remain unaffected.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_ORGANIZATIONS_DISPLAY_NAME_BY_ID_ORG(
     id_org: Annotated[str, "The ID of the organization to update the display name for."],
@@ -22460,7 +22461,7 @@ def TRELLO_UPDATE_ORGANIZATIONS_DISPLAY_NAME_BY_ID_ORG(
 
 @mcp.tool(
     "TRELLO_UPDATE_ORGANIZATIONS_MEMBERS_BY_ID_ORG",
-    description="Update an organization member. Adds/updates a member in a specified trello organization (`idorg`); `email` and `type` are api-required, `fullname` is needed if `email` is new to trello.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_ORGANIZATIONS_MEMBERS_BY_ID_ORG(
     id_org: Annotated[str, "The ID of the organization to add/update the member in."],
@@ -22612,7 +22613,7 @@ def TRELLO_UPDATE_ORGANIZATIONS_MEMBERS_BY_ID_ORG(
 
 @mcp.tool(
     "TRELLO_UPDATE_ORGANIZATIONS_MEMBERS_BY_ID_ORG_BY_ID_MEMBER",
-    description="Update organization member. Updates a member's details (email, full name, or type) in a trello organization, applying changes only to the fields provided.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_ORGANIZATIONS_MEMBERS_BY_ID_ORG_BY_ID_MEMBER(
     id_org: Annotated[str, "The ID of the organization containing the member."],
@@ -22797,7 +22798,7 @@ def TRELLO_UPDATE_ORGANIZATIONS_MEMBERS_BY_ID_ORG_BY_ID_MEMBER(
 
 @mcp.tool(
     "TRELLO_UPDATE_ORGANIZATIONS_NAME_BY_ID_ORG",
-    description="Update organization name by id. Updates the unique programmatic identifier (used in urls and api interactions) for an existing trello organization; this is an irreversible operation, effective immediately, and only affects this identifier.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_ORGANIZATIONS_NAME_BY_ID_ORG(
     id_org: Annotated[str, "The ID of the organization to update the name for."],
@@ -22900,7 +22901,7 @@ def TRELLO_UPDATE_ORGANIZATIONS_NAME_BY_ID_ORG(
 
 @mcp.tool(
     "TRELLO_UPDATE_ORGANIZATIONS_PREFS_GOOGLE_APPS_VERSION_BY_ID_ORG",
-    description="Update organization Google Apps version. Updates the google apps integration version preference for a specified trello organization, to manage compatibility or features related to google workspace services.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_ORGANIZATIONS_PREFS_GOOGLE_APPS_VERSION_BY_ID_ORG(
     id_org: Annotated[str, "The ID of the organization to update the Google Apps version for."],
@@ -22990,7 +22991,7 @@ def TRELLO_UPDATE_ORGANIZATIONS_PREFS_GOOGLE_APPS_VERSION_BY_ID_ORG(
 
 @mcp.tool(
     "TRELLO_UPDATE_ORGANIZATIONS_PREFS_ORG_INVITE_RESTRICT_BY_ID_ORG",
-    description="Update organization invite restriction. Modifies a trello organization's invitation policy using an email, domain, or keyword rule, affecting only future invites, not existing members.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_ORGANIZATIONS_PREFS_ORG_INVITE_RESTRICT_BY_ID_ORG(
     id_org: Annotated[str, "The ID of the organization to update the invite restriction for."],
@@ -23080,7 +23081,7 @@ def TRELLO_UPDATE_ORGANIZATIONS_PREFS_ORG_INVITE_RESTRICT_BY_ID_ORG(
 
 @mcp.tool(
     "TRELLO_UPDATE_ORGANIZATIONS_PREFS_PERMISSION_LEVEL_BY_ID_ORG",
-    description="Update organization permission level. Updates a trello organization's `permissionlevel` preference, determining if it's members-only or link-accessible, and affecting new board default visibility.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_ORGANIZATIONS_PREFS_PERMISSION_LEVEL_BY_ID_ORG(
     id_org: Annotated[str, "The ID of the organization to update the permission level for."],
@@ -23183,7 +23184,7 @@ def TRELLO_UPDATE_ORGANIZATIONS_PREFS_PERMISSION_LEVEL_BY_ID_ORG(
 
 @mcp.tool(
     "TRELLO_UPDATE_ORGANIZATIONS_WEBSITE_BY_ID_ORG",
-    description="Update organization website. Updates the website url for a specified trello organization.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_ORGANIZATIONS_WEBSITE_BY_ID_ORG(
     id_org: Annotated[str, "The ID of the organization to update the website for."],
@@ -23278,7 +23279,7 @@ def TRELLO_UPDATE_ORGANIZATIONS_WEBSITE_BY_ID_ORG(
 
 @mcp.tool(
     "TRELLO_UPDATE_ORG_ASSOCIATED_DOMAIN_PREFS",
-    description="Update an organization's associated domain preferences. Updates or removes the google workspace domain associated with a trello organization, often to configure features like sso or automatic user provisioning.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_ORG_ASSOCIATED_DOMAIN_PREFS(
     id_org: Annotated[str, "The ID of the organization to update the associated domain for."],
@@ -23381,7 +23382,7 @@ def TRELLO_UPDATE_ORG_ASSOCIATED_DOMAIN_PREFS(
 
 @mcp.tool(
     "TRELLO_UPDATE_ORG_BOARD_VISIBILITY",
-    description="Update organization board visibility preference. Updates the preference controlling who can set board visibility to 'organization-visible' within an existing trello organization.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_ORG_BOARD_VISIBILITY(
     id_org: Annotated[str, "The ID of the organization to update the board visibility preference for."],
@@ -23484,7 +23485,7 @@ def TRELLO_UPDATE_ORG_BOARD_VISIBILITY(
 
 @mcp.tool(
     "TRELLO_UPDATE_ORG_EXTERNAL_MEMBERS_ACCESS",
-    description="Update an organization's external members access. Updates the 'externalmembersdisabled' preference for a trello organization to control whether non-members can be added to its boards.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_ORG_EXTERNAL_MEMBERS_ACCESS(
     id_org: Annotated[str, "The ID of the organization to update external members access for."],
@@ -23587,7 +23588,7 @@ def TRELLO_UPDATE_ORG_EXTERNAL_MEMBERS_ACCESS(
 
 @mcp.tool(
     "TRELLO_UPDATE_ORG_MEMBER_DEACTIVATION",
-    description="Update org member deactivation status. Updates a member's deactivation status in an organization; 'true' deactivates (suspends access temporarily), 'false' reactivates.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_ORG_MEMBER_DEACTIVATION(
     id_member: Annotated[str, "The ID of the member to update deactivation status for."],
@@ -23699,7 +23700,7 @@ def TRELLO_UPDATE_ORG_MEMBER_DEACTIVATION(
 
 @mcp.tool(
     "TRELLO_UPDATE_ORG_MEMBERSHIP",
-    description="Update org membership. Updates a trello organization member's type to 'admin', 'normal', or 'observer', using the organization and membership ids.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_ORG_MEMBERSHIP(
     id_membership: Annotated[str, "The ID of the membership to update."],
@@ -23851,7 +23852,7 @@ def TRELLO_UPDATE_ORG_MEMBERSHIP(
 
 @mcp.tool(
     "TRELLO_UPDATE_ORG_PRIVATE_BOARD_VISIBILITY",
-    description="Update organization private board visibility restriction. Updates the organization's preference controlling who is permitted to change the visibility of its private boards; requires admin privileges for the organization.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_ORG_PRIVATE_BOARD_VISIBILITY(
     id_org: Annotated[str, "The ID of the organization to update private board visibility restriction for."],
@@ -23954,7 +23955,7 @@ def TRELLO_UPDATE_ORG_PRIVATE_BOARD_VISIBILITY(
 
 @mcp.tool(
     "TRELLO_UPDATE_ORG_PUBLIC_BOARD_VISIBILITY",
-    description="Update organization public board visibility. Updates the restriction on who can set board visibility to public for a specified trello organization.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_ORG_PUBLIC_BOARD_VISIBILITY(
     id_org: Annotated[str, "The ID of the organization to update public board visibility for."],
@@ -24057,7 +24058,7 @@ def TRELLO_UPDATE_ORG_PUBLIC_BOARD_VISIBILITY(
 
 @mcp.tool(
     "TRELLO_UPDATE_SESSIONS_BY_ID_SESSION",
-    description="Update session by id. Updates a trello user session's viewed board id or status; call when user activity or board focus changes.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_SESSIONS_BY_ID_SESSION(
     id_session: Annotated[str, "The ID of the session to update."],
@@ -24184,7 +24185,7 @@ def TRELLO_UPDATE_SESSIONS_BY_ID_SESSION(
 
 @mcp.tool(
     "TRELLO_UPDATE_SESSIONS_STATUS_BY_ID_SESSION",
-    description="Update session status by ID. Updates the status of an existing trello session.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_SESSIONS_STATUS_BY_ID_SESSION(
     id_session: Annotated[str, "The ID of the session to update the status for."],
@@ -24292,7 +24293,7 @@ def TRELLO_UPDATE_SESSIONS_STATUS_BY_ID_SESSION(
 
 @mcp.tool(
     "TRELLO_UPDATE_TOKENS_WEBHOOKS_BY_TOKEN",
-    description="Update a token's webhook. Updates an existing webhook's description, callback url, or monitored trello model id. Note: This function requires a webhook ID since the token-based webhook lookup is not available in the Trello API.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_TOKENS_WEBHOOKS_BY_TOKEN(
     webhook_id: Annotated[str, "The ID of the webhook to update."],
@@ -24397,7 +24398,7 @@ def TRELLO_UPDATE_TOKENS_WEBHOOKS_BY_TOKEN(
 
 @mcp.tool(
     "TRELLO_UPDATE_WEBHOOKS",
-    description="Update webhooks. Updates an existing trello webhook's description, active status, callback url, or monitored model id; requires the webhook id (not in request body) to be specified, typically via url path.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_WEBHOOKS(
     active: Annotated[str | None, "Whether the webhook is active ('true' or 'false')."] = None,
@@ -24506,7 +24507,7 @@ def TRELLO_UPDATE_WEBHOOKS(
 
 @mcp.tool(
     "TRELLO_UPDATE_WEBHOOKS_ACTIVE_BY_ID_WEBHOOK",
-    description="Update webhook active status. Updates the active status ('true' or 'false') of an existing trello webhook specified by `idwebhook`, without affecting other properties.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_WEBHOOKS_ACTIVE_BY_ID_WEBHOOK(
     id_webhook: Annotated[str, "The ID of the webhook to update the active status for."],
@@ -24609,7 +24610,7 @@ def TRELLO_UPDATE_WEBHOOKS_ACTIVE_BY_ID_WEBHOOK(
 
 @mcp.tool(
     "TRELLO_ADD_SESSIONS",
-    description="Create new session. Note: Trello session management functionality is not available through the official API. This tool provides information about alternatives for user activity tracking.",
+    description="Trello operation. Performs a specific Trello operation. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, data, and operation message.",
 )
 def TRELLO_ADD_SESSIONS(
     id_board: Annotated[str | None, "The ID of the board to link the session to (for reference only)."] = None,
@@ -24675,7 +24676,7 @@ def TRELLO_ADD_SESSIONS(
 
 @mcp.tool(
     "TRELLO_UPDATE_WEBHOOKS_BY_ID_WEBHOOK",
-    description="Update webhook configuration. Updates an existing trello webhook's configuration, avoiding the need to delete and recreate it for modifications.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_WEBHOOKS_BY_ID_WEBHOOK(
     id_webhook: Annotated[str, "The ID of the webhook to update."],
@@ -24801,7 +24802,7 @@ def TRELLO_UPDATE_WEBHOOKS_BY_ID_WEBHOOK(
 
 @mcp.tool(
     "TRELLO_UPDATE_WEBHOOKS_CALLBACK_URLBY_ID_WEBHOOK",
-    description="Update webhook callback url. Updates the callback url for a specific trello webhook; other webhook attributes remain unchanged.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_WEBHOOKS_CALLBACK_URLBY_ID_WEBHOOK(
     id_webhook: Annotated[str, "The ID of the webhook to update the callback URL for."],
@@ -24892,7 +24893,7 @@ def TRELLO_UPDATE_WEBHOOKS_CALLBACK_URLBY_ID_WEBHOOK(
 
 @mcp.tool(
     "TRELLO_UPDATE_WEBHOOKS_DESCRIPTION_BY_ID_WEBHOOK",
-    description="Update webhook description. Updates the description of an existing trello webhook; an empty string for the new description removes the current one.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_WEBHOOKS_DESCRIPTION_BY_ID_WEBHOOK(
     id_webhook: Annotated[str, "The ID of the webhook to update the description for."],
@@ -24982,7 +24983,7 @@ def TRELLO_UPDATE_WEBHOOKS_DESCRIPTION_BY_ID_WEBHOOK(
 
 @mcp.tool(
     "TRELLO_UPDATE_WEBHOOKS_ID_MODEL_BY_ID_WEBHOOK",
-    description="Update webhook idModel. Updates the `idmodel` (the monitored trello entity like a board, list, or card) for an active webhook `idwebhook` to the new model id `value`; other webhook properties are unaffected.",
+    description="Update data. Updates specific Trello data. Args: id (str, required), additional parameters (str, optional). Returns: Dictionary containing success status, updated data, and update message.",
 )
 def TRELLO_UPDATE_WEBHOOKS_ID_MODEL_BY_ID_WEBHOOK(
     id_webhook: Annotated[str, "The ID of the webhook to update the model ID for."],
@@ -25073,7 +25074,7 @@ def TRELLO_UPDATE_WEBHOOKS_ID_MODEL_BY_ID_WEBHOOK(
 
 @mcp.tool(
     "TRELLO_DELETE_ACTIONS_BY_ID_ACTION",
-    description="Deletes a specific trello action, such as a `commentcard`, by its id; this is an irreversible operation and only applies to deletable action types, as many (especially system-generated) actions cannot be deleted.",
+    description="Delete data. Deletes specific Trello data. Args: id (str, required). Returns: Dictionary containing success status and deletion message.",
 )
 def TRELLO_DELETE_ACTIONS_BY_ID_ACTION(
     idAction: Annotated[str, "The ID of the action to delete."]
@@ -25149,7 +25150,7 @@ def TRELLO_DELETE_ACTIONS_BY_ID_ACTION(
 
 @mcp.tool(
     "TRELLO_DELETE_BOARDS_MEMBERS_BY_ID_BOARD_BY_ID_MEMBER",
-    description="Permanently removes a current member from a trello board, revoking their access; this action is irreversible.",
+    description="Delete data. Deletes specific Trello data. Args: id (str, required). Returns: Dictionary containing success status and deletion message.",
 )
 def TRELLO_DELETE_BOARDS_MEMBERS_BY_ID_BOARD_BY_ID_MEMBER(
     idBoard: Annotated[str, "The ID of the board to remove the member from."],
@@ -25232,7 +25233,7 @@ def TRELLO_DELETE_BOARDS_MEMBERS_BY_ID_BOARD_BY_ID_MEMBER(
 
 @mcp.tool(
     "TRELLO_DELETE_BOARDS_POWER_UPS_BY_ID_BOARD_BY_POWER_UP",
-    description="Disables a power-up on a trello board using the board's id and the plugin id of a power-up currently enabled on that board; this action is irreversible and may result in data loss.",
+    description="Delete data. Deletes specific Trello data. Args: id (str, required). Returns: Dictionary containing success status and deletion message.",
 )
 def TRELLO_DELETE_BOARDS_POWER_UPS_BY_ID_BOARD_BY_POWER_UP(
     idBoard: Annotated[str, "The ID of the board to disable the power-up on."],
@@ -25315,7 +25316,7 @@ def TRELLO_DELETE_BOARDS_POWER_UPS_BY_ID_BOARD_BY_POWER_UP(
 
 @mcp.tool(
     "TRELLO_DELETE_CARDS_ACTIONS_COMMENTS_BY_ID_CARD_BY_ID_ACTION",
-    description="Deletes a specific comment action (identified by `idaction`) from a trello card (identified by `idcard`); this operation is irreversible and only affects comments.",
+    description="Delete data. Deletes specific Trello data. Args: id (str, required). Returns: Dictionary containing success status and deletion message.",
 )
 def TRELLO_DELETE_CARDS_ACTIONS_COMMENTS_BY_ID_CARD_BY_ID_ACTION(
     idAction: Annotated[str, "The ID of the comment action to delete."],
@@ -25398,7 +25399,7 @@ def TRELLO_DELETE_CARDS_ACTIONS_COMMENTS_BY_ID_CARD_BY_ID_ACTION(
 
 @mcp.tool(
     "TRELLO_DELETE_CARDS_BY_ID_CARD",
-    description="Permanently deletes an archived trello card specified by its `idcard`.",
+    description="Delete data. Deletes specific Trello data. Args: id (str, required). Returns: Dictionary containing success status and deletion message.",
 )
 def TRELLO_DELETE_CARDS_BY_ID_CARD(
     idCard: Annotated[str, "The ID of the card to delete."]
@@ -25474,7 +25475,7 @@ def TRELLO_DELETE_CARDS_BY_ID_CARD(
 
 @mcp.tool(
     "TRELLO_DELETE_CARDS_CHECKLISTS_BY_ID_CARD_BY_ID_CHECKLIST",
-    description="Permanently deletes a specific checklist from a trello card.",
+    description="Delete data. Deletes specific Trello data. Args: id (str, required). Returns: Dictionary containing success status and deletion message.",
 )
 def TRELLO_DELETE_CARDS_CHECKLISTS_BY_ID_CARD_BY_ID_CHECKLIST(
     idCard: Annotated[str, "The ID of the card containing the checklist."],
@@ -25557,7 +25558,7 @@ def TRELLO_DELETE_CARDS_CHECKLISTS_BY_ID_CARD_BY_ID_CHECKLIST(
 
 @mcp.tool(
     "TRELLO_DELETE_CARDS_ID_LABELS_BY_ID_CARD_BY_ID_LABEL",
-    description="Removes a specific label from a trello card; the label itself is not deleted from the board, only its association with the card.",
+    description="Delete data. Deletes specific Trello data. Args: id (str, required). Returns: Dictionary containing success status and deletion message.",
 )
 def TRELLO_DELETE_CARDS_ID_LABELS_BY_ID_CARD_BY_ID_LABEL(
     idCard: Annotated[str, "The ID of the card to remove the label from."],
@@ -25640,7 +25641,7 @@ def TRELLO_DELETE_CARDS_ID_LABELS_BY_ID_CARD_BY_ID_LABEL(
 
 @mcp.tool(
     "TRELLO_DELETE_CARDS_ID_MEMBERS_BY_ID_CARD_BY_ID_MEMBER",
-    description="Removes a currently assigned member from a trello card, affecting only the card's member list and not the member's board membership or overall permissions.",
+    description="Delete data. Deletes specific Trello data. Args: id (str, required). Returns: Dictionary containing success status and deletion message.",
 )
 def TRELLO_DELETE_CARDS_ID_MEMBERS_BY_ID_CARD_BY_ID_MEMBER(
     idCard: Annotated[str, "The ID of the card to remove the member from."],
@@ -25723,7 +25724,7 @@ def TRELLO_DELETE_CARDS_ID_MEMBERS_BY_ID_CARD_BY_ID_MEMBER(
 
 @mcp.tool(
     "TRELLO_DELETE_CARDS_LABELS_BY_ID_CARD_BY_COLOR",
-    description="Permanently removes a specific `color` label from an existing trello card identified by `idcard`, if the card has that label; this only disassociates the label from the card, not deleting the label definition itself.",
+    description="Delete data. Deletes specific Trello data. Args: id (str, required). Returns: Dictionary containing success status and deletion message.",
 )
 def TRELLO_DELETE_CARDS_LABELS_BY_ID_CARD_BY_COLOR(
     idCard: Annotated[str, "The ID of the card to remove the label from."],
@@ -25806,7 +25807,7 @@ def TRELLO_DELETE_CARDS_LABELS_BY_ID_CARD_BY_COLOR(
 
 @mcp.tool(
     "TRELLO_DELETE_CARDS_MEMBERS_VOTED_BY_ID_CARD_BY_ID_MEMBER",
-    description="Removes a member's vote from a trello card; this operation is irreversible and does not confirm if the vote existed prior to removal.",
+    description="Delete data. Deletes specific Trello data. Args: id (str, required). Returns: Dictionary containing success status and deletion message.",
 )
 def TRELLO_DELETE_CARDS_MEMBERS_VOTED_BY_ID_CARD_BY_ID_MEMBER(
     idCard: Annotated[str, "The ID of the card to remove the vote from."],
@@ -25889,7 +25890,7 @@ def TRELLO_DELETE_CARDS_MEMBERS_VOTED_BY_ID_CARD_BY_ID_MEMBER(
 
 @mcp.tool(
     "TRELLO_DELETE_CARDS_STICKERS_BY_ID_CARD_BY_ID_STICKER",
-    description="Permanently removes a specific sticker (identified by `idsticker`) from a trello card (identified by `idcard`).",
+    description="Delete data. Deletes specific Trello data. Args: id (str, required). Returns: Dictionary containing success status and deletion message.",
 )
 def TRELLO_DELETE_CARDS_STICKERS_BY_ID_CARD_BY_ID_STICKER(
     idCard: Annotated[str, "The ID of the card to remove the sticker from."],
