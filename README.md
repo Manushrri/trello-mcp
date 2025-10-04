@@ -134,12 +134,139 @@ uv run python trello_mcp/mcp_server.py
 - **Field-Level Access** - Get specific fields or complete data from notification entities
 - **Cross-Entity Relationships** - Understand how notifications connect to different Trello entities
 
+## 🔑 API Key & Power-Up Setup
+
+### Getting Your Trello API Key and Token
+
+#### Step 1: Get Your Trello API Key
+
+1. **Visit Trello API Keys Page**
+   - Go to [https://trello.com/app-key](https://trello.com/app-key)
+   - Log in with your Trello account
+
+2. **Copy Your API Key**
+   - You'll see your API Key displayed on the page
+   - Copy this key - you'll need it for both the MCP server and power-up
+
+#### Step 2: Generate Your API Token
+
+1. **Create Authorization URL**
+   - Replace `YOUR_API_KEY` in this URL with your actual API key:
+   ```
+   https://trello.com/1/authorize?expiration=never&scope=read,write&response_type=token&name=Trello%20MCP%20Server&key=YOUR_API_KEY
+   ```
+
+2. **Authorize the Application**
+   - Visit the URL you created in step 1
+   - Click "Allow" to authorize the application
+   - Copy the generated token from the page
+
+3. **Save Your Credentials**
+   - **API Key**: Use this as `TRELLO_API_KEY`
+   - **Token**: Use this as `TRELLO_API_TOKEN`
+
+### Setting Up the Trello Power-Up
+
+#### Prerequisites for Power-Up
+- A web hosting service (Glitch, Netlify, Vercel, etc.)
+- Your Trello API key and token (from above)
+- Basic knowledge of web hosting
+
+#### Step 1: Deploy the Power-Up
+
+**Option A: Deploy to Glitch (Recommended for beginners)**
+
+1. Go to [https://glitch.com](https://glitch.com)
+2. Create a new project
+3. Upload all files from the `trello-powerup/` directory
+4. Glitch will provide you with a URL like `https://your-project.glitch.me`
+5. Note this URL - you'll need it for the next steps
+
+**Option B: Deploy to Netlify**
+
+1. Go to [https://netlify.com](https://netlify.com)
+2. Create a new site from Git or drag and drop the `trello-powerup/` folder
+3. Netlify will provide you with a URL like `https://your-site.netlify.app`
+4. Note this URL for the next steps
+
+**Option C: Deploy to Vercel**
+
+1. Go to [https://vercel.com](https://vercel.com)
+2. Import your project from Git or upload the `trello-powerup/` folder
+3. Vercel will provide you with a URL like `https://your-project.vercel.app`
+4. Note this URL for the next steps
+
+#### Step 2: Update Power-Up Configuration
+
+1. **Edit the manifest.json file** in your deployed power-up
+2. **Replace placeholder URLs** with your actual hosting URL:
+
+```json
+{
+  "homepage": "https://your-actual-domain.com",
+  "icon": {
+    "url": "https://your-actual-domain.com/icon.png",
+    "url@2x": "https://your-actual-domain.com/icon@2x.png"
+  },
+  "connectors": {
+    "iframe": {
+      "url": "https://your-actual-domain.com/index.html"
+    }
+  }
+}
+```
+
+#### Step 3: Create Required Icons
+
+Create and upload these icon files to your hosting service:
+
+- **icon.png** (128x128 pixels) - Main power-up icon
+- **icon@2x.png** (256x256 pixels) - High-resolution icon
+- **mcp-icon.png** (32x32 pixels) - Small icon for buttons
+
+#### Step 4: Register with Trello
+
+1. **Go to Trello Power-Ups**
+   - Visit [https://trello.com/power-ups](https://trello.com/power-ups)
+   - Click "Build a Power-Up"
+
+2. **Upload Your Manifest**
+   - Upload your updated `manifest.json` file
+   - Fill in the required information about your power-up
+
+3. **Submit for Review**
+   - Follow Trello's approval process
+   - This may take a few days to weeks depending on Trello's review queue
+
+#### Step 5: Configure Power-Up Settings
+
+Once approved, configure the power-up in Trello:
+
+1. **MCP Server URL**: URL where your Trello MCP Server is running
+2. **API Key**: Your Trello API key (from Step 1 above)
+3. **API Token**: Your Trello API token (from Step 2 above)
+
+### Power-Up Capabilities
+
+The power-up supports these Trello capabilities:
+
+- **attachment-sections**: Show MCP-related attachments
+- **attachment-thumbnails**: Display attachment previews  
+- **board-buttons**: Add MCP tools to board header
+- **card-badges**: Show MCP status on cards
+- **card-buttons**: Add MCP actions to cards
+- **card-detail-badges**: Display card analytics
+- **card-from-url**: Create cards from MCP URLs
+- **format-url**: Format MCP URLs
+- **show-authorization**: Handle API authentication
+- **show-settings**: Display configuration options
+
 ## Installation
 
 ### Prerequisites
 - Python 3.8 or higher
 - Trello account with API access
-- Trello API key and token
+- Trello API key and token (see setup section above)
 
 ### Setup
 
@@ -162,12 +289,9 @@ uv run python trello_mcp/mcp_server.py
    BASE_PATH=/path/to/attachments
    ```
 
-4. **Get your Trello API credentials**
-   - Go to [Trello API Keys](https://trello.com/app-key)
-   - Copy your API Key and use it as `TRELLO_API_KEY`
-   - Generate a token by visiting: `https://trello.com/1/authorize?expiration=never&scope=read,write&response_type=token&name=Trello%20MCP%20Server&key=YOUR_API_KEY`
-   - Replace `YOUR_API_KEY` with your actual API key
-   - Use the generated token as `TRELLO_API_TOKEN`
+4. **Use your Trello API credentials**
+   - Use the API key and token you obtained in the setup section above
+   - Copy them into your `.env` file
 
 ## Usage
 
@@ -621,11 +745,7 @@ For testing, use these notification IDs that have associated entities:
 
 ### Trello API Setup
 
-1. Go to [Trello API Keys](https://trello.com/app-key)
-2. Copy your API Key and use it as `TRELLO_API_KEY`
-3. Generate a token by visiting: `https://trello.com/1/authorize?expiration=never&scope=read,write&response_type=token&name=Trello%20MCP%20Server&key=YOUR_API_KEY`
-4. Replace `YOUR_API_KEY` with your actual API key
-5. Use the generated token as `TRELLO_API_TOKEN`
+For detailed API key and token setup instructions, see the [API Key & Power-Up Setup](#-api-key--power-up-setup) section above.
 
 ## Development
 
